@@ -3944,5 +3944,184 @@ document.addEventListener('DOMContentLoaded',()=>{
 })();
 </script>
 
+
+<!-- Firebase SPHERA: autentificare reală și sincronizare live -->
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+<script>
+(function(){
+  'use strict';
+  const firebaseConfig={
+    apiKey:'AIzaSyC6o2tlEqaa7A4KW6bDwo5skjGDIJxbMZU',
+    authDomain:'avvero-sphera.firebaseapp.com',
+    projectId:'avvero-sphera',
+    storageBucket:'avvero-sphera.firebasestorage.app',
+    messagingSenderId:'254143318366',
+    appId:'1:254143318366:web:d07159bae6ead2f29467cf',
+    measurementId:'G-TT6FZ1YREH'
+  };
+  if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+  const auth=firebase.auth();
+  const db=firebase.firestore();
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+
+  const SHARED_REF=db.collection('appData').doc('shared');
+  const CLOUD_KEYS=['rx_orders','sphera_user_clients','sphera_v19_centers','sphera_v19_indices','sphera_v19_materials','sphera_v19_products','sphera_v19_treatments'];
+  let cloudReady=false, applyingRemote=false, saveTimer=null, unsubscribeShared=null, unsubscribeUsers=null;
+
+  function setCloudStatus(text,type){
+    let el=document.getElementById('spheraCloudStatus');
+    if(!el){
+      el=document.createElement('div'); el.id='spheraCloudStatus';
+      el.style.cssText='position:fixed;right:16px;bottom:16px;z-index:9999;padding:9px 13px;border-radius:999px;font:700 11px Montserrat,Arial;background:#fff;border:1px solid #d0d5dd;box-shadow:0 10px 28px rgba(16,24,40,.12)';
+      document.body.appendChild(el);
+    }
+    el.textContent=text;
+    el.style.color=type==='ok'?'#067647':type==='error'?'#b42318':'#344054';
+    el.style.borderColor=type==='ok'?'#abefc6':type==='error'?'#fecdca':'#d0d5dd';
+    el.style.background=type==='ok'?'#ecfdf3':type==='error'?'#fef3f2':'#fff';
+  }
+  function showLogin(){
+    document.body.classList.add('login-active');
+    const l=document.getElementById('loginScreen'),a=document.getElementById('appScreen');
+    if(l){l.hidden=false;l.classList.remove('hide');l.style.setProperty('display','grid','important');}
+    if(a){a.hidden=true;a.classList.add('hide');a.style.setProperty('display','none','important');}
+  }
+  function showApp(){
+    document.body.classList.remove('login-active');
+    const l=document.getElementById('loginScreen'),a=document.getElementById('appScreen');
+    if(l){l.hidden=true;l.classList.add('hide');l.style.setProperty('display','none','important');}
+    if(a){a.hidden=false;a.classList.remove('hide');a.style.setProperty('display','block','important');}
+  }
+  function cleanUsername(v){return String(v||'').trim().toLowerCase().replace(/\s+/g,'').replace(/[^a-z0-9._-]/g,'');}
+  function normalizeRole(v){
+    const r=String(v||'').toLowerCase();
+    if(r==='admin'||r==='administrator')return 'admin';
+    if(r==='iasi'||r==='operator-master'||r==='operator master'||r==='master')return 'iasi';
+    return 'operator';
+  }
+  async function findProfile(user,username){
+    let snap=await db.collection('users').doc(user.uid).get();
+    if(snap.exists)return {id:snap.id,...snap.data()};
+    for(const [field,value] of [['email',user.email],['username',username]]){
+      if(!value)continue;
+      const q=await db.collection('users').where(field,'==',value).limit(1).get();
+      if(!q.empty)return {id:q.docs[0].id,...q.docs[0].data()};
+    }
+    return null;
+  }
+  function profileToCurrent(profile,user,username){
+    return {
+      uid:user.uid,
+      email:user.email||'',
+      username:cleanUsername(profile?.username||username||String(user.email||'').split('@')[0]),
+      name:profile?.displayName||profile?.name||profile?.fullName||cleanUsername(username),
+      role:normalizeRole(profile?.role),
+      center:profile?.center||profile?.centru||'',
+      operatorCode:String(profile?.operatorCode||profile?.code||'00').padStart(2,'0'),
+      active:profile?.active!==false
+    };
+  }
+  function parseStored(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch(e){return fallback}}
+  function collectShared(){return {
+    orders:typeof orders!=='undefined'?orders:parseStored('rx_orders',[]),
+    clients:parseStored('sphera_user_clients',[]),
+    centers:typeof CENTERS!=='undefined'?CENTERS:parseStored('sphera_v19_centers',[]),
+    indices:typeof INDICES!=='undefined'?INDICES:parseStored('sphera_v19_indices',[]),
+    materials:typeof MATERIALS!=='undefined'?MATERIALS:parseStored('sphera_v19_materials',[]),
+    products:typeof PRODUCTS!=='undefined'?PRODUCTS:parseStored('sphera_v19_products',{}),
+    treatments:typeof TREATMENTS!=='undefined'?TREATMENTS:parseStored('sphera_v19_treatments',[]),
+    updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
+    updatedBy:auth.currentUser?.uid||''
+  }}
+  function applyShared(data){
+    applyingRemote=true;
+    try{
+      if(Array.isArray(data.orders)){orders=data.orders;localStorage.setItem('rx_orders',JSON.stringify(data.orders));}
+      if(Array.isArray(data.clients))localStorage.setItem('sphera_user_clients',JSON.stringify(data.clients));
+      if(Array.isArray(data.centers)){CENTERS=data.centers;localStorage.setItem('sphera_v19_centers',JSON.stringify(data.centers));}
+      if(Array.isArray(data.indices)){INDICES=data.indices;window.INDICES=INDICES;localStorage.setItem('sphera_v19_indices',JSON.stringify(data.indices));}
+      if(Array.isArray(data.materials)){MATERIALS=data.materials;window.MATERIALS=MATERIALS;localStorage.setItem('sphera_v19_materials',JSON.stringify(data.materials));}
+      if(data.products&&typeof data.products==='object'){PRODUCTS=data.products;localStorage.setItem('sphera_v19_products',JSON.stringify(data.products));}
+      if(Array.isArray(data.treatments)){TREATMENTS=data.treatments;window.TREATMENTS=TREATMENTS;localStorage.setItem('sphera_v19_treatments',JSON.stringify(data.treatments));}
+      if(typeof render==='function')render();
+      if(typeof renderProcessingOrders==='function')renderProcessingOrders();
+      if(typeof renderClients==='function')renderClients();
+    }finally{setTimeout(()=>{applyingRemote=false},0)}
+  }
+  function scheduleCloudSave(){
+    if(!cloudReady||applyingRemote||!auth.currentUser)return;
+    clearTimeout(saveTimer); setCloudStatus('Cloud: se salvează','wait');
+    saveTimer=setTimeout(async()=>{try{await SHARED_REF.set(collectShared(),{merge:true});setCloudStatus('Cloud: sincronizat','ok')}catch(e){console.error(e);setCloudStatus('Cloud: eroare salvare','error')}},250);
+  }
+  function startSharedSync(){
+    if(unsubscribeShared)unsubscribeShared();
+    unsubscribeShared=SHARED_REF.onSnapshot(async snap=>{
+      if(!snap.exists){await SHARED_REF.set(collectShared(),{merge:true});cloudReady=true;setCloudStatus('Cloud: sincronizat','ok');return;}
+      applyShared(snap.data()||{});cloudReady=true;setCloudStatus('Cloud: conectat','ok');
+    },e=>{console.error(e);setCloudStatus('Cloud: acces refuzat','error')});
+  }
+  function startUsersSync(){
+    if(unsubscribeUsers)unsubscribeUsers();
+    unsubscribeUsers=db.collection('users').onSnapshot(snap=>{
+      USERS=snap.docs.map(d=>{const x=d.data()||{};return {uid:d.id,username:cleanUsername(x.username||String(x.email||'').split('@')[0]),name:x.displayName||x.name||x.fullName||x.username||'Utilizator',role:normalizeRole(x.role),center:x.center||x.centru||'',operatorCode:String(x.operatorCode||x.code||'00').padStart(2,'0'),active:x.active!==false,email:x.email||''}});
+      if(typeof renderUsersAdmin==='function')renderUsersAdmin();
+    });
+  }
+
+  const originalSetItem=localStorage.setItem.bind(localStorage);
+  localStorage.setItem=function(key,value){originalSetItem(key,value);if(CLOUD_KEYS.includes(String(key)))scheduleCloudSave()};
+  const oldSave=window.save; if(typeof oldSave==='function')window.save=function(){const r=oldSave.apply(this,arguments);scheduleCloudSave();return r};
+  const oldSaveNom=window.saveNomenclators;if(typeof oldSaveNom==='function')window.saveNomenclators=function(){const r=oldSaveNom.apply(this,arguments);scheduleCloudSave();return r};
+
+  window.doLogin=async function(){
+    const userEl=document.getElementById('user'),passEl=document.getElementById('pass'),err=document.getElementById('loginErr'),btn=document.getElementById('loginBtn');
+    const username=cleanUsername(userEl?.value),password=String(passEl?.value||'');
+    if(!username||!password){if(err)err.textContent='Completează utilizatorul și parola.';return false}
+    if(btn){btn.disabled=true;btn.textContent='Se autentifică...'} if(err)err.textContent='';
+    const candidates=[username+'@avvero.ro'];
+    if(username==='administrator')candidates.push('io.catrinoiu@gmail.com');
+    let credential=null,lastError=null;
+    for(const email of candidates){try{credential=await auth.signInWithEmailAndPassword(email,password);break}catch(e){lastError=e}}
+    if(!credential){if(err)err.textContent='Utilizator sau parolă incorectă.';if(btn){btn.disabled=false;btn.textContent='Intră în aplicație'};return false}
+    try{
+      const profile=await findProfile(credential.user,username);
+      currentUser=profileToCurrent(profile,credential.user,username);
+      if(!currentUser.active){await auth.signOut();throw new Error('Contul este dezactivat.')}
+      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startUsersSync();setCloudStatus('Cloud: conectare...','wait');
+    }catch(e){if(err)err.textContent=e.message||'Profilul utilizatorului nu poate fi încărcat.';await auth.signOut();showLogin()}
+    if(btn){btn.disabled=false;btn.textContent='Intră în aplicație'};
+    return false;
+  };
+  window.logout=async function(){cloudReady=false;if(unsubscribeShared)unsubscribeShared();if(unsubscribeUsers)unsubscribeUsers();await auth.signOut();currentUser=null;showLogin();setCloudStatus('Cloud: deconectat','wait')};
+
+  window.renderUsersAdmin=function(){
+    const box=document.getElementById('usersAdminList');if(!box)return;
+    const q=cleanUsername(document.getElementById('userAdminSearch')?.value||'');
+    const rows=(USERS||[]).filter(u=>!q||[u.name,u.username,u.center,u.operatorCode,roleLabel(u.role)].join(' ').toLowerCase().includes(q));
+    const count=document.getElementById('userAdminCount');if(count)count.textContent=String(rows.length);
+    box.innerHTML=rows.map(u=>`<div class="user-row"><div><b>${esc(u.name||u.username)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" disabled aria-label="Utilizator"><input value="Parola este gestionată securizat" disabled aria-label="Parolă"><input class="user-code-input" value="${esc(u.operatorCode||'00')}" disabled><select disabled><option>${esc(roleLabel(u.role))}</option></select><select disabled><option>${esc(u.center||'Fără centru')}</option></select><span></span></div>`).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori.</div>';
+  };
+
+  auth.onAuthStateChanged(async user=>{
+    if(!user){showLogin();setCloudStatus('Cloud: neautentificat','wait');return}
+    try{
+      const username=cleanUsername(String(user.email||'').split('@')[0]);
+      const profile=await findProfile(user,username);
+      currentUser=profileToCurrent(profile,user,username);
+      if(!currentUser.active){await auth.signOut();return}
+      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startUsersSync();
+    }catch(e){console.error(e);setCloudStatus('Cloud: eroare profil','error');showLogin()}
+  });
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    localStorage.removeItem('sphera_remembered_pass');
+    const pass=document.getElementById('pass');if(pass)pass.value='';
+    const btn=document.getElementById('loginBtn');if(btn){btn.onclick=()=>window.doLogin();}
+  });
+})();
+</script>
+
 </body>
 </html>
