@@ -1034,6 +1034,165 @@ html,
 #orderFilterCount{min-width:34px;height:34px;border-radius:999px;padding:0 10px;display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;}
 
 .count-dot{min-width:34px;height:34px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;padding:0 10px;font-weight:900;}
+
+/* SPHERA v42, roluri și administrare utilizatori */
+.user-admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.user-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.user-row{display:grid;grid-template-columns:1.15fr 1fr 1fr 1fr 1fr auto;gap:10px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:16px;background:#fff}.user-row input,.user-row select{min-width:0}.user-meta{font-size:12px;color:var(--muted);margin-top:4px}.account-badge{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:7px 11px;background:#e8f0ff;color:#165dff;font-size:12px;font-weight:800}.restricted-action{display:none!important}
+@media(max-width:1000px){.user-admin-grid,.user-form-grid{grid-template-columns:1fr}.user-row{grid-template-columns:1fr}.user-row .icon-btn{justify-self:end}}
+
+/* SPHERA v42, salut, memorare login si comenzi intarziate */
+.remember-row{width:100%;display:flex;align-items:center;gap:10px;margin:2px 0 10px;color:#344054;font-size:13px;font-weight:700;text-align:left}
+.remember-row input{width:18px !important;height:18px !important;min-width:18px !important;margin:0 !important;padding:0 !important;accent-color:#165dff;box-shadow:none !important}
+#accountBadge{display:none !important}
+.grid.dashboard-stats{grid-template-columns:repeat(5,minmax(0,1fr)) !important}
+.delayed-order td{color:#d92d20 !important;font-weight:800 !important}
+.delayed-order .status-cell,.delayed-order .delete-cell{color:inherit !important}
+.delayed-order .status-cell button,.delayed-order .delete-cell button{font-weight:normal !important}
+@media(max-width:1200px){.grid.dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr)) !important}}
+@media(max-width:700px){.grid.dashboard-stats{grid-template-columns:1fr !important}}
+
+
+/* SPHERA user popup și validare ADD */
+.user-dialog{width:min(760px,96vw)!important}.user-dialog .icon-btn{font-size:25px;background:#fff!important;color:#344054!important;border:1px solid #e4e7ec!important;box-shadow:none!important}.user-dialog .icon-btn:hover{background:#e8f0ff!important;color:#165dff!important}.rx-add-field.invalid{border-color:#f04438!important;box-shadow:0 0 0 3px rgba(240,68,56,.10)!important}
+
+.logout-icon{background:#fff !important;color:#344054 !important;border:1px solid #e4e7ec !important;box-shadow:none !important;}
+.logout-icon svg{width:20px !important;height:20px !important;stroke:currentColor !important;}
+.logout-icon:hover{background:#e8f0ff !important;color:#165dff !important;border-color:#b7ccff !important;}
+
+/* SPHERA v55, centru procesare, filtrare dioptrii și ștergere pentru toate conturile */
+#ordersListBox table{table-layout:fixed !important;width:100% !important;min-width:1120px !important;}
+#ordersListBox th,#ordersListBox td{padding:10px 7px !important;}
+#ordersListBox th:nth-child(1),#ordersListBox td:nth-child(1){width:12.5% !important;}
+#ordersListBox th:nth-child(2),#ordersListBox td:nth-child(2){width:9.5% !important;}
+#ordersListBox th:nth-child(3),#ordersListBox td:nth-child(3){width:11% !important;}
+#ordersListBox th:nth-child(4),#ordersListBox td:nth-child(4){width:21% !important;}
+#ordersListBox th:nth-child(5),#ordersListBox td:nth-child(5){width:9.5% !important;}
+#ordersListBox th:nth-child(6),#ordersListBox td:nth-child(6){width:9.5% !important;}
+#ordersListBox th:nth-child(7),#ordersListBox td:nth-child(7){width:5.5% !important;}
+#ordersListBox th:nth-child(8),#ordersListBox td:nth-child(8){width:12% !important;}
+#ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:4.5% !important;text-align:center !important;overflow:visible !important;}
+#ordersListBox th:nth-child(10),#ordersListBox td:nth-child(10){width:4.5% !important;text-align:center !important;overflow:visible !important;}
+#ordersListBox .table-wrap{overflow-x:auto !important;}
+@media(max-width:900px){#ordersListBox table{min-width:1120px !important;}}
+
+/* SPHERA final, antet tabel și evidențiere căutare */
+#ordersListBox thead th{
+  font-family:"Montserrat",Arial,sans-serif !important;
+  font-size:12px !important;
+  line-height:1.2 !important;
+  font-weight:800 !important;
+  color:#667085 !important;
+  text-transform:uppercase !important;
+  letter-spacing:0 !important;
+  white-space:nowrap !important;
+}
+.search-hit{
+  background:#fff0a8;
+  color:inherit;
+  border-radius:4px;
+  padding:0 2px;
+  font-weight:900;
+}
+
+
+/* SPHERA v53, rafinare tabel si cautare RX */
+.search-hit{
+  background:transparent !important;
+  color:#b7791f !important;
+  font-weight:800 !important;
+  padding:0 !important;
+  border-radius:0 !important;
+}
+#ordersListBox th{
+  font-weight:600 !important;
+  letter-spacing:.01em !important;
+  text-overflow:clip !important;
+}
+#ordersListBox th:nth-child(1),#ordersListBox td:nth-child(1){width:13.5% !important;}
+#ordersListBox th:nth-child(2),#ordersListBox td:nth-child(2){width:11.5% !important;}
+#ordersListBox th:nth-child(3),#ordersListBox td:nth-child(3){width:11% !important;}
+#ordersListBox th:nth-child(4),#ordersListBox td:nth-child(4){width:20% !important;}
+#ordersListBox th:nth-child(5),#ordersListBox td:nth-child(5){width:9% !important;}
+#ordersListBox th:nth-child(6),#ordersListBox td:nth-child(6){width:9% !important;}
+#ordersListBox th:nth-child(7),#ordersListBox td:nth-child(7){width:5.5% !important;}
+#ordersListBox th:nth-child(8),#ordersListBox td:nth-child(8){width:11% !important;}
+#ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:4.5% !important;}
+#ordersListBox th:nth-child(10),#ordersListBox td:nth-child(10){width:5% !important;}
+#ordersListBox th:nth-child(2){
+  white-space:nowrap !important;
+  overflow:visible !important;
+  font-size:11px !important;
+  font-weight:600 !important;
+}
+#ordersListBox td:nth-child(1) b{
+  font-size:14px !important;
+  font-weight:950 !important;
+  letter-spacing:.015em !important;
+}
+
+
+/* SPHERA v56, butoane listă, antet uniform și relevanță căutare */
+.list-toggle{width:42px !important;height:42px !important;min-width:42px !important;border-radius:999px !important;background:#fff !important;color:#165dff !important;border:1px solid #d7e1f2 !important;box-shadow:0 8px 18px rgba(16,24,40,.07) !important;padding:0 !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;}
+.list-toggle:hover{background:#e8f0ff !important;color:#165dff !important;border-color:#b7ccff !important;}
+.toggle-chevron{width:24px;height:24px;display:block;transition:transform .18s ease;}
+.toggle-chevron svg{width:24px;height:24px;display:block;stroke:currentColor;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+#ordersListBox thead th{font-family:"Montserrat",Arial,sans-serif !important;font-size:12px !important;font-weight:700 !important;letter-spacing:0 !important;text-transform:uppercase !important;color:#5f6f87 !important;white-space:nowrap !important;}
+.mount-choice{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}.mount-choice button{min-height:50px}.mount-choice button.active{background:#165dff !important;color:#fff !important;border-color:#165dff !important}.mount-center-wrap{margin-top:16px}
+#ordersListBox thead th{font-family:"Montserrat",Arial,sans-serif !important;font-size:12px !important;font-weight:700 !important;letter-spacing:0 !important;text-transform:uppercase !important;color:#667085 !important;white-space:nowrap !important;}
+#ordersListBox thead th:nth-child(2){font-weight:700 !important;}
+#ordersListBox tbody td:first-child b{font-size:13.5px !important;font-weight:900 !important;letter-spacing:.1px !important;}
+
+/* SPHERA v57, antet tabel uniform, coduri lizibile și ADD rotunjit */
+#ordersListBox thead th,
+#ordersListBox thead th:nth-child(2){
+  font-family:"Montserrat",Arial,sans-serif !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  line-height:1.2 !important;
+  letter-spacing:0 !important;
+  text-transform:uppercase !important;
+  color:#667085 !important;
+  white-space:nowrap !important;
+}
+#ordersListBox tbody td:first-child b{
+  font-size:15px !important;
+  font-weight:700 !important;
+  letter-spacing:.01em !important;
+}
+
+
+/* SPHERA workflow procesare */
+#ordersListBox thead th{font-size:12.5px!important;font-weight:650!important;letter-spacing:0!important}
+#ordersListBox tbody td:first-child b{font-size:15px!important;font-weight:700!important;letter-spacing:.15px!important}
+.workflow-list{display:grid;gap:14px}
+.workflow-order{background:#fff;border:1px solid #e4e7ec;border-radius:20px;padding:18px;box-shadow:0 12px 32px rgba(16,24,40,.06);cursor:pointer;transition:.18s}.workflow-order:hover{border-color:#b7ccff;box-shadow:0 18px 42px rgba(16,24,40,.10)}
+.workflow-head{display:grid;grid-template-columns:1.4fr .7fr .85fr 1.5fr;gap:14px;align-items:start;margin-bottom:18px}
+.workflow-label{font-size:11px;font-weight:700;text-transform:uppercase;color:#667085;margin-bottom:5px}
+.workflow-value{font-size:14px;font-weight:650;color:#101828;line-height:1.35}
+.workflow-code{font-size:15px;font-weight:750}
+.workflow-track{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:0;position:relative;padding-top:6px;width:100%}
+.workflow-track:before{content:"";position:absolute;left:6%;right:6%;top:20px;height:4px;background:#e8edf5;border-radius:999px}
+.workflow-progress{position:absolute;left:6%;top:20px;height:4px;background:#165dff;border-radius:999px;transition:.2s;width:0}
+.workflow-step{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:8px;border:0;background:transparent;color:#667085;font-size:12px;font-weight:700;padding:0 4px;box-shadow:none!important}
+.workflow-step:hover{transform:none!important;background:transparent!important;color:#165dff!important}
+.workflow-dot{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:#eef2f6;border:2px solid #d0d5dd;color:#667085;font-size:12px;font-weight:800}
+.workflow-step.done .workflow-dot,.workflow-step.active .workflow-dot{background:#165dff;border-color:#165dff;color:#fff}
+.workflow-step.active{color:#165dff}
+.workflow-step:disabled{cursor:default;opacity:1}
+.workflow-readonly{margin-top:12px;font-size:12px;color:#667085;text-align:right}
+@media(max-width:900px){.workflow-head{grid-template-columns:1fr 1fr}.workflow-order{overflow-x:auto}.workflow-track{min-width:900px}}
+
+.processing-filters{display:flex;align-items:center;gap:12px;margin-bottom:16px;padding:14px 16px !important}
+.processing-filters input{flex:1}
+.workflow-head.no-notes{grid-template-columns:2fr 1fr 1.2fr}
+.workflow-track{min-width:900px}
+@media(max-width:900px){.processing-filters{align-items:stretch}.workflow-head.no-notes{grid-template-columns:1fr 1fr}.workflow-track{min-width:900px}}
+
+/* vNext: livrare, cod RX și acces admin */
+.workflow-head{grid-template-columns:minmax(150px,1fr) minmax(180px,1.35fr) minmax(120px,.75fr) minmax(130px,.85fr) minmax(180px,1.1fr) minmax(160px,1fr)!important;gap:16px!important}
+.workflow-rx-code{font-size:16px!important;font-weight:800!important;letter-spacing:.25px!important;color:#0b2230!important}
+.delivery-client{display:inline-flex!important;align-items:center!important;padding:6px 10px!important;border-radius:999px!important;background:#fff4cc!important;color:#8a5a00!important;font-weight:850!important}
+#generatedCodeInput{font-size:34px!important;font-weight:850!important;letter-spacing:1.2px!important;min-height:66px!important}
+@media(max-width:1050px){.workflow-head{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 </style>
 </head>
 <body>
@@ -1055,6 +1214,7 @@ html,
       <p class="login-platform">Introdu datele pentru accesarea aplicației.</p>
       <input id="user" class="login-password login-username" autocomplete="username" placeholder="Utilizator" autofocus>
       <input id="pass" class="login-password" type="password" autocomplete="current-password" placeholder="Parolă">
+      <label class="remember-row"><input id="rememberMe" type="checkbox">Ține-mă minte</label>
       <button id="loginBtn" type="button" class="login-enter-btn" onclick="doLogin()">Intră în aplicație</button>
       <div id="loginErr" class="login-note"></div>
     </div>
@@ -1067,33 +1227,36 @@ html,
    <div class="brand-menu"><div class="logo-wrap"><img class="avvero-logo" src="data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPCFET0NUWVBFIHN2ZyBQVUJMSUMgIi0vL1czQy8vRFREIFNWRyAxLjEvL0VOIiAiaHR0cDovL3d3dy53My5vcmcvR3JhcGhpY3MvU1ZHLzEuMS9EVEQvc3ZnMTEuZHRkIj4KPCEtLSBDcmVhdG9yOiBDb3JlbERSQVcgKE9FTSBWZXJzaW9uKSAtLT4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbDpzcGFjZT0icHJlc2VydmUiIHdpZHRoPSIyMTBtbSIgaGVpZ2h0PSIyOTdtbSIgdmVyc2lvbj0iMS4xIiBzdHlsZT0ic2hhcGUtcmVuZGVyaW5nOmdlb21ldHJpY1ByZWNpc2lvbjsgdGV4dC1yZW5kZXJpbmc6Z2VvbWV0cmljUHJlY2lzaW9uOyBpbWFnZS1yZW5kZXJpbmc6b3B0aW1pemVRdWFsaXR5OyBmaWxsLXJ1bGU6ZXZlbm9kZDsgY2xpcC1ydWxlOmV2ZW5vZGQiCnZpZXdCb3g9IjAgMCAyMTAwMCAyOTcwMCIKIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIgogeG1sbnM6eG9kbT0iaHR0cDovL3d3dy5jb3JlbC5jb20vY29yZWxkcmF3L29kbS8yMDAzIj4KIDxkZWZzPgogIDxzdHlsZSB0eXBlPSJ0ZXh0L2NzcyI+CiAgIDwhW0NEQVRBWwogICAgLmZpbDQge2ZpbGw6IzU1QzBENjtmaWxsLXJ1bGU6bm9uemVyb30KICAgIC5maWwzIHtmaWxsOiM2RjNDOEQ7ZmlsbC1ydWxlOm5vbnplcm99CiAgICAuZmlsNSB7ZmlsbDojMTdBMUJGO2ZpbGwtcnVsZTpub256ZXJvfQogICAgLmZpbDIge2ZpbGw6IzExN0E5RDtmaWxsLXJ1bGU6bm9uemVyb30KICAgIC5maWwwIHtmaWxsOiMyNzMzMzg7ZmlsbC1ydWxlOm5vbnplcm99CiAgICAuZmlsMSB7ZmlsbDojMDBBMEUzO2ZpbGwtcnVsZTpub256ZXJvfQogICBdXT4KICA8L3N0eWxlPgogPC9kZWZzPgogPGcgaWQ9IkxheWVyX3gwMDIwXzEiPgogIDxtZXRhZGF0YSBpZD0iQ29yZWxDb3JwSURfMENvcmVsLUxheWVyIi8+CiAgPHBhdGggY2xhc3M9ImZpbDAiIGQ9Ik02ODI1LjM2IDE3OTM1LjYxYzAsMTM3LjQxIDgzLjEyLDIwNi4wMiAyNDkuMzksMjA2LjAybDMwMy42NSAwIDAgLTQxMi4wNyAtMzAzLjY1IDBjLTE2Ni4yNywwIC0yNDkuMzksNjguNjcgLTI0OS4zOSwyMDYuMDV6bTU1My4wNCAtMzU3LjljMCwtMTA0LjA3IC0yNy4xMSwtMTgwLjY5IC04MS4zMSwtMjI5Ljg3IC01NC4yNCwtNDkuMSAtMTI0LjcsLTczLjczIC0yMTEuNDgsLTczLjczIC02NS4wNCwwIC0xMjguNjksOS43NyAtMTkwLjg1LDI5LjIyIC02Mi4yLDE5LjU2IC0xMTcuODQsNDUuOTMgLTE2Nyw3OS4yMmwtNzUuOSAtMTMwLjE3YzMxLjc3LC0yMS42NiA2Ni44NiwtNDAuNDMgMTA1LjIyLC01Ni4zOCAzOC4yNiwtMTUuOSA3Ny42NiwtMjkuMjggMTE4LjE4LC00MC4xNCA0MC40NCwtMTAuNzkgODAuNTQsLTE5LjEyIDEyMC4zNSwtMjQuOTQgMzkuNzUsLTUuNzUgNzYuOTgsLTguNjEgMTExLjcyLC04LjYxIDkyLjQ3LDAgMTc0LjIsMTAuNzYgMjQ1LjA3LDMyLjQ5IDcwLjc5LDIxLjY5IDEzMC44Niw1Mi44MSAxODAsOTMuMjQgNDkuMTQsNDAuNTQgODYuMzgsODguNjIgMTExLjczLDE0NC4yNSAyNS4yNSw1NS42NyAzNy45MywxMTcuNDggMzcuOTMsMTg1LjQybDAgNzE1Ljc1IC02MDcuMzEgMGMtMTk2LjYxLDAgLTM0MS41NywtMjkuNiAtNDM0LjgxLC04OC45NyAtOTMuMjksLTU5LjIgLTEzOS45MSwtMTQ4Ljg3IC0xMzkuOTEsLTI2OC44OCAwLC0xMjAuMDMgNDYuNjIsLTIwOS42NyAxMzkuOTEsLTI2OC45NiA5My4yNCwtNTkuMjcgMjM4LjIsLTg4Ljk0IDQzNC44MSwtODguOTRsMzAzLjY1IDB6Ii8+CiAgPHBvbHlnb24gY2xhc3M9ImZpbDAiIHBvaW50cz0iODc1OC43NiwxODI5My40NiA4MjgxLjYzLDE4MjkzLjQ2IDc4NDcuODEsMTcxNjUuNTkgODE1MS40NiwxNzE2NS41OSA4NTA5LjM2LDE4MTA5LjExIDg1MzEuMDIsMTgxMDkuMTEgODg4OC44NiwxNzE2NS41OSA5MTkyLjUzLDE3MTY1LjU5ICIvPgogIDxwb2x5Z29uIGNsYXNzPSJmaWwwIiBwb2ludHM9IjEwMjE0Ljk5LDE4MjkzLjQ2IDk3MzcuODQsMTgyOTMuNDYgOTMwNC4wMSwxNzE2NS41OSA5NjA3LjY2LDE3MTY1LjU5IDk5NjUuNTcsMTgxMDkuMTEgOTk4Ny4yNCwxODEwOS4xMSAxMDM0NS4xLDE3MTY1LjU5IDEwNjQ4LjczLDE3MTY1LjU5ICIvPgogIDxwYXRoIGNsYXNzPSJmaWwwIiBkPSJNMTEzODcuNyAxNzI2My4yNGMtNDEuOTEsMCAtODAuOTcsNy45NSAtMTE3LjA2LDIzLjg1IC0zNi4xNiwxNS45MiAtNjcuNjYsNDEuMjEgLTk0LjM2LDc1LjkyIC0yNi43OCwzNC42OCAtNDguNTEsNzkuNTUgLTY1LjEzLDEzNC40OCAtMTYuNTgsNTQuOTYgLTI1LjY0LDEyMS40MiAtMjcuMDUsMTk5LjUzbDYwNy4yNyAwYzAsLTc1LjE1IC04LjY4LC0xNDAuMjMgLTI2LjA0LC0xOTUuMjMgLTE3LjM5LC01NC44OSAtNDAuMTQsLTEwMC4wOSAtNjguMzMsLTEzNS41IC0yOC4xOSwtMzUuNDYgLTYwLjcxLC02MS40OSAtOTcuNTgsLTc4LjA3IC0zNi44NiwtMTYuNjQgLTc0LjE1LC0yNC45OCAtMTExLjcyLC0yNC45OHptNzUuOTEgOTIxLjc4YzcwLjg4LDAgMTM2Ljk5LC0xMi4yOCAxOTguNDQsLTM2Ljg2IDYxLjQ5LC0yNC42MyAxMjEuODUsLTU5LjMxIDE4MS4xMiwtMTA0LjExbDg2Ljc4IDEzMC4xYy0yNy40OCwyNC42IC01OS42NSw0Ny4wMyAtOTYuNTIsNjcuMjEgLTM2Ljg2LDIwLjMyIC03Ni42OSwzNy4yOSAtMTE5LjMxLDUxLjA0IC00Mi42OSwxMy42NiAtODcuMSwyNC41NiAtMTMzLjM4LDMyLjQ5IC00Ni4yNSw3Ljk0IC05Mi41NCwxMS45MiAtMTM4LjgyLDExLjkyIC0xMDIuNjYsMCAtMTk2LjI1LC0xMy4zNiAtMjgwLjgxLC00MC4xIC04NC42MywtMjYuNzQgLTE1Ni41NywtNjUuOCAtMjE1Ljg3LC0xMTcuMTIgLTU5LjI2LC01MS4zIC0xMDUuMTMsLTExNC41OCAtMTM3LjY1LC0xODkuNzkgLTMyLjYsLTc1LjE1IC00OC44NiwtMTYxLjkgLTQ4Ljg2LC0yNjAuMjQgMCwtOTYuODYgMTUuNTYsLTE4My4yOSA0Ni42NywtMjU5LjE2IDMxLjA1LC03NS45NiA3NC40NywtMTM5LjU3IDEzMC4xMSwtMTkwLjg2IDU1LjY2LC01MS4zMyAxMjEuODEsLTkwLjM3IDE5OC40MywtMTE3LjE2IDc2LjYzLC0yNi42OSAxNjEuMjIsLTQwLjA3IDI1My43NiwtNDAuMDcgODYuNzgsMCAxNjguNDUsMTIuOTUgMjQ1LjE0LDM5LjAyIDc2LjU5LDI1Ljk5IDE0My4xMiw2My45NiAxOTkuNSwxMTMuODQgNTYuNDEsNDkuOTEgMTAxLjIxLDExMC4yOCAxMzQuNDgsMTgxLjEyIDMzLjI2LDcwLjg3IDQ5Ljg0LDE1MS4wOSA0OS44NCwyNDAuNzNsMCAxNTEuOCAtOTI2LjA3IDBjMTcuMzUsMTIwLjAyIDU4LjkxLDIwNi4wMiAxMjQuNzQsMjU4LjEyIDY1Ljc2LDUyLjA0IDE0OC41NSw3OC4wOCAyNDguMjgsNzguMDh6Ii8+CiAgPHBhdGggY2xhc3M9ImZpbDAiIGQ9Ik0xMzEyMi44MyAxNzMxNy40NGwtMjYwLjI0IDBjLTk4LjM2LDAgLTE3My41NywyNi40MiAtMjI1LjYsNzkuMTkgLTUyLjA0LDUyLjc4IC03OC4wNCwxMzEuMjQgLTc4LjA0LDIzNS4zNGwwIDY2MS40OSAtMzAzLjY3IDAgMCAtNjYxLjQ5YzAsLTE0Ny41IDQ2LjYsLTI2Mi4xMSAxMzkuOTEsLTM0My43NSA5My4yNCwtODEuNyAyMjcuMywtMTIyLjYzIDQwMi4zNSwtMTIyLjYzbDMyNS4yOSAwIDAgMTUxLjg1eiIvPgogIDxwYXRoIGNsYXNzPSJmaWwwIiBkPSJNMTM4MzguNDggMTgxOTUuODhjNDYuMjgsMCA4OS43MSwtOC43MSAxMzAuMSwtMjYuMDcgNDAuNjQsLTE3LjMyIDc1Ljg1LC00NC40NCAxMDYuMzcsLTgxLjMgMzAuMzMsLTM2LjkxIDU0LjUsLTg0LjkyIDcyLjYsLTE0NC4zIDE4LjA2LC01OS4yIDI3LjIsLTEzMC44IDI3LjIsLTIxNC42NSAwLC04My44MyAtOS4xNCwtMTU1LjQ1IC0yNy4yLC0yMTQuNzIgLTE4LjEsLTU5LjI2IC00Mi4yNywtMTA3LjM3IC03Mi42LC0xNDQuMjQgLTMwLjUyLC0zNi45IC02NS43MywtNjMuOTcgLTEwNi4zNywtODEuMzYgLTQwLjM5LC0xNy4yOCAtODMuODIsLTI2IC0xMzAuMSwtMjYgLTQ2LjI1LDAgLTg5LjcxLDguNzIgLTEzMC4xMSwyNiAtNDAuMzksMTcuMzkgLTc1Ljg0LDQ0LjQ2IC0xMDYuMzksODEuMzYgLTMwLjI3LDM2Ljg3IC01NC40Nyw4NC45OCAtNzIuNTcsMTQ0LjI0IC0xOC4wNiw1OS4yNyAtMjYuOTksMTMwLjg5IC0yNi45OSwyMTQuNzIgMCw4My44NSA4LjkzLDE1NS40NSAyNi45OSwyMTQuNjUgMTguMSw1OS4zOCA0Mi4zLDEwNy4zOSA3Mi41NywxNDQuMyAzMC41NSwzNi44NiA2Niw2My45OCAxMDYuMzksODEuMyA0MC40LDE3LjM2IDgzLjg2LDI2LjA3IDEzMC4xMSwyNi4wN3ptMCAtMTA3My41N2M5Ni45OCwwIDE4Ni4yMywxMy4zOCAyNjcuOTcsNDAuMDcgODEuNDUsMjYuNzkgMTUxLjQ4LDY1LjgzIDIwOS4yMywxMTcuMTYgNTcuNzUsNTEuMjkgMTAzLjA4LDExNC45IDEzNS41LDE5MC44NiAzMi42Myw3NS44NyA0OC44NiwxNjIuMyA0OC44NiwyNTkuMTYgMCw5OC4zNCAtMTYuMjMsMTg1LjA5IC00OC44NiwyNjAuMjQgLTMyLjQyLDc1LjIxIC03Ny43NSwxMzguNDkgLTEzNS41LDE4OS43OSAtNTcuNzUsNTEuMzIgLTEyNy43OCw5MC4zOCAtMjA5LjIzLDExNy4xMiAtODEuNzQsMjYuNzQgLTE3MC45OSw0MC4xIC0yNjcuOTcsNDAuMSAtOTguMzksMCAtMTg3Ljg5LC0xMy4zNiAtMjY4Ljg5LC00MC4xIC04MS4wMywtMjYuNzQgLTE1MC4zMiwtNjUuOCAtMjA4LjMxLC0xMTcuMTIgLTU3Ljc5LC01MS4zIC0xMDIuOTEsLTExNC41OCAtMTM1LjQ0LC0xODkuNzkgLTMyLjU5LC03NS4xNSAtNDguODYsLTE2MS45IC00OC44NiwtMjYwLjI0IDAsLTk2Ljg2IDE2LjI3LC0xODMuMjkgNDguODYsLTI1OS4xNiAzMi41MywtNzUuOTYgNzcuNjUsLTEzOS41NyAxMzUuNDQsLTE5MC44NiA1Ny45OSwtNTEuMzMgMTI3LjI4LC05MC4zNyAyMDguMzEsLTExNy4xNiA4MSwtMjYuNjkgMTcwLjUsLTQwLjA3IDI2OC44OSwtNDAuMDd6Ii8+CiAgPHBhdGggY2xhc3M9ImZpbDEiIGQ9Ik0xMTU1MC41IDEyMDYyLjQ2bDczLjggMTkwLjM1Yy0yMi4yMiwtNjQuMzQgLTQ2Ljg4LC0xMjcuODggLTczLjgsLTE5MC4zNXoiLz4KICA8cGF0aCBjbGFzcz0iZmlsMiIgZD0iTTk0MTAuOTQgMTQxNDIuMDFjLTI0NC40OSwtNjMwLjY2IC0yNDAuMiwtMTI5Ni4zOSAtMzUuMTgsLTE4ODkuMmwtMTM0MC4zNSAzNDU3LjIzYzg0NS4yMiwzMjcuNjYgMTc1My40NSwyMDguNjYgMjQ2NC42MywtMjQxLjg4IC00NzguODksLTMwMy4zOCAtODY4LjQ0LC03NTcuMDUgLTEwODkuMSwtMTMyNi4xNXoiLz4KICA8cGF0aCBjbGFzcz0iZmlsMyIgZD0iTTkzNzUuNzYgMTIyNTIuODFsNzMuODEgLTE5MC4zNWMtMjYuOTQsNjIuNDcgLTUxLjU1LDEyNi4wMSAtNzMuODEsMTkwLjM1eiIvPgogIDxwYXRoIGNsYXNzPSJmaWw0IiBkPSJNMTI5NjQuNjUgMTU3MTAuMDRsLTEzNDAuMzUgLTM0NTcuMjNjMjA1LDU5Mi44NSAyMDkuMzEsMTI1OC41NCAtMzUuMiwxODg5LjIgLTIyMC42Nyw1NjkuMSAtNjEwLjIsMTAyMi43NyAtMTA4OS4wNiwxMzI2LjE1IDcxMS4xNiw0NTAuNTQgMTYxOS40Miw1NjkuNTQgMjQ2NC42MSwyNDEuODh6Ii8+CiAgPHBhdGggY2xhc3M9ImZpbDUiIGQ9Ik0xMTU1MC41IDEyMDYyLjQ2bC0yNzEuMDcgLTY5OS4xOCAtMTU1OC44MSAwIC0yNzEuMDUgNjk5LjE4IC03My44MSAxOTAuMzVjLTIwNS4wMiw1OTIuODEgLTIwOS4zMSwxMjU4LjU0IDM1LjE4LDE4ODkuMiAyMjAuNjYsNTY5LjEgNjEwLjIxLDEwMjIuNzcgMTA4OS4xLDEzMjYuMTUgNDc4Ljg2LC0zMDMuMzggODY4LjM5LC03NTcuMDUgMTA4OS4wNiwtMTMyNi4xNSAyNDQuNTEsLTYzMC42NiAyNDAuMiwtMTI5Ni4zNSAzNS4yLC0xODg5LjJsLTczLjggLTE5MC4zNXoiLz4KIDwvZz4KPC9zdmc+Cg==" alt="Avvero"></div><div class="brand-text"><h1>SPHERA</h1><span>Smart Lenses Ordering</span></div></div>
    <div class="sub">Smart Lenses Ordering</div>
    <div class="menu">
-    <button class="active" onclick="showPage('dashboard',this)"><span>Dashboard</span><span>01</span></button>
-    <button onclick="showPage('clientsPage',this)"><span>Clienți</span><span>02</span></button>
-    <button onclick="showPage('nomenclators',this)"><span>Nomenclatoare</span><span>03</span></button>
-    <button onclick="showPage('settings',this)"><span>Setări</span><span>04</span></button>
+    <button id="menuDashboard" class="active" data-access="basic" onclick="showPage('dashboard',this)"><span>Dashboard</span><span>01</span></button>
+    <button id="menuClients" data-access="basic" onclick="showPage('clientsPage',this)"><span>Clienți</span><span>02</span></button>
+    <button id="menuProcessing" data-access="basic" onclick="showPage('processingPage',this)"><span>Status comenzi</span><span>03</span></button>
+    <button id="menuNomenclators" class="hide" data-access="admin" onclick="showPage('nomenclators',this)"><span>Nomenclatoare</span><span>04</span></button>
+    <button id="menuSettings" class="hide" data-access="admin" onclick="showPage('settings',this)"><span>Setări</span><span>05</span></button>
    </div>
   </aside>
   <main class="main">
     <div class="top">
       <div><h1 id="pageTitle">Dashboard RX</h1><div class="muted" id="who"></div></div>
-      <div class="top-actions"><button class="btn" onclick="openWizard()">Comandă nouă</button><button class="btn" onclick="openNewClientDialog()">Adaugă client</button><button class="btn ghost" onclick="logout()">Logout</button></div>
+      <div class="top-actions"><span id="accountBadge" class="account-badge"></span><button id="newOrderBtn" class="btn" onclick="openWizard()">Comandă nouă</button><button id="newClientBtn" class="btn" onclick="openNewClientDialog()">Adaugă client</button><button id="addUserTopBtn" class="btn hide" data-access="admin" onclick="openUserDialog()">Adaugă utilizator</button><button id="logoutBtn" class="logout-icon" onclick="logout()" title="Logout" aria-label="Logout"><span id="logoutFirstName"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"/></svg></button></div>
     </div>
     <section id="dashboard" class="page">
-      <div class="grid">
+      <div class="grid dashboard-stats">
         <button class="card stat-btn" onclick="showOrdersList('all')"><div class="muted">Comenzi totale</div><div class="kpi" id="kTotal">0</div></button>
         <button class="card stat-btn" onclick="showOrdersList('today')"><div class="muted">Comenzi azi</div><div class="kpi" id="kToday">0</div></button>
         <button class="card stat-btn" onclick="showOrdersList('open')"><div class="muted">Comenzi în lucru</div><div class="kpi" id="kOpen">0</div></button>
+        <button class="card stat-btn" onclick="showOrdersList('delayed')"><div class="muted">Comenzi întârziate</div><div class="kpi" id="kDelayed">0</div></button>
+        <button id="transitDashboardCard" class="card stat-btn" onclick="showOrdersList('transit')"><div class="muted">Comenzi în drum spre tine</div><div class="kpi" id="kTransit">0</div></button>
         <button class="card stat-btn" onclick="showOrdersList('delivered')"><div class="muted">Comenzi livrate</div><div class="kpi" id="kDelivered">0</div></button>
       </div>
       <div class="card" style="margin-top:16px" id="dashboardOrdersCard">
-        <div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Comenzi RX</h2><div class="muted">Toate comenzile pot fi ascunse sau accesate din dashboard.</div></div><button class="btn ghost" onclick="toggleOrdersList()" id="toggleOrdersBtn">Ascunde lista</button></div>
+        <div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Comenzi RX</h2><div class="muted">Toate comenzile pot fi ascunse sau accesate din dashboard.</div></div><button class="icon-btn list-toggle" onclick="toggleOrdersList()" id="toggleOrdersBtn" title="Ascunde lista" aria-label="Ascunde lista"><span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span></button></div>
         <div id="ordersListBox">
-          <div class="orders-tools"><input id="q" placeholder="Caută comandă după cod, client, pacient sau produs" oninput="render()"><span id="orderFilterCount" class="pill count-dot">0</span></div>
-          <div class="table-wrap"><table><thead><tr><th>Cod</th><th>Client</th><th>Produs</th><th>OD</th><th>OS</th><th>ADD</th><th>Nume pacient</th><th>Status</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
+          <div class="orders-tools"><input id="q" placeholder="Caută după centru, cod, client, pacient, produs sau dioptrii" oninput="render()"><span id="orderFilterCount" class="pill count-dot">0</span></div>
+          <div class="table-wrap"><table><thead><tr><th>Cod</th><th>Centru</th><th>Client</th><th>Produs</th><th>OD</th><th>OS</th><th>ADD</th><th>Nume pacient</th><th>Livrare</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
         </div>
       </div>
       <div class="card" style="margin-top:16px" id="dashboardClientsCard">
-        <div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Ultimii 10 clienți adăugați</h2><div class="muted">Lista poate fi ascunsă sau afișată.</div></div><button class="btn ghost" onclick="toggleRecentClients()" id="toggleClientsBtn">Ascunde lista</button></div>
+        <div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Ultimii 10 clienți adăugați</h2><div class="muted">Lista poate fi ascunsă sau afișată.</div></div><button class="icon-btn list-toggle" onclick="toggleRecentClients()" id="toggleClientsBtn" title="Ascunde lista" aria-label="Ascunde lista"><span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span></button></div>
         <div id="recentClientsBox" class="table-wrap"><table><thead><tr><th>Client</th><th>Localitate</th><th>Cod</th></tr></thead><tbody id="recentClientRows"></tbody></table></div>
       </div>
     </section>
@@ -1103,6 +1266,17 @@ html,
         <input id="clientFilter" placeholder="Caută nume, localitate sau cod" oninput="renderClients()">
       </div>
       <div class="card" style="margin-top:16px"><div class="table-wrap"><table><thead><tr><th>Client</th><th>Localitate</th><th>Cod</th><th></th></tr></thead><tbody id="clientRows"></tbody></table></div></div>
+    </section>
+
+    <section id="processingPage" class="page hide">
+      <div class="card processing-status-panel">
+        <div class="processing-status-copy"><h2>Status comenzi</h2><div class="muted">Urmărește comenzile în lucru și actualizează etapele permise.</div></div>
+        <div class="processing-filters">
+          <input id="processingSearch" placeholder="Caută după cod, client, indicativ, centru, mențiuni sau status" oninput="renderProcessingOrders()">
+          <span id="processingCount" class="pill count-dot">0</span>
+        </div>
+      </div>
+      <div id="processingOrdersList" class="workflow-list"></div>
     </section>
     <section id="nomenclators" class="page hide">
       <div class="admin-grid">
@@ -1114,11 +1288,28 @@ html,
       <div class="card" style="margin-top:16px"><h2>Operatori</h2><div class="two"><input id="newOperatorCenter" placeholder="Centru procesare"><input id="newOperatorName" placeholder="Nume operator"></div><div class="two"><input id="newCenterCode" placeholder="Cod centru, ex: 01"><input id="newOperatorCode" placeholder="Cod operator, ex: 14"></div><button class="btn" onclick="addOperator()">Adaugă operator</button><div id="opList" class="list" style="margin-top:14px"></div></div>
     </section>
     <section id="settings" class="page hide">
-      <div class="card"><h2>Setări locale</h2><p class="muted">Această versiune salvează comenzile în browser prin localStorage. Următorul pas este Firebase pentru sincronizare live.</p><button class="btn red" onclick="clearOrders()">Șterge comenzile locale</button></div>
+      <div class="card" style="margin-top:16px"><div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Administrare utilizatori</h2><div class="muted">Modifică parola, centrul sau privilegiile fiecărui cont.</div></div></div><div id="usersAdminList" class="list"></div></div>
     </section>
   </main>
  </div>
 </section>
+
+<div id="userModal" class="modal" aria-hidden="true">
+ <div class="wizard user-dialog">
+  <div class="top" style="margin-bottom:10px">
+   <div><div class="step-title">Adaugă utilizator</div><div class="muted">Cont nou SPHERA</div></div>
+   <button type="button" class="icon-btn" onclick="closeUserDialog()" title="Închide">×</button>
+  </div>
+  <div class="user-form-grid">
+   <div class="field"><label>Nume complet</label><input id="newUserFullName" placeholder="Ex: Ana Popescu" oninput="this.value=capWords(this.value); suggestUsername()" onblur="this.value=capWords(this.value); suggestUsername()"></div>
+   <div class="field"><label>Utilizator</label><input id="newUsername" placeholder="nume.prenume" readonly></div>
+   <div class="field"><label>Parolă</label><input id="newUserPassword" type="text" placeholder="Se generează automat" readonly></div>
+   <div class="field"><label>Tip utilizator</label><select id="newUserRole" onchange="syncUserCenterField()"><option value="operator">Operator</option><option value="iasi">Operator Master</option><option value="admin">Administrator</option></select></div>
+   <div class="field" id="newUserCenterField" style="grid-column:1/-1"><label>Centru de procesare</label><select id="newUserCenter"></select></div>
+  </div>
+  <div class="actions user-dialog-actions" style="justify-content:flex-end"><button id="defaultAddUserBtn" class="btn" onclick="addUserAccount()">Adaugă utilizator</button><button class="btn ghost" onclick="closeUserDialog()">Renunță</button></div>
+ </div>
+</div>
 
 <div id="modal" class="modal">
  <div class="wizard">
@@ -1201,61 +1392,126 @@ orders=(orders||[]).map(o=>{
   ['design','material','treatment'].forEach(k=>{ if(renameMap[o[k]]) o[k]=renameMap[o[k]]; });
   return o;
 });
-const users={'admin':{pass:'admin123',name:'Administrator',role:'admin'},'mihai.corciova':{pass:'rx123',name:'Mihai Corciova',role:'operator',center:'Brașov'}};
-function doLogin(){
-  const userEl = document.getElementById('user');
-  const passEl = document.getElementById('pass');
-  const err = document.getElementById('loginErr');
-  const uRaw = String(userEl && userEl.value ? userEl.value : '').trim();
-  const p = String(passEl && passEl.value ? passEl.value : '').trim();
-  const u = norm(uRaw);
-
-  let userKey = null;
-  if ((u === 'admin' || u === 'administrator') && p === 'admin123') userKey = 'admin';
-  if ((u === 'mihai.corciova' || u === 'mihai corciova') && p === 'rx123') userKey = 'mihai.corciova';
-
-  if (!userKey) {
-    if (err) err.textContent = 'Utilizator sau parolă incorectă.';
-    if (passEl) { passEl.focus(); passEl.select && passEl.select(); }
-    return false;
-  }
-
-  currentUser = users[userKey];
-  if (err) err.textContent = '';
-
-  const loginScreen = document.getElementById('loginScreen');
-  const appScreen = document.getElementById('appScreen');
-
-  document.body.classList.remove('login-active');
-  if (loginScreen) {
-    loginScreen.classList.add('hide');
-    loginScreen.hidden = true;
-    loginScreen.style.setProperty('display','none','important');
-  }
-  if (appScreen) {
-    appScreen.hidden = false;
-    appScreen.classList.remove('hide');
-    appScreen.style.setProperty('display','block','important');
-  }
-
-  const who = document.getElementById('who');
-  if (who) who.textContent = currentUser.name + ' · ' + currentUser.role;
-
-  try { render(); } catch (ex) { console.error('Render error after login:', ex); }
-  try { showPage('dashboard'); } catch (ex) { console.error('Dashboard error after login:', ex); }
-  return false;
+const DEFAULT_USERS = (()=>{
+  const result=[{username:'administrator',pass:'Sphera#Admin26',name:'Administrator SPHERA',role:'admin',center:''}];
+  const used=new Set(['administrator']);
+  CENTERS.forEach((op,i)=>{
+    const parts=String(op.operator||'Operator').trim().split(/\s+/);
+    const first=parts.shift()||'operator';
+    const last=parts.join(' ')||first;
+    let username=slug(last)+'.'+slug(first);
+    if(used.has(username)) username=username+'.'+String(i+1);
+    used.add(username);
+    const role=norm(op.center)==='iasi'?'iasi':'operator';
+    const pass='Rx@'+String(op.operatorCode||i+1).padStart(2,'0')+capWords(slug(first).slice(0,5));
+    result.push({username,pass,name:op.operator,role,center:op.center});
+  });
+  return result;
+})();
+let USERS=safeLoad('sphera_users_v1',DEFAULT_USERS);
+function saveUsers(){localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));}
+function slug(v){return norm(v).replace(/[^a-z0-9]+/g,'.').replace(/^\.+|\.+$/g,'');}
+function roleLabel(role){return role==='admin'?'Administrator':role==='iasi'?'Operator Master':'Operator';}
+function canCreateOrders(){return currentUser && (currentUser.role==='admin'||currentUser.role==='operator'||currentUser.role==='iasi');}
+function canManageClients(){return currentUser && (currentUser.role==='admin'||currentUser.role==='operator');}
+function isAdmin(){return currentUser?.role==='admin';}
+function visibleOrders(){return isAdmin()?orders:orders.filter(o=>norm(o.center)===norm(currentUser?.center));}
+function processingCenterLabel(o){
+ const center=String(o?.center||'').trim();
+ const match=CENTERS.find(x=>norm(x.center)===norm(center));
+ const code=String(match?.centerCode||o?.centerCode||'').trim();
+ return [code,center].filter(Boolean).join(' · ');
 }
-window.doLogin = doLogin;
+function doLogin(){
+  const userEl=document.getElementById('user'), passEl=document.getElementById('pass'), err=document.getElementById('loginErr');
+  const username=slug(userEl?.value||''), password=String(passEl?.value||'');
+  const account=USERS.find(x=>slug(x.username)===username && String(x.pass)===password);
+  if(!account){if(err)err.textContent='Utilizator sau parolă incorectă.'; if(passEl){passEl.focus();passEl.select?.();} return false;}
+  currentUser={...account}; if(err)err.textContent='';
+  const remember=!!document.getElementById('rememberMe')?.checked;
+  if(remember){localStorage.setItem('sphera_remembered_user',account.username);localStorage.setItem('sphera_remembered_pass',password);sessionStorage.removeItem('sphera_session_user');}
+  else{sessionStorage.setItem('sphera_session_user',account.username);localStorage.removeItem('sphera_remembered_user');localStorage.removeItem('sphera_remembered_pass');}
+  const loginScreen=document.getElementById('loginScreen'), appScreen=document.getElementById('appScreen');
+  document.body.classList.remove('login-active');
+  if(loginScreen){loginScreen.classList.add('hide');loginScreen.hidden=true;loginScreen.style.setProperty('display','none','important');}
+  if(appScreen){appScreen.hidden=false;appScreen.classList.remove('hide');appScreen.style.setProperty('display','block','important');}
+  applyPermissions(); render(); showPage('dashboard'); return false;
+}
+window.doLogin=doLogin;
+
+
+function firstNameFromUsername(username){return capWords(String(username||'').trim().split('.')[0]||'');}
+
+function applyPermissions(){
+  document.querySelectorAll('[data-access="admin"]').forEach(el=>el.classList.toggle('hide',!isAdmin()));
+  const who=document.getElementById('who'); if(who)who.textContent='Bună ziua, '+firstNameFromUsername(currentUser.username);
+  const badge=document.getElementById('accountBadge'); if(badge){badge.textContent='';badge.classList.add('hide');}
+  const orderBtn=document.getElementById('newOrderBtn'); if(orderBtn)orderBtn.classList.toggle('hide',!canCreateOrders());
+  const clientBtn=document.getElementById('newClientBtn'); if(clientBtn)clientBtn.classList.toggle('hide',!canManageClients());
+  const addUserBtn=document.getElementById('addUserTopBtn'); if(addUserBtn)addUserBtn.classList.toggle('hide',!isAdmin());
+  if(!isAdmin() && ['nomenclators','settings'].includes(document.querySelector('.page:not(.hide)')?.id)) showPage('dashboard');
+  populateUserCenters(); renderUsersAdmin();
+}
+function guardAdmin(){if(!isAdmin()){showPage('dashboard');return false;}return true;}
+function populateUserCenters(){const el=document.getElementById('newUserCenter');if(!el)return;const centers=orderedProcessingCenters();el.innerHTML='<option value="">Selectează centrul</option>'+centers.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');syncUserCenterField();}
+function syncUserCenterField(){const role=document.getElementById('newUserRole')?.value, center=document.getElementById('newUserCenter'), field=document.getElementById('newUserCenterField');if(!center)return;const admin=role==='admin';center.disabled=admin;if(field)field.classList.toggle('hide',admin);if(role==='iasi')center.value=[...new Set(CENTERS.map(x=>x.center))].find(c=>norm(c)==='iasi')||'Iasi';if(admin)center.value='';}
+function generateUserPassword(){
+  const words=['sunset','ocean','forest','silver','amber','pixel','vision','optic','lunar','coral'];
+  const word=words[Math.floor(Math.random()*words.length)];
+  const rnd=Math.floor(1000+Math.random()*9000);
+  return word+rnd;
+}
+function suggestUsername(){
+  const parts=String(document.getElementById('newUserFullName')?.value||'').trim().split(/\s+/).filter(Boolean);
+  const userEl=document.getElementById('newUsername'), passEl=document.getElementById('newUserPassword');
+  if(parts.length<2){if(userEl)userEl.value='';if(passEl)passEl.value='';return;}
+  const username=slug(parts[0])+'.'+slug(parts[1]);
+  if(userEl)userEl.value=username;
+  if(passEl)passEl.value=generateUserPassword(username);
+}
+function openUserDialog(){
+  if(!guardAdmin())return;
+  ['newUserFullName','newUsername','newUserPassword'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const role=document.getElementById('newUserRole');if(role)role.value='operator';
+  populateUserCenters();syncUserCenterField();
+  const modal=document.getElementById('userModal');if(modal){modal.classList.add('open');modal.setAttribute('aria-hidden','false');}
+  setTimeout(()=>document.getElementById('newUserFullName')?.focus(),0);
+}
+function closeUserDialog(){const modal=document.getElementById('userModal');if(modal){modal.classList.remove('open');modal.setAttribute('aria-hidden','true');}}
+function addUserAccount(){
+  if(!guardAdmin())return;
+  const name=capWords(cleanVal('newUserFullName'));
+  const parts=String(name||'').trim().split(/\s+/).filter(Boolean);
+  const username=parts.length>=2?slug(parts[0])+'.'+slug(parts[1]):slug(cleanVal('newUsername'));
+  const role=document.getElementById('newUserRole')?.value||'operator';
+  const center=cleanVal('newUserCenter');
+  const pass=cleanVal('newUserPassword')||generateUserPassword(username);
+  if(!name||parts.length<2||!username||(role!=='admin'&&!center)){
+    showAppConfirm({title:'Date incomplete',text:'Completează numele, tipul utilizatorului și centrul de procesare.',confirmText:'OK'});return;
+  }
+  if(USERS.some(x=>slug(x.username)===username)){
+    showAppConfirm({title:'Utilizator existent',text:'Există deja contul '+username+'.',confirmText:'OK'});return;
+  }
+  USERS.unshift({name,username,pass,role,center:role==='admin'?'':center,createdAt:Date.now()});saveUsers();
+  ['newUserFullName','newUsername','newUserPassword'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('newUserRole').value='operator';syncUserCenterField();renderUsersAdmin();closeUserDialog();
+  showAppConfirm({title:'Utilizator creat',text:'Utilizator: '+username+'\nParolă: '+pass,confirmText:'OK'});
+}
+function updateUserAccount(index,field,value){if(!guardAdmin())return;const u=USERS[index];if(!u)return;if(field==='username'){const next=slug(value);if(!next||USERS.some((x,i)=>i!==index&&slug(x.username)===next)){renderUsersAdmin();return;}u.username=next;}else{u[field]=value;if(field==='role'&&value==='admin')u.center='';if(field==='role'&&value==='iasi')u.center=[...new Set(CENTERS.map(x=>x.center))].find(c=>norm(c)==='iasi')||'Iasi';}saveUsers();renderUsersAdmin();}
+function deleteUserAccount(index){if(!guardAdmin())return;const u=USERS[index];if(!u||u.role==='admin'&&USERS.filter(x=>x.role==='admin').length===1){showAppConfirm({title:'Cont protejat',text:'Trebuie să existe cel puțin un administrator.',confirmText:'OK'});return;}showAppConfirm({title:'Ștergere utilizator',text:'Ștergi contul '+u.username+'?',confirmText:'Șterge',danger:true,onConfirm:()=>{USERS.splice(index,1);saveUsers();renderUsersAdmin();}});}
+function renderUsersAdmin(){const box=document.getElementById('usersAdminList');if(!box||!isAdmin())return;const centers=orderedProcessingCenters();box.innerHTML=USERS.map((u,i)=>({u,i})).sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i))).map(({u,i})=>`<div class="user-row"><div><b>${esc(u.name)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator"><input type="text" value="${esc(u.pass)}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă"><select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select><select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select><button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button></div>`).join('');}
 
 
 document.addEventListener('keydown',function(e){
   const loginScreen=document.getElementById('loginScreen');
   if(e.key==='Enter' && loginScreen && loginScreen.style.display!=='none'){ doLogin(); return; }
+  if(e.key==='Escape' && document.getElementById('userModal')?.classList.contains('open')){e.preventDefault();closeUserDialog();return;}
   if(e.key==='Escape' && document.getElementById('modal')?.classList.contains('open')){ e.preventDefault(); closeWizard(); }
 });
 
-function logout(){location.reload()}
+function logout(){sessionStorage.removeItem('sphera_session_user');currentUser=null;location.reload()}
 function showPage(id,btn){
+  if(['nomenclators','settings'].includes(id)&&!isAdmin()) id='dashboard';
   const pages=document.querySelectorAll('.page');
   pages.forEach(p=>p.classList.add('hide'));
   const page=document.getElementById(id)||document.getElementById('dashboard');
@@ -1266,16 +1522,18 @@ function showPage(id,btn){
   if(!btn && id==='dashboard') btn=menuButtons[0];
   if(btn) btn.classList.add('active');
   const title=document.getElementById('pageTitle');
-  if(title) title.textContent={dashboard:'Dashboard RX',clientsPage:'Clienți',nomenclators:'Nomenclatoare',settings:'Setări'}[id]||'Dashboard RX';
+  if(title) title.textContent={dashboard:'Dashboard RX',clientsPage:'Clienți',nomenclators:'Nomenclatoare',settings:'Setări',processingPage:'Status comenzi'}[id]||'Dashboard RX';
   if(id==='clientsPage') renderClients();
+  if(id==='settings') renderUsersAdmin();
+  if(id==='processingPage') renderProcessingOrders();
   if(id==='dashboard') { render(); setTimeout(()=>window.scrollTo({top:0,left:0,behavior:'instant'}),0); }
 }
 function openClientsPage(){let b=[...document.querySelectorAll('.menu button')].find(x=>x.textContent.includes('Clienți')); showPage('clientsPage',b)}
-function showOrdersList(mode='all'){orderViewMode=mode||'all'; showPage('dashboard',document.querySelector('.menu button')); const box=document.getElementById('ordersListBox'); if(box)box.classList.remove('hide'); const btn=document.getElementById('toggleOrdersBtn'); if(btn)btn.textContent='Ascunde lista'; const q=document.getElementById('q'); if(q){q.focus();} render();}
-function toggleOrdersList(){const box=document.getElementById('ordersListBox'); const btn=document.getElementById('toggleOrdersBtn'); if(!box)return; box.classList.toggle('hide'); if(btn)btn.textContent=box.classList.contains('hide')?'Afișează lista':'Ascunde lista';}
+function showOrdersList(mode='all'){orderViewMode=mode||'all'; showPage('dashboard',document.querySelector('.menu button')); const box=document.getElementById('ordersListBox'); if(box)box.classList.remove('hide'); const btn=document.getElementById('toggleOrdersBtn'); if(btn){btn.innerHTML='<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>';btn.title='Ascunde lista';btn.setAttribute('aria-label','Ascunde lista');} const q=document.getElementById('q'); if(q){q.focus();} render();}
+function toggleOrdersList(){const box=document.getElementById('ordersListBox'); const btn=document.getElementById('toggleOrdersBtn'); if(!box)return; box.classList.toggle('hide'); if(btn){const hidden=box.classList.contains('hide');btn.innerHTML=hidden?'<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>':'<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>';btn.title=hidden?'Afișează lista':'Ascunde lista';btn.setAttribute('aria-label',btn.title);}}
 function save(){localStorage.setItem('rx_orders',JSON.stringify(orders))}
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ș/g,'s').replace(/ț/g,'t').trim()}
-function openWizard(){step=0;draft={date:new Date().toISOString().slice(0,10),status:'Lansată',odActive:true,osActive:true};modal.classList.add('open');drawStep()}
+function openWizard(){if(!canCreateOrders())return;step=0;draft={date:new Date().toISOString().slice(0,10),status:'Lansată',odActive:true,osActive:true,mount:isAdmin()?'':currentUser.center,center:isAdmin()?'':currentUser.center,operator:isAdmin()?'':currentUser.name};modal.classList.add('open');drawStep()}
 function closeWizard(){modal.classList.remove('open')}
 function req(v){return v!==undefined&&v!==null&&String(v).trim()!==''}
 function keepRxChars(v, allowSign=true){
@@ -1318,6 +1576,7 @@ function formatUnsignedQuarter(v){
 function setRx(k,v,type){
   draft.rxWarningAccepted=false;
   if(type==='axis'){ draft[k]=String(v||'').replace(/\D/g,'').slice(0,3); return; }
+  if(type==='add'){draft[k]=String(v||'');return;}
   let val=keepRxChars(v,type!=='add');
   if(type==='signed' && norm(draft.design)==='myoless' && /Sph$/i.test(k)){ val='-'+String(val||'').replace(/[+-]/g,''); }
   draft[k]=val;
@@ -1329,20 +1588,44 @@ function normalizeRx(k,type){
     let n=Math.max(0,Math.min(180,Number(raw)));
     draft[k]=String(n).padStart(3,'0');
   }
-  else if(type==='add'){ draft[k]=formatUnsignedQuarter(draft[k]); if(draft[k] && Number(draft[k])<0.50) draft[k]=''; }
+  else if(type==='add'){
+    let raw=String(draft[k]??'').trim().replace(',','.');
+    if(!raw){draft[k]='';return;}
+    raw=raw.replace(/[^0-9.]/g,'');
+    if(!raw){draft[k]='';return;}
+    let n;
+    if(raw.includes('.')) n=Number(raw);
+    else n=raw.length>=2?Number(raw)/100:Number(raw);
+    if(!Number.isFinite(n)||n<0||n>4){draft[k]='';return;}
+    n=Math.round(n*4)/4;
+    if(n>4){draft[k]='';return;}
+    draft[k]=n.toFixed(2);
+  }
   else { draft[k]=formatSignedQuarter(draft[k]); if(norm(draft.design)==='myoless' && /Sph$/i.test(k) && draft[k]) draft[k]='-'+draft[k].replace(/[+-]/g,''); }
 }
 function signedNumber(v){return /^[-+]\d+\.\d{2}$/.test(String(v||'').trim())}
-function unsignedAdd(v){let s=String(v||'').trim(); return /^\d+\.\d{2}$/.test(s) && Number(s)>=0.50}
+function unsignedAdd(v){let s=String(v||'').trim(),n=Number(s); return /^\d+\.\d{2}$/.test(s) && n>=0 && n<=4.00 && Math.abs(n*4-Math.round(n*4))<1e-9}
 function axis(v){let n=Number(v);return /^\d+$/.test(String(v||''))&&n>=0&&n<=180}
 function inRangePower(v,max){let n=Math.abs(Number(String(v||'').replace(',','.'))); return Number.isFinite(n) && n<=max;}
-function inRangeAdd(v){let n=Number(String(v||'').replace(',','.')); return Number.isFinite(n) && n>=0.50 && n<=4.00;}
+function inRangeAdd(v){let n=Number(String(v||'').replace(',','.')); return Number.isFinite(n) && n>=0 && n<=4.00;}
 function setDraft(k,v){draft[k]=v; if(k==='product'){draft.design='';} drawStep(false)}
 function selectClient(code){draft.client=CLIENTS.find(c=>c.code===code); drawStep(false)}
 function optionList(arr,val=''){return '<option value="">Selectează</option>'+arr.map(x=>`<option ${x==val?'selected':''}>${x}</option>`).join('')}
 function selectOptions(arr,val=''){return '<option value="">Selectează</option>'+[...new Set(arr||[])].map(x=>`<option value="${esc(x)}" ${x==val?'selected':''}>${esc(x)}</option>`).join('')}
 function resetAfterDesign(){draft.design='';draft.index='';draft.material='';draft.materialColor='';draft.treatment='';draft.geometry='';}
 function resetAfterProduct(){draft.index='';draft.material='';draft.materialColor='';draft.treatment='';draft.geometry='';}
+function orderedProcessingCenters(){
+  const values=[...new Set(CENTERS.map(x=>x.center).filter(Boolean))];
+  return values.sort((a,b)=>{
+    const ai=norm(a)==='iasi', bi=norm(b)==='iasi';
+    if(ai!==bi)return ai?-1:1;
+    return a.localeCompare(b,'ro',{sensitivity:'base'});
+  });
+}
+function orderedOperators(center=''){
+  return [...new Set(CENTERS.filter(x=>!center||norm(x.center)===norm(center)).map(x=>x.operator).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'ro',{sensitivity:'base'}));
+}
 function listOptions(id, arr){return `<datalist id="${id}">`+[...new Set(arr||[])].map(x=>`<option value="${esc(x)}"></option>`).join('')+`</datalist>`}
 function searchableInput(label,key,arr,id,extra=''){
   return `<div class="field"><label>${label}</label><input list="${id}" value="${esc(draft[key]||'')}" oninput="draft.${key}=this.value; ${extra}" onkeydown="comboKey(event)" autocomplete="off" placeholder="Selectează">${listOptions(id,arr)}</div>`
@@ -1355,10 +1638,15 @@ function pickComboValue(el){
   if(first){ el.value=first; el.dispatchEvent(new Event('input',{bubbles:true})); el.dispatchEvent(new Event('change',{bubbles:true})); return true; }
   return false;
 }
-function updateOperatorDatalist(){
+function updateOperatorDatalist(autoSelect=false){
  const dl=document.getElementById('operatorOptions'); if(!dl)return;
- const ops=CENTERS.filter(x=>!draft.center||norm(x.center)===norm(draft.center)).map(x=>x.operator);
+ const ops=orderedOperators(draft.center);
  dl.innerHTML=ops.map(x=>`<option value="${esc(x)}"></option>`).join('');
+ if(autoSelect){
+   const currentMatch=ops.find(x=>norm(x)===norm(currentUser?.name||''));
+   draft.operator=currentMatch||(ops.length===1?ops[0]:'');
+   const input=document.getElementById('operatorInput');if(input)input.value=draft.operator;
+ }
 }
 function comboKey(e){
   if(e.key==='Tab'){ pickComboValue(e.target); return; }
@@ -1401,7 +1689,7 @@ function rxWarnings(){
   return warnings;
 }
 
-const steps=['Client','Design, produs și opțiuni','Prescripție','Nume pacient','Montaj','Mențiuni speciale','Confirmare'];
+const steps=['Client','Design, produs și opțiuni','Prescripție','Nume pacient','Montaj','Livrare','Mențiuni speciale','Confirmare'];
 let clientResults=[], clientActive=-1;
 function esc(s){return String(s??'').replace(/[&<>'"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[m]))}
 function roFixText(v){
@@ -1483,33 +1771,207 @@ function drawStep(resetErr=true){
   case 2:
    const showAdd=addRequired(draft.product);
    const odOn=draft.odActive!==false, osOn=draft.osActive!==false;
-   h=`<div class="rx-grid ${showAdd?'has-add':'no-add'}"><div></div><div class="rx-head">SPH</div><div class="rx-head">CYL</div><div class="rx-head">AX</div>${showAdd?'<div class="rx-head rx-add-head">ADD</div>':''}<div></div><div class="eye-line ${odOn?'':'rx-off'}"><span>OD</span></div><input class="rx-field" inputmode="decimal" value="${draft.odSph||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odSph','signed')" onblur="normalizeRx('odSph','signed'); this.value=draft.odSph" autofocus><input class="rx-field" inputmode="decimal" value="${draft.odCyl||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odCyl','signed')" onblur="normalizeRx('odCyl','signed'); this.value=draft.odCyl"><input class="rx-field" inputmode="numeric" value="${draft.odAx||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odAx','axis')" onblur="normalizeRx('odAx','axis'); this.value=draft.odAx">${showAdd?`<input class="rx-field rx-add-field" inputmode="decimal" value="${draft.odAdd||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odAdd','add')" onblur="normalizeRx('odAdd','add'); this.value=draft.odAdd">`:''}${odOn?`<button type="button" class="icon-btn red" title="Șterge OD" onclick="toggleEye('od',false)" tabindex="-1">${ICON_TRASH}</button>`:`<button type="button" class="icon-btn blue" title="Adaugă OD" onclick="toggleEye('od',true)">${ICON_PLUS}</button>`}<div class="eye-line ${osOn?'':'rx-off'}"><span>OS</span></div><input class="rx-field" inputmode="decimal" value="${draft.osSph||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osSph','signed')" onblur="normalizeRx('osSph','signed'); this.value=draft.osSph"><input class="rx-field" inputmode="decimal" value="${draft.osCyl||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osCyl','signed')" onblur="normalizeRx('osCyl','signed'); this.value=draft.osCyl"><input class="rx-field" inputmode="numeric" value="${draft.osAx||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osAx','axis')" onblur="normalizeRx('osAx','axis'); this.value=draft.osAx">${showAdd?`<input class="rx-field rx-add-field" inputmode="decimal" value="${draft.osAdd||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osAdd','add')" onblur="normalizeRx('osAdd','add'); this.value=draft.osAdd">`:''}${osOn?`<button type="button" class="icon-btn red" title="Șterge OS" onclick="toggleEye('os',false)" tabindex="-1">${ICON_TRASH}</button>`:`<button type="button" class="icon-btn blue" title="Adaugă OS" onclick="toggleEye('os',true)">${ICON_PLUS}</button>`}</div>`
+   h=`<div class="rx-grid ${showAdd?'has-add':'no-add'}"><div></div><div class="rx-head">SPH</div><div class="rx-head">CYL</div><div class="rx-head">AX</div>${showAdd?'<div class="rx-head rx-add-head">ADD</div>':''}<div></div><div class="eye-line ${odOn?'':'rx-off'}"><span>OD</span></div><input class="rx-field" inputmode="decimal" value="${draft.odSph||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odSph','signed')" onblur="normalizeRx('odSph','signed'); this.value=draft.odSph" autofocus><input class="rx-field" inputmode="decimal" value="${draft.odCyl||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odCyl','signed'); syncAxisState('od')" onblur="normalizeRx('odCyl','signed'); syncAxisState('od'); this.value=draft.odCyl"><input class="rx-field rx-axis-field" data-eye="od" inputmode="numeric" value="${Number(String(draft.odCyl||'').replace(',','.'))!==0?(draft.odAx||''):''}" ${(odOn && Number(String(draft.odCyl||'').replace(',','.'))!==0)?'':'disabled'} oninput="rxInput(this,'odAx','axis')" onblur="normalizeRx('odAx','axis'); this.value=draft.odAx">${showAdd?`<input class="rx-field rx-add-field" inputmode="decimal" value="${draft.odAdd||''}" ${odOn?'':'disabled'} oninput="rxInput(this,'odAdd','add')" onblur="normalizeRx('odAdd','add'); this.value=draft.odAdd">`:''}${odOn?`<button type="button" class="icon-btn red" title="Șterge OD" onclick="toggleEye('od',false)" tabindex="-1">${ICON_TRASH}</button>`:`<button type="button" class="icon-btn blue" title="Adaugă OD" onclick="toggleEye('od',true)">${ICON_PLUS}</button>`}<div class="eye-line ${osOn?'':'rx-off'}"><span>OS</span></div><input class="rx-field" inputmode="decimal" value="${draft.osSph||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osSph','signed')" onblur="normalizeRx('osSph','signed'); this.value=draft.osSph"><input class="rx-field" inputmode="decimal" value="${draft.osCyl||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osCyl','signed'); syncAxisState('os')" onblur="normalizeRx('osCyl','signed'); syncAxisState('os'); this.value=draft.osCyl"><input class="rx-field rx-axis-field" data-eye="os" inputmode="numeric" value="${Number(String(draft.osCyl||'').replace(',','.'))!==0?(draft.osAx||''):''}" ${(osOn && Number(String(draft.osCyl||'').replace(',','.'))!==0)?'':'disabled'} oninput="rxInput(this,'osAx','axis')" onblur="normalizeRx('osAx','axis'); this.value=draft.osAx">${showAdd?`<input class="rx-field rx-add-field" inputmode="decimal" value="${draft.osAdd||''}" ${osOn?'':'disabled'} oninput="rxInput(this,'osAdd','add')" onblur="normalizeRx('osAdd','add'); this.value=draft.osAdd">`:''}${osOn?`<button type="button" class="icon-btn red" title="Șterge OS" onclick="toggleEye('os',false)" tabindex="-1">${ICON_TRASH}</button>`:`<button type="button" class="icon-btn blue" title="Adaugă OS" onclick="toggleEye('os',true)">${ICON_PLUS}</button>`}</div>`
    break;
   case 3:
    h=`<div class="field"><label>Nume pacient</label><input value="${esc(draft.patient||'')}" oninput="draft.patient=capWords(this.value)" onblur="this.value=setCap('patient',this.value)" autofocus></div>`;
    break;
   case 4:
-   const centerList=[...new Set(CENTERS.map(x=>x.center))];
-   const opListStep=CENTERS.filter(x=>!draft.center||norm(x.center)===norm(draft.center)).map(x=>x.operator);
-   h=`<div class="field"><label>Centru montaj</label><input id="mountInput" list="mountOptions" value="${esc(draft.mount||'')}" oninput="draft.mount=capWords(this.value)" onblur="autoPickValue(this, [...new Set(CENTERS.map(x=>x.center))]); this.value=setCap('mount',this.value)" onkeydown="comboKey(event)" placeholder="Ex: Ploiești, Iași, București" autocomplete="off" autofocus>${listOptions('mountOptions',centerList)}</div><div class="field"><label>Centru procesare</label><input id="centerInput" list="centerOptions" value="${esc(draft.center||'')}" oninput="draft.center=capWords(this.value); draft.operator=''; updateOperatorDatalist()" onblur="autoPickValue(this, [...new Set(CENTERS.map(x=>x.center))]); this.value=setCap('center',this.value); updateOperatorDatalist()" onkeydown="if(event.key==='Tab'){pickComboValue(event.target); updateOperatorDatalist(); setTimeout(()=>document.getElementById('operatorInput')?.focus(),0)}else comboKey(event)" autocomplete="off" placeholder="Selectează">${listOptions('centerOptions',centerList)}</div><div class="field"><label>Operator</label><input id="operatorInput" list="operatorOptions" value="${esc(draft.operator||'')}" oninput="draft.operator=capWords(this.value)" onblur="autoPickValue(this, CENTERS.filter(x=>!draft.center||norm(x.center)===norm(draft.center)).map(x=>x.operator)); this.value=setCap('operator',this.value)" onkeydown="comboKey(event)" autocomplete="off" placeholder="Selectează">${listOptions('operatorOptions',opListStep)}</div>`;
+   if(currentUser){
+     const ownOperator=CENTERS.find(x=>norm(x.operator)===norm(currentUser.name||''));
+     const ownCenter=currentUser.center||ownOperator?.center||'';
+     if(!draft.operator && ownOperator) draft.operator=ownOperator.operator;
+     else if(!draft.operator && currentUser.role!=='admin') draft.operator=currentUser.name||'';
+     if(!draft.center) draft.center=ownCenter;
+   }
+   if(typeof draft.hasMount==='undefined') draft.hasMount=false;
+   const centerList=orderedProcessingCenters().filter(c=>!['craiova','oradea'].includes(norm(c)));
+   h=`<div class="field"><label>Comanda este cu montaj?</label><div class="mount-choice"><button type="button" class="btn ghost ${draft.hasMount===true?'active':''}" onclick="draft.hasMount=true; if(!draft.mount||['craiova','oradea'].includes(norm(draft.mount))) draft.mount=['craiova','oradea'].includes(norm(draft.center))?'Iasi':(draft.center||'Iasi'); drawStep(false)">Da</button><button type="button" class="btn ghost ${draft.hasMount===false?'active':''}" onclick="draft.hasMount=false; draft.mount=''; drawStep(false)">Nu</button></div></div>${draft.hasMount===true?`<div class="field mount-center-wrap"><label>Centru montaj</label><input id="mountInput" list="mountOptions" value="${esc(draft.mount||'')}" onfocus="comboFocus(this)" oninput="draft.mount=capWords(this.value)" onblur="comboBlur(this,'mount','cap'); autoPickValue(this, orderedProcessingCenters().filter(c=>!['craiova','oradea'].includes(norm(c)))); this.value=setCap('mount',this.value)" onkeydown="comboKey(event)" placeholder="Selectează centrul" autocomplete="off" autofocus>${listOptions('mountOptions',centerList)}</div>`:''}`;
    break;
   case 5:
-   h=`<div class="field"><label>Mențiuni speciale</label><textarea rows="5" oninput="draft.notes=this.value" autofocus>${esc(draft.notes||'')}</textarea></div>`;
+   if(!draft.deliveryDestination) draft.deliveryDestination='center';
+   const deliveryCenterName=draft.center||currentUser?.center||'Centrul de procesare';
+   const deliveryClientName=draft.client?.name||'Client';
+   h=`<div class="field"><label>Unde se face livrarea?</label><select id="deliveryDestinationSelect" onchange="draft.deliveryDestination=this.value" autofocus><option value="center" ${draft.deliveryDestination==='center'?'selected':''}>${esc(deliveryCenterName)}</option><option value="client" ${draft.deliveryDestination==='client'?'selected':''}>${esc(deliveryClientName)}</option></select></div>`;
    break;
   case 6:
-   h=`<div class="card"><h2>Verifică datele</h2><p><b>Client:</b> ${esc(draft.client?.name||'')} · ${esc(draft.client?.city||'')} · ${esc(draft.client?.code||'')}</p><p><b>Produs:</b> ${esc(productSummary(draft))}</p><p><b>Pacient:</b> ${esc(draft.patient||'')}</p><p><b>Montaj:</b> ${esc(draft.mount||'')}</p><p><b>Procesare:</b> ${esc(draft.center||'')} · ${esc(draft.operator||'')}</p></div>`;
+   h=`<div class="field"><label>Mențiuni speciale</label><textarea rows="5" oninput="draft.notes=this.value" autofocus>${esc(draft.notes||'')}</textarea></div>`;
+   break;
+  case 7:
+   h=`<div class="card"><h2>Verifică datele</h2><p><b>Client:</b> ${esc(draft.client?.name||'')} · ${esc(draft.client?.city||'')} · ${esc(draft.client?.code||'')}</p><p><b>Produs:</b> ${esc(productSummary(draft))}</p><p><b>Pacient:</b> ${esc(draft.patient||'')}</p><p><b>Montaj:</b> ${draft.hasMount===true?esc(draft.mount||''):'Fără montaj'}</p><p><b>Livrare:</b> ${draft.deliveryDestination==='client'?esc(draft.client?.name||'Client'):esc(draft.center||currentUser?.center||'Centru procesare')}</p><p><b>Procesare:</b> ${esc(draft.center||'')} · ${esc(draft.operator||'')}</p></div>`;
    break;
  }
  stepBox.innerHTML=h;
+ if(step===4){ const el=document.getElementById('mountInput'); if(el){el.disabled=false;el.readOnly=false;el.removeAttribute('disabled');el.removeAttribute('readonly');} }
  if(step===0) clientSuggest(draft.clientQuery||'');
  setTimeout(()=>{let el=stepBox.querySelector('[autofocus], input, select, textarea, button'); if(el){el.focus(); if(el.select)el.select();}},30);
+}
+function rxQueryVariants(value){
+ const raw=String(value||'').trim().replace(',', '.');
+ const variants=[norm(raw)];
+ if(/^[+-]?\d{2,4}$/.test(raw)){
+   const sign=raw.startsWith('-')?'-':raw.startsWith('+')?'+':'';
+   const digits=raw.replace(/^[+-]/,'');
+   const n=Number(digits)/100;
+   if(Number.isFinite(n)) variants.push(norm(sign+n.toFixed(2)));
+ }
+ if(/^[+-]?\d+(?:\.\d{1,2})$/.test(raw)){
+   const n=Number(raw);
+   if(Number.isFinite(n)){
+     const sign=raw.startsWith('-')?'-':raw.startsWith('+')?'+':'';
+     variants.push(norm(sign+Math.abs(n).toFixed(2)));
+     variants.push(norm(sign+String(Math.round(Math.abs(n)*100)).padStart(3,'0')));
+   }
+ }
+ return [...new Set(variants.filter(Boolean))];
+}
+
+function isRxOnlyQuery(query){
+ const tokens=String(query||'').trim().replace(/,/g,'.').split(/\s+/).filter(Boolean);
+ if(!tokens.length)return false;
+ return tokens.every(t=>/^(?:ax|axis|[+-]?\d+(?:\.\d*)?\.*)$/i.test(t));
+}
+function canonicalRxToken(token){
+ let t=String(token||'').trim().toLowerCase().replace(',','.');
+ if(t==='axis')return 'ax';
+ if(t==='ax')return 'ax';
+ t=t.replace(/\.{2,}$/,'').replace(/\.$/,'');
+ if(!/^[+-]?\d+(?:\.\d*)?$/.test(t))return norm(t);
+ const sign=t.startsWith('-')?'-':t.startsWith('+')?'+':'';
+ const body=t.replace(/^[+-]/,'');
+ let n;
+ if(body.includes('.')) n=Number(body);
+ else if(body.length>=3) n=Number(body)/100;
+ else n=Number(body);
+ if(!Number.isFinite(n))return norm(t);
+ return sign+Math.abs(n).toFixed(2);
+}
+function rxQuerySequenceMatches(value,query){
+ const qRaw=String(query||'').trim().replace(/,/g,'.');
+ if(!qRaw)return true;
+ const qTokens=qRaw.split(/\s+/).filter(Boolean);
+ const valueTokens=canonicalRxPhrase(value).split(/\s+/).filter(Boolean);
+ if(!qTokens.length)return true;
+ const partialLast=/\.{2,}$/.test(qTokens[qTokens.length-1]) || /\.$/.test(qTokens[qTokens.length-1]);
+ const qCanon=qTokens.map(canonicalRxToken);
+ if(qCanon.length>valueTokens.length)return false;
+ for(let start=0;start<=valueTokens.length-qCanon.length;start++){
+   let ok=true;
+   for(let i=0;i<qCanon.length;i++){
+     const expected=qCanon[i], actual=valueTokens[start+i]||'';
+     if(i===qCanon.length-1 && partialLast){
+       const raw=qTokens[i].replace(/\.{1,}$/,'');
+       const compact=canonicalRxToken(raw);
+       if(!actual.startsWith(compact.replace(/0+$/,'')) && !actual.startsWith(compact))ok=false;
+     }else if(actual!==expected)ok=false;
+     if(!ok)break;
+   }
+   if(ok)return true;
+ }
+ return false;
+}
+function highlightRxSequence(value,query){
+ const text=String(value??'');
+ const qTokens=String(query||'').trim().replace(/,/g,'.').split(/\s+/).filter(Boolean);
+ if(!qTokens.length)return esc(text);
+ const matches=[...text.matchAll(/\S+/g)].map(m=>({raw:m[0],start:m.index,end:m.index+m[0].length,canon:canonicalRxToken(m[0])}));
+ const partialLast=/\.{2,}$/.test(qTokens[qTokens.length-1]) || /\.$/.test(qTokens[qTokens.length-1]);
+ const qCanon=qTokens.map(canonicalRxToken);
+ for(let start=0;start<=matches.length-qCanon.length;start++){
+   let ok=true;
+   for(let i=0;i<qCanon.length;i++){
+     const actual=matches[start+i].canon, expected=qCanon[i];
+     if(i===qCanon.length-1 && partialLast){
+       const raw=qTokens[i].replace(/\.{1,}$/,'');
+       const compact=canonicalRxToken(raw);
+       if(!actual.startsWith(compact.replace(/0+$/,'')) && !actual.startsWith(compact))ok=false;
+     }else if(actual!==expected)ok=false;
+     if(!ok)break;
+   }
+   if(ok){
+     const ranges=[];
+     for(let i=0;i<qCanon.length;i++){
+       const m=matches[start+i];
+       if(i===qCanon.length-1 && partialLast){
+         const raw=qTokens[i].replace(/\.{1,}$/,'');
+         const typedLen=Math.max(1,raw.length);
+         ranges.push([m.start,Math.min(m.end,m.start+typedLen)]);
+       }else ranges.push([m.start,m.end]);
+     }
+     let out='',pos=0;
+     for(const [a,b] of ranges){out+=esc(text.slice(pos,a))+'<mark class="search-hit">'+esc(text.slice(a,b))+'</mark>';pos=b;}
+     return out+esc(text.slice(pos));
+   }
+ }
+ return esc(text);
+}
+
+function highlightMatch(value, query){
+ const text=String(value??'');
+ const raw=String(query||'').trim();
+ if(!raw)return esc(text);
+ if(isRxOnlyQuery(raw) && /[+-]?\d/.test(text)){
+   const rxHighlighted=highlightRxSequence(text,raw);
+   if(rxHighlighted!==esc(text))return rxHighlighted;
+ }
+ const tokens=raw.split(/\s+/).filter(Boolean);
+ const ranges=[];
+ const lower=text.toLocaleLowerCase('ro');
+ for(const token of tokens){
+   const variants=rxQueryVariants(token)
+     .concat([norm(token)])
+     .filter(Boolean)
+     .sort((a,b)=>b.length-a.length);
+   for(const variant of [...new Set(variants)]){
+     let from=0;
+     const needle=String(variant).toLocaleLowerCase('ro');
+     while(needle && from<lower.length){
+       const i=lower.indexOf(needle,from);
+       if(i<0)break;
+       ranges.push([i,i+needle.length]);
+       from=i+Math.max(1,needle.length);
+     }
+   }
+ }
+ if(!ranges.length)return esc(text);
+ ranges.sort((a,b)=>a[0]-b[0] || b[1]-a[1]);
+ const merged=[];
+ for(const r of ranges){
+   const last=merged[merged.length-1];
+   if(!last || r[0]>last[1]) merged.push(r.slice());
+   else last[1]=Math.max(last[1],r[1]);
+ }
+ let out='',pos=0;
+ for(const [a,b] of merged){
+   out+=esc(text.slice(pos,a))+'<mark class="search-hit">'+esc(text.slice(a,b))+'</mark>';
+   pos=b;
+ }
+ return out+esc(text.slice(pos));
+}
+function clientCountyForCenter(center){
+ const key=norm(center);
+ const map={
+   'cluj napoca':'cluj','cluj-napoca':'cluj','piatra-neamt':'neamt','piatra neamt':'neamt',
+   'targu mures':'mures','tg mures':'mures','ramnicu valcea':'valcea','drobeta turnu severin':'mehedinti'
+ };
+ return map[key]||key;
+}
+function clientAllowedForLoggedCenter(c){
+ const center=norm(currentUser?.center||'');
+ if(!center || ['iasi','ploiesti','bucuresti'].includes(center)) return true;
+ const county=clientCountyForCenter(center);
+ const city=norm(c?.city||'');
+ if(center==='botosani') return city.includes('botosani') || city.includes('suceava');
+ return city===county || city.includes(county) || county.includes(city);
 }
 function clientSuggest(v){
  let box=document.getElementById('clientSug'); if(!box)return;
  let q=norm(v); clientActive=-1;
  if(!q){clientResults=[]; box.innerHTML='<div class="sug muted">Începe să tastezi denumirea opticii sau codul clientului.</div>';return;}
- clientResults=CLIENTS.filter(c=>norm(c.name).includes(q)||String(c.code).includes(q)).slice(0,30);
- box.innerHTML=clientResults.map((c,i)=>`<div class="sug" data-i="${i}" onclick="selectClient('${c.code}', true)"><b>${esc(c.name)}</b><br><span class="muted">${esc(c.city)} · Cod ${esc(c.code)}</span></div>`).join('')||'<div class="sug muted">Nu am găsit client.</div>';
+ clientResults=CLIENTS.filter(c=>clientAllowedForLoggedCenter(c) && (norm(c.name).includes(q)||String(c.code).includes(q)))
+   .sort((a,b)=>norm(a.name).localeCompare(norm(b.name),'ro'))
+   .slice(0,30);
+ box.innerHTML=clientResults.map((c,i)=>`<div class="sug" data-i="${i}" onclick="selectClient('${c.code}', true)"><b>${highlightMatch(c.name,v)}</b><br><span class="muted">${highlightMatch(c.city,v)} · Cod ${highlightMatch(c.code,v)}</span></div>`).join('')||'<div class="sug muted">Nu am găsit client pentru centrul de procesare selectat.</div>';
 }
 function updateClientActive(){document.querySelectorAll('#clientSug .sug').forEach((el,i)=>{el.classList.toggle('active',i===clientActive); if(i===clientActive)el.scrollIntoView({block:'nearest'});});}
 function clientKey(e){
@@ -1526,7 +1988,7 @@ function nextClientCode(){
   if(free.length) return free[Math.floor(Math.random()*free.length)];
   let c; do{c=String(Math.floor(Math.random()*900)+100)}while(used.has(c)); return c;
 }
-function openNewClientDialog(){
+function openNewClientDialog(){if(!canManageClients())return;
   const code=nextClientCode();
   const wrap=document.createElement('div');
   wrap.className='modal open';
@@ -1549,7 +2011,29 @@ function createNewClientFromDialog(){
 }
 
 
-function rxInput(el,k,type){setRx(k,el.value,type); el.value=draft[k]||''}
+function syncAxisState(eye){
+  const cyl=Number(String(draft[eye+'Cyl']||'').replace(',','.'));
+  const enabled=draft[eye+'Active']!==false && Number.isFinite(cyl) && cyl!==0;
+  if(!enabled)draft[eye+'Ax']='';
+  const ax=stepBox?.querySelector('.rx-axis-field[data-eye="'+eye+'"]');
+  if(ax){ax.disabled=!enabled;ax.value=enabled?(draft[eye+'Ax']||''):'';}
+}
+function rxInput(el,k,type){
+  if(type==='axis'){
+    const eye=k.slice(0,2);const cyl=Number(String(draft[eye+'Cyl']||'').replace(',','.'));
+    if(!Number.isFinite(cyl)||cyl===0){draft[k]='';el.value='';return;}
+  }
+  setRx(k,el.value,type);
+  if(type==='add'){
+    let raw=String(el.value||'').replace(',','.').replace(/[^0-9.]/g,'');
+    const firstDot=raw.indexOf('.');
+    if(firstDot>=0)raw=raw.slice(0,firstDot+1)+raw.slice(firstDot+1).replace(/\./g,'');
+    draft[k]=raw;
+    el.value=raw;
+    return;
+  }
+  el.value=draft[k]||'';
+}
 function toggleEye(eye,checked){draft[eye+'Active']=checked; if(!checked){['Sph','Cyl','Ax','Add'].forEach(x=>draft[eye+x]='');} draft.rxWarningAccepted=false; drawStep(false)}
 function focusMove(dir){
  let fields=[...stepBox.querySelectorAll('input:not([readonly]), select, textarea')].filter(el=>!el.disabled && el.offsetParent!==null);
@@ -1615,32 +2099,44 @@ function autoPickValue(el, arr){
   if(el.id==='centerInput') draft.center=picked;
   if(el.id==='operatorInput') draft.operator=picked;
 }
+function syncCenterFromSelectedOperator(){
+  const match=CENTERS.find(x=>norm(x.operator)===norm(draft.operator||''));
+  if(match){
+    draft.operator=match.operator;
+    draft.center=match.center;
+    const op=document.getElementById('operatorInput'); if(op)op.value=draft.operator;
+    const center=document.getElementById('centerInput'); if(center)center.value=draft.center;
+  }
+}
 function resolveMountStep(){
-  const centers=[...new Set(CENTERS.map(x=>x.center))];
+  const centers=orderedProcessingCenters();
+  const operators=orderedOperators('');
   draft.mount=autoPickFromList(draft.mount, centers);
   draft.center=autoPickFromList(draft.center, centers);
-  const ops=CENTERS.filter(x=>!draft.center||norm(x.center)===norm(draft.center)).map(x=>x.operator);
-  draft.operator=autoPickFromList(draft.operator, ops);
+  draft.operator=autoPickFromList(draft.operator, operators);
+  const match=CENTERS.find(x=>norm(x.operator)===norm(draft.operator||''));
+  if(match && !draft.center) draft.center=match.center;
 }
 function validateStep(silent=false){let e='';let addReq=addRequired(draft.product);
  if(step===0&&!draft.client)e='Selectează un client din listă.';
  if(step===1&&(!inList(draft.product,designKeys())||!inList(draft.design,productOptionsForDesign())||!inList(draft.index,filteredIndices())||!inList(draft.material,filteredMaterials())||!inList(draft.treatment,filteredTreatments())||(showGeometryField()&&!draft.geometry)||(needsColorField(draft.material)&&!draft.materialColor)))e='Completează design, produs, indice, material, tratament și câmpurile afișate automat.';
  if(step===2){
   let eyes=[]; if(draft.odActive!==false)eyes.push('od'); if(draft.osActive!==false)eyes.push('os');
-  eyes.forEach(eye=>{ if(!String(draft[eye+'Sph']||'').trim()) draft[eye+'Sph']='+0.00'; if(!String(draft[eye+'Cyl']||'').trim()) draft[eye+'Cyl']='+0.00'; if(!String(draft[eye+'Ax']||'').trim()) draft[eye+'Ax']='000'; draft[eye+'Sph']=formatSignedQuarter(draft[eye+'Sph']); draft[eye+'Cyl']=formatSignedQuarter(draft[eye+'Cyl']); if(norm(draft.design)==='myoless' && draft[eye+'Sph']) draft[eye+'Sph']='-'+draft[eye+'Sph'].replace(/[+-]/g,''); normalizeRx(eye+'Ax','axis'); if(addReq && !String(draft[eye+'Add']||'').trim()) draft[eye+'Add']='0.00'; if(draft[eye+'Add'])draft[eye+'Add']=formatUnsignedQuarter(draft[eye+'Add']); });
+  eyes.forEach(eye=>{ if(!String(draft[eye+'Sph']||'').trim()) draft[eye+'Sph']='+0.00'; if(!String(draft[eye+'Cyl']||'').trim()) draft[eye+'Cyl']='+0.00'; if(Number(String(draft[eye+'Cyl']||'').replace(',','.'))===0) draft[eye+'Ax']=''; else if(!String(draft[eye+'Ax']||'').trim()) draft[eye+'Ax']='000'; draft[eye+'Sph']=formatSignedQuarter(draft[eye+'Sph']); draft[eye+'Cyl']=formatSignedQuarter(draft[eye+'Cyl']); if(norm(draft.design)==='myoless' && draft[eye+'Sph']) draft[eye+'Sph']='-'+draft[eye+'Sph'].replace(/[+-]/g,''); if(Number(String(draft[eye+'Cyl']||'').replace(',','.'))!==0) normalizeRx(eye+'Ax','axis'); if(draft[eye+'Add'])draft[eye+'Add']=formatUnsignedQuarter(draft[eye+'Add']); });
   if(!eyes.length)e='Selectează cel puțin un ochi.';
   else {
     for(let eye of eyes){
-      if(!signedNumber(draft[eye+'Sph'])||!signedNumber(draft[eye+'Cyl'])||!axis(draft[eye+'Ax'])||(addReq&&!unsignedAdd(draft[eye+'Add']))){ e='Completează corect prescripția.'; break; }
+      if(!signedNumber(draft[eye+'Sph'])||!signedNumber(draft[eye+'Cyl'])||(Number(String(draft[eye+'Cyl']||'').replace(',','.'))!==0&&!axis(draft[eye+'Ax']))||(addReq&&!unsignedAdd(draft[eye+'Add']))){ e='Completează corect prescripția.'; break; }
       if(!inRangePower(draft[eye+'Sph'],28)){ e='SPH trebuie să fie între -28.00 și +28.00.'; break; }
       if(!inRangePower(draft[eye+'Cyl'],9)){ e='CYL trebuie să fie între -9.00 și +9.00.'; break; }
-      if(draft[eye+'Add'] && !inRangeAdd(draft[eye+'Add'])){ e='Adiția trebuie să fie între 0.50 și 4.00.'; break; }
+      if(draft[eye+'Add'] && !inRangeAdd(draft[eye+'Add'])){ e='Adiția trebuie să fie între 0.00 și 4.00, în pași de 0.25.'; break; }
     }
   }
   if(!e){let w=rxWarnings(); if(w.length && !draft.rxWarningAccepted){ if(silent){e='Necesită confirmare.';} else {showAppConfirm({title:'Verificare prescripție', text:w.join('\n'), confirmText:'Confirmă', cancelText:'Verifică', onConfirm:()=>{draft.rxWarningAccepted=true; nextStep();}, onCancel:()=>{stepErr.textContent='Verifică prescripția.';}}); e=' ';} }}
  }
  if(step===3&&!req(draft.patient))e='Completează numele pacientului.';
- if(step===4){ resolveMountStep(); if(!req(draft.mount)||!req(draft.center)||!req(draft.operator)) e='Completează montaj, centru procesare și operator.'; }
+ if(step===4){ if(!req(draft.center)||!req(draft.operator)) e='Contul conectat nu are centru de procesare sau operator asociat.'; else if(draft.hasMount===true && !req(draft.mount)) e='Selectează centrul unde se realizează montajul.'; }
+ if(step===5 && !['center','client'].includes(draft.deliveryDestination)) e='Selectează unde se face livrarea.';
  if(!silent) stepErr.textContent=e; return !e
 }
 function prevStep(){if(step>0){step--;drawStep()}}
@@ -1655,9 +2151,9 @@ function nextStep(auto=false){
   if(!validateStep(false))return;
   if(step<steps.length-1){step++;drawStep()}else createOrder()
 }
-function createOrder(){let op=CENTERS.find(x=>x.center===draft.center&&x.operator===draft.operator); let max=Number(op?.last||0); orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n}); let seq=String(max+1).padStart(5,'0'); let d=new Date(draft.date); let zz=String(d.getDate()).padStart(2,'0'), ll=String(d.getMonth()+1).padStart(2,'0'); let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code; let order={id:'RX'+Date.now(),code,seq,date:draft.date,client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,mount:draft.mount,center:draft.center,operator:draft.operator,notes:draft.notes,status:'Lansată',rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}}; orders.unshift(order); save(); closeWizard(); render(); showGeneratedCode(code)}
+function createOrder(){if(!canCreateOrders())return;resolveMountStep();let op=CENTERS.find(x=>norm(x.center)===norm(draft.center)&&norm(x.operator)===norm(draft.operator))||CENTERS.find(x=>norm(x.center)===norm(draft.center))||CENTERS.find(x=>norm(x.operator)===norm(draft.operator)); let max=Number(op?.last||0); orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n}); let seq=String(max+1).padStart(5,'0'); let d=new Date(draft.date+'T12:00:00'); const now=new Date(); if(now.getHours()>=14)d.setDate(d.getDate()+1); let zz=String(d.getDate()).padStart(2,'0'), ll=String(d.getMonth()+1).padStart(2,'0'); let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code; let order={id:'RX'+Date.now(),code,seq,date:draft.date,client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',deliveryDestination:draft.deliveryDestination||'center',center:draft.center,operator:draft.operator,notes:draft.notes,status:'Lansată',rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}}; orders.unshift(order); save(); closeWizard(); render(); showGeneratedCode(code)}
 function showGeneratedCode(code){
-  let wrap=document.createElement('div'); wrap.className='modal open'; wrap.innerHTML=`<div class="wizard" style="max-width:520px"><div class="muted">Comandă generată</div><div class="step-title">Cod RX</div><input id="generatedCodeInput" value="${esc(code)}" readonly style="font-size:24px;font-weight:950;margin:18px 0;text-align:center"><div class="icon-btns"><button class="icon-btn primary" onclick="copyGeneratedCode()" title="Copiază codul">${ICON_COPY}</button></div></div>`; document.body.appendChild(wrap); setTimeout(()=>{let i=document.getElementById('generatedCodeInput'); if(i){i.focus(); i.select();}},30);
+  let wrap=document.createElement('div'); wrap.className='modal open'; wrap.innerHTML=`<div class="wizard" style="max-width:520px"><div class="muted">Comandă generată</div><div class="step-title">Cod RX</div><input id="generatedCodeInput" value="${esc(code)}" readonly style="font-size:34px;font-weight:850;letter-spacing:1.2px;margin:20px 0;text-align:center;padding:18px"><div class="icon-btns"><button class="icon-btn primary" onclick="copyGeneratedCode()" title="Copiază codul">${ICON_COPY}</button></div></div>`; document.body.appendChild(wrap); setTimeout(()=>{let i=document.getElementById('generatedCodeInput'); if(i){i.focus(); i.select();}},30);
 }
 function copyGeneratedCode(){let i=document.getElementById('generatedCodeInput'); if(!i)return; i.focus(); i.select(); try{navigator.clipboard&&navigator.clipboard.writeText(i.value);}catch(e){} document.execCommand&&document.execCommand('copy'); let m=i.closest('.modal'); if(m)setTimeout(()=>m.remove(),120);}
 function displayProductName(v){const map={'Fusion Evo Plus':'Fusion Evo Purtător','Fusion Evo Start':'Fusion Evo Începător','Attraction Gold Plus':'Attraction Gold Purtător','Attraction Gold Start':'Attraction Gold Începător'}; return map[v]||v;}
@@ -1665,25 +2161,174 @@ function productSummary(o){
  let parts=[displayProductName(o.design),o.index,o.material,o.materialColor,o.treatment].filter(x=>String(x||'').trim());
  return parts.join(' ');
 }
-function odText(o){return o.rx.odActive===false?'':`${o.rx.odSph} ${o.rx.odCyl} ax ${o.rx.odAx}`}
-function osText(o){return o.rx.osActive===false?'':`${o.rx.osSph} ${o.rx.osCyl} ax ${o.rx.osAx}`}
+function odText(o){
+ const r=o?.rx||{}; if(r.odActive===false)return '';
+ const cyl=Number(String(r.odCyl||'').replace(',','.'));
+ return [r.odSph||'',r.odCyl||'',(Number.isFinite(cyl)&&cyl!==0&&String(r.odAx||'').trim())?('ax '+r.odAx):((Number.isFinite(cyl)&&cyl===0)?'ax 0.00':'')].filter(Boolean).join(' ');
+}
+function osText(o){
+ const r=o?.rx||{}; if(r.osActive===false)return '';
+ const cyl=Number(String(r.osCyl||'').replace(',','.'));
+ return [r.osSph||'',r.osCyl||'',(Number.isFinite(cyl)&&cyl!==0&&String(r.osAx||'').trim())?('ax '+r.osAx):((Number.isFinite(cyl)&&cyl===0)?'ax 0.00':'')].filter(Boolean).join(' ');
+}
 function addText(o){let a=[]; if(o.rx.odActive!==false&&o.rx.odAdd)a.push(o.rx.odAdd); if(o.rx.osActive!==false&&o.rx.osAdd)a.push(o.rx.osAdd); return a.length?([...new Set(a)].join(' / ')):''}
-function rxText(o){return `OD ${o.rx.odSph} ${o.rx.odCyl} ax ${o.rx.odAx} ${o.rx.odAdd?('add '+o.rx.odAdd):''} / OS ${o.rx.osSph} ${o.rx.osCyl} ax ${o.rx.osAx} ${o.rx.osAdd?('add '+o.rx.osAdd):''}`}
+function rxText(o){return `OD ${odText(o)} ${o?.rx?.odAdd?('add '+o.rx.odAdd):''} / OS ${osText(o)} ${o?.rx?.osAdd?('add '+o.rx.osAdd):''}`.replace(/\s+/g,' ').trim()}
+function standardDeliveryDays(o){
+ const specialMaterials=['colorare uniforma','colorare degrade','colorare fashion'];
+ const specialTreatments=['premium drive','protect complete'];
+ return specialMaterials.includes(norm(o?.material))||specialTreatments.includes(norm(o?.treatment))?10:5;
+}
+function addBusinessDays(dateString,days){
+ const d=new Date(String(dateString||'')+'T12:00:00');
+ if(Number.isNaN(d.getTime()))return null;
+ let added=0;
+ while(added<days){d.setDate(d.getDate()+1);const day=d.getDay();if(day!==0&&day!==6)added++;}
+ d.setHours(23,59,59,999);return d;
+}
+function isDelayedOrder(o){
+ if(!o||o.status==='Livrată')return false;
+ const due=addBusinessDays(o.date,standardDeliveryDays(o));
+ return !!due&&Date.now()>due.getTime();
+}
+function canonicalRxPhrase(value){
+ const raw=String(value||'').trim().toLowerCase().replace(/,/g,'.').replace(/\s+/g,' ');
+ if(!raw)return '';
+ const tokens=raw.split(' ');
+ const out=[];
+ for(let i=0;i<tokens.length;i++){
+   let t=tokens[i];
+   if(t==='ax'||t==='axis'){
+     const next=String(tokens[++i]||'').replace(/\D/g,'').slice(0,3);
+     out.push('ax',next.padStart(3,'0'));
+     continue;
+   }
+   if(/^[+-]?\d+(?:\.\d{1,2})?$/.test(t)){
+     const sign=t.startsWith('-')?'-':t.startsWith('+')?'+':'';
+     const body=t.replace(/^[+-]/,'');
+     let n;
+     if(body.includes('.')) n=Number(body);
+     else if(body.length>=3) n=Number(body)/100;
+     else n=Number(body);
+     if(Number.isFinite(n)){
+       out.push(sign+Math.abs(n).toFixed(2));
+       continue;
+     }
+   }
+   out.push(t);
+ }
+ return norm(out.join(' '));
+}
+function rxPhraseMatches(value,query){
+ const q=canonicalRxPhrase(query);
+ if(!q)return true;
+ return canonicalRxPhrase(value).includes(q);
+}
+
+const WORKFLOW_STEPS=['Lansată','Check-out','Recepție','La montaj','Facturată','Livrată'];
+function isOperatorMaster(){return !!currentUser && currentUser.role==='iasi';}
+function processingVisibleOrders(){return (isAdmin()||isOperatorMaster())?orders:orders.filter(o=>norm(o.center)===norm(currentUser?.center));}
+function canSetWorkflowStep(status,order){
+  if(!currentUser||!order)return false;
+  const target=WORKFLOW_STEPS.indexOf(status);
+  const current=workflowIndex(order);
+  if(target<0 || target!==current+1)return false;
+  if(isAdmin()||isOperatorMaster())return true;
+  if(currentUser.role==='operator'){
+    return current>=WORKFLOW_STEPS.indexOf('Check-out') && ['Recepție','La montaj','Facturată','Livrată'].includes(status);
+  }
+  return false;
+}
+function workflowIndex(order){
+  let value=order.workflowStatus || (order.status==='Livrată'?'Livrată':'Lansată');
+  if(value==='Launched')value='Lansată';
+  const i=WORKFLOW_STEPS.indexOf(value);
+  return i<0?0:i;
+}
+function setWorkflowStatus(id,status){
+  const order=orders.find(o=>String(o.id)===String(id));
+  if(!canSetWorkflowStep(status,order))return;
+  if(!order||!WORKFLOW_STEPS.includes(status))return;
+  order.workflowStatus=status;
+  order.status=status==='Livrată'?'Livrată':'Lansată';
+  save();render();renderProcessingOrders();
+}
+function renderProcessingOrders(){
+  const box=document.getElementById('processingOrdersList');if(!box)return;
+  const query=norm(document.getElementById('processingSearch')?.value||'');
+  let list=processingVisibleOrders().filter(o=>o.status!=='Livrată' || (o.workflowStatus && o.workflowStatus!=='Livrată'));
+  if(query){
+    list=list.filter(o=>{
+      const status=WORKFLOW_STEPS[workflowIndex(o)]||'Lansată';
+      const hay=norm([o.code,o.client?.name,o.client?.code,processingCenterLabel(o),o.notes,status,productSummary(o),o.patient].join(' '));
+      return query.split(/\s+/).filter(Boolean).every(t=>hay.includes(t));
+    });
+  }
+  const count=document.getElementById('processingCount');if(count)count.textContent=list.length;
+  box.innerHTML=list.map(o=>{
+    const idx=workflowIndex(o);
+    const width=idx===0?0:(idx/(WORKFLOW_STEPS.length-1))*88;
+    const steps=WORKFLOW_STEPS.map((st,i)=>{
+      const enabled=canSetWorkflowStep(st,o);
+      return `<button class="workflow-step ${i<idx?'done':''} ${i===idx?'active':''}" ${enabled?'':'disabled'} onclick="event.stopPropagation();setWorkflowStatus('${o.id}','${st}')" title="${enabled?'Setează '+st:'Fără drept de modificare'}"><span class="workflow-dot">${i+1}</span><span>${st}</span></button>`;
+    }).join('');
+    const notes=String(o.notes||'').trim();
+    const notesCell=notes?`<div><div class="workflow-label">Mențiuni</div><div class="workflow-value">${esc(notes)}</div></div>`:'';
+    const readonly=(isAdmin()||isOperatorMaster())?'':currentUser?.role==='operator'?(idx>=1?'<div class="workflow-readonly">Poți modifica etapele Recepție, La montaj, Facturată și Livrată.</div>':'<div class="workflow-readonly">Etapele următoare devin editabile după confirmarea Check-out de către Operatorul Master.</div>'):'<div class="workflow-readonly">Status disponibil doar pentru vizualizare.</div>';
+    const deliveryToClient=o.deliveryDestination==='client';
+    const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.center||'');
+    return `<div class="workflow-order" onclick="showOrderDetails('${o.id}')"><div class="workflow-head ${notes?'':'no-notes'}"><div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(o.code||'')}</div></div><div><div class="workflow-label">Client</div><div class="workflow-value">${esc(o.client?.name||'')}</div></div><div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(o.client?.code||'')}</div></div><div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(o))}</div></div><div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient?'delivery-client':''}">${deliveryLabel}</div></div>${notesCell}</div><div class="workflow-track"><div class="workflow-progress" style="width:${width}%"></div>${steps}</div>${readonly}</div>`;
+  }).join('')||'<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
+}
+
 function render(){
- kTotal.textContent=orders.length;
- kToday.textContent=orders.filter(o=>o.date===new Date().toISOString().slice(0,10)).length;
- const ko=document.getElementById('kOpen'); if(ko) ko.textContent=orders.filter(o=>o.status!=='Livrată').length;
- const kd=document.getElementById('kDelivered'); if(kd) kd.textContent=orders.filter(o=>o.status==='Livrată').length;
- let query=norm(document.getElementById('q')?.value||'');
- let rows=orders.filter(o=>{
+ const scoped=visibleOrders();
+ kTotal.textContent=scoped.length;
+ kToday.textContent=scoped.filter(o=>o.date===new Date().toISOString().slice(0,10)).length;
+ const ko=document.getElementById('kOpen'); if(ko) ko.textContent=scoped.filter(o=>o.status!=='Livrată').length;
+ const kd=document.getElementById('kDelivered'); if(kd) kd.textContent=scoped.filter(o=>o.status==='Livrată').length;
+ const kdelay=document.getElementById('kDelayed'); if(kdelay) kdelay.textContent=scoped.filter(isDelayedOrder).length; const ktransit=document.getElementById('kTransit'); if(ktransit) ktransit.textContent=scoped.filter(o=>workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out')).length;
+ const rawQuery=String(document.getElementById('q')?.value||'').trim();
+ const queryVariants=rxQueryVariants(rawQuery);
+ const queryTokenGroups=rawQuery.split(/\s+/).filter(Boolean).map(t=>[...new Set(rxQueryVariants(t).concat([norm(t)]).filter(Boolean))]);
+ let rows=scoped.filter(o=>{
    let ok=true;
    if(orderViewMode==='today') ok=o.date===new Date().toISOString().slice(0,10);
    if(orderViewMode==='open') ok=o.status!=='Livrată';
    if(orderViewMode==='delivered') ok=o.status==='Livrată';
-   return ok && (!query||norm(o.code+' '+o.client.name+' '+o.patient+' '+productSummary(o)).includes(query));
+   if(orderViewMode==='delayed') ok=isDelayedOrder(o); if(orderViewMode==='transit') ok=workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out');
+   const values=[processingCenterLabel(o),o.code,o.client.name,o.patient,productSummary(o),odText(o),osText(o),addText(o),o?.rx?.odSph,o?.rx?.odCyl,o?.rx?.odAx,o?.rx?.odAdd,o?.rx?.osSph,o?.rx?.osCyl,o?.rx?.osAx,o?.rx?.osAdd];
+   const haystack=norm(values.join(' '));
+   const rxAliases=values.flatMap(v=>rxQueryVariants(v)).join(' ');
+   const rxOnly=isRxOnlyQuery(rawQuery);
+   const fullRxMatch=rxOnly
+     ? (rxQuerySequenceMatches(odText(o),rawQuery)||rxQuerySequenceMatches(osText(o),rawQuery)||rxQuerySequenceMatches(rxText(o),rawQuery))
+     : (rxPhraseMatches(odText(o),rawQuery)||rxPhraseMatches(osText(o),rawQuery)||rxPhraseMatches(rxText(o),rawQuery));
+   const tokenMatch=!rxOnly && queryTokenGroups.length && queryTokenGroups.every(group=>group.some(q=>haystack.includes(q)||rxAliases.includes(q)));
+   return ok && (!rawQuery || fullRxMatch || tokenMatch || (!rxOnly && queryVariants.some(q=>haystack.includes(q)||rxAliases.includes(q))));
  });
+ if(rawQuery){
+   const nq=norm(rawQuery);
+   const scoreOrder=o=>{
+     const fields=[o.code,processingCenterLabel(o),o.client.name,productSummary(o),odText(o),osText(o),addText(o),o.patient];
+     let score=0;
+     fields.forEach((v,i)=>{
+       const nv=norm(v);
+       if(!nv)return;
+       if(nv===nq)score+=120-i;
+       else if(nv.startsWith(nq))score+=80-i;
+       else if(nv.includes(nq))score+=40-i;
+     });
+     if(rxPhraseMatches(odText(o),rawQuery)||rxPhraseMatches(osText(o),rawQuery))score+=100;
+     const variants=rxQueryVariants(rawQuery);
+     const hay=norm(fields.join(' '));
+     score+=variants.filter(v=>hay.includes(v)).length*20;
+     return score;
+   };
+   rows=rows.map((o,i)=>({o,i,s:scoreOrder(o)})).sort((a,b)=>b.s-a.s||a.i-b.i).map(x=>x.o);
+ }
  const cnt=document.getElementById('orderFilterCount'); if(cnt)cnt.textContent=String(rows.length);
- const html=rows.map(o=>`<tr class="clickable" onclick="showOrderDetails('${o.id}')"><td><b>${o.code}</b></td><td>${o.client.name}</td><td>${productSummary(o)}</td><td>${odText(o)}</td><td>${osText(o)}</td><td>${addText(o)}</td><td>${o.patient}</td><td class="status-cell" onclick="event.stopPropagation()"><button class="icon-btn table-action status-toggle ${o.status==='Livrată'?'delivered':'primary'}" tabindex="-1" onclick="toggleOrderStatus('${o.id}')" title="Schimbă status">${ICON_STATUS}</button></td><td class="delete-cell" onclick="event.stopPropagation()"><button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder('${o.id}')" title="Șterge comanda">${ICON_TRASH}</button></td></tr>`).join('')||'<tr><td colspan="9" class="muted">Nu există comenzi.</td></tr>';
+ const hi=value=>rawQuery?highlightMatch(value,rawQuery):esc(value);
+ const html=rows.map(o=>`<tr class="clickable ${isDelayedOrder(o)?'delayed-order':''}" onclick="showOrderDetails('${o.id}')"><td><b>${hi(o.code)}</b></td><td><b>${hi(processingCenterLabel(o))}</b></td><td>${hi(o.client.name)}</td><td>${hi(productSummary(o))}</td><td>${hi(odText(o))}</td><td>${hi(osText(o))}</td><td>${hi(addText(o))}</td><td>${hi(o.patient)}</td><td class="status-cell" onclick="event.stopPropagation()"><button class="icon-btn table-action status-toggle ${o.status==='Livrată'?'delivered':'primary'}" tabindex="-1" onclick="toggleOrderStatus('${o.id}')" title="Schimbă livrarea">${ICON_STATUS}</button></td><td class="delete-cell" onclick="event.stopPropagation()"><button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder('${o.id}')" title="Șterge comanda">${ICON_TRASH}</button></td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nu există comenzi.</td></tr>';
  const orderBody=document.getElementById('orderRows'); if(orderBody) orderBody.innerHTML=html;
  if(typeof prodList!=='undefined' && prodList){
  prodList.innerHTML=designKeys().map(p=>[p,PRODUCTS[p]]).map(([p,ds])=>{let id=btoa(unescape(encodeURIComponent(p))).replace(/=/g,'');return `<div class="item"><div class="item-row"><div><b>${p}</b><div class="chips">${(ds||[]).map(d=>`<span class="chip">${d}<button class="mini red" tabindex="-1" onclick="deleteDesign('${p.replace(/'/g,"\'")}','${d.replace(/'/g,"\'")}')">×</button></span>`).join('')||'<span class="muted">Fără produse</span>'}</div></div><button class="icon-btn red" tabindex="-1" title="Șterge design" onclick="deleteProduct('${p.replace(/'/g,"\'")}')">${ICON_TRASH}</button></div><div class="design-editor"><input id="design_${id}" placeholder="Produs nou pentru ${p}"><button class="mini" onclick="addDesign('${p.replace(/'/g,"\'")}')">Adaugă produs</button></div></div>`}).join('');
@@ -1694,6 +2339,7 @@ function render(){
  }
  renderClients();
  renderRecentClients();
+ renderProcessingOrders();
 }
 
 function recentClients(){return CLIENTS.filter(c=>Number(c.createdAt||0)>0).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)).slice(0,10)}
@@ -1704,32 +2350,32 @@ function renderRecentClients(){
 }
 function toggleRecentClients(){
  const box=document.getElementById('recentClientsBox'), btn=document.getElementById('toggleClientsBtn'); if(!box)return;
- box.classList.toggle('hide'); if(btn)btn.textContent=box.classList.contains('hide')?'Afișează lista':'Ascunde lista';
+ box.classList.toggle('hide'); if(btn){const hidden=box.classList.contains('hide');btn.innerHTML=hidden?'<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>':'<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>';btn.title=hidden?'Afișează lista':'Ascunde lista';btn.setAttribute('aria-label',btn.title);}
 }
 
 function renderClients(){
  const body=document.getElementById('clientRows'); if(!body)return;
  const q=norm(document.getElementById('clientFilter')?.value||'');
  const rows=CLIENTS.map((c,i)=>({...c,__i:i})).filter(c=>!q || norm(c.name+' '+c.city+' '+c.code).includes(q)).sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0)) || a.__i-b.__i).slice(0,500);
- body.innerHTML=rows.map((c,i)=>`<tr><td><input value="${esc(c.name)}" onchange="updateClient('${c.code}','name',this.value)"></td><td><input value="${esc(c.city)}" onchange="updateClient('${c.code}','city',this.value)"></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions"><button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button></div></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
+ body.innerHTML=rows.map((c,i)=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
 }
-function updateClient(code,field,value){
+function updateClient(code,field,value){if(!canManageClients())return;
  const all=[CLIENTS,USER_CLIENTS];
  all.forEach(list=>{const c=list.find(x=>String(x.code)===String(code)); if(c){c[field]=field==='name'?String(value).trim().toUpperCase():String(value).trim().toUpperCase();}});
  saveUserClients(); render();
 }
-function deleteClient(code){
+function deleteClient(code){if(!canManageClients())return;
  const used=orders.some(o=>String(o.client?.code)===String(code));
  showAppConfirm({title:'Eliminare client', text:used?'Clientul are comenzi înregistrate. Îl elimini din nomenclator?':'Elimini acest client din nomenclator?', confirmText:'Elimină', cancelText:'Anulează', danger:true, onConfirm:()=>{let idx=CLIENTS.findIndex(c=>String(c.code)===String(code)); if(idx>-1)CLIENTS.splice(idx,1); USER_CLIENTS=USER_CLIENTS.filter(c=>String(c.code)!==String(code)); saveUserClients(); render();}});
 }
 
 function showOrderDetails(id){
- let o=orders.find(x=>x.id===id); if(!o)return;
+ let o=processingVisibleOrders().find(x=>x.id===id)||visibleOrders().find(x=>x.id===id); if(!o)return;
  let lines=[
-  ['Cod',o.code],['Data',formatDateRO(o.date)],['Client',o.client.name+' · '+o.client.city+' · cod '+o.client.code],['Produs',productSummary(o)],['Design filtrare',o.product],['OD',odText(o)+(o.rx.odAdd?' add '+o.rx.odAdd:'')],['OS',osText(o)+(o.rx.osAdd?' add '+o.rx.osAdd:'')],['Nume pacient',o.patient],['Centru montaj',o.mount],['Centru procesare',o.center],['Operator',o.operator],['Status',o.status],['Mențiuni',o.notes||'']
+  ['Cod',o.code],['Data',formatDateRO(o.date)],['Client',o.client.name+' · '+o.client.city+' · cod '+o.client.code],['Produs',productSummary(o)],['Design filtrare',o.product],['OD',odText(o)+(o.rx.odAdd?' add '+o.rx.odAdd:'')],['OS',osText(o)+(o.rx.osAdd?' add '+o.rx.osAdd:'')],['Nume pacient',o.patient],['Montaj',o.hasMount===false?'Fără montaj':(o.mount||'Fără montaj')],['Livrare',o.deliveryDestination==='client'?(o.client?.name||'Client'):(o.center||'')],['Centru procesare',o.center],['Operator',o.operator],['Status comandă',WORKFLOW_STEPS[workflowIndex(o)]||o.status],['Mențiuni',o.notes||'']
  ];
  let html=lines.map(([k,v])=>`<div class="muted">${esc(k)}</div><div><b>${esc(v)}</b></div>`).join('');
- let wrap=document.createElement('div'); wrap.className='modal open'; wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="detail-grid">${html}</div><div class="icon-btns"><button class="icon-btn primary" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}');this.closest('.modal').remove()" title="Copiază codul">${ICON_COPY}</button></div></div>`;
+ let wrap=document.createElement('div'); wrap.className='modal open'; wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="step-title">${esc(o.code)}</div></div></div><div class="detail-grid">${html}</div><div class="icon-btns"><button class="icon-btn primary" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}');this.closest('.modal').remove()" title="Copiază codul">${ICON_COPY}</button></div></div>`;
  document.body.appendChild(wrap);
 }
 
@@ -1744,26 +2390,1011 @@ function showAppConfirm({title='Confirmare', text='', confirmText='Confirmă', c
 }
 
 function toggleOrderStatus(id){
- const o=orders.find(x=>x.id===id); if(!o)return;
+ const o=visibleOrders().find(x=>x.id===id); if(!o)return;
  o.status = (o.status==='Livrată') ? 'Lansată' : 'Livrată';
  save(); render();
 }
 
 function deleteOrder(id){
+ const order=visibleOrders().find(o=>o.id===id);
+ if(!order)return;
  showAppConfirm({title:'Eliminare comandă', text:'Elimini această comandă din lista RX?', confirmText:'Elimină', cancelText:'Anulează', danger:true, onConfirm:()=>{orders=orders.filter(o=>o.id!==id); save(); render();}});
 }
-function clearOrders(){showAppConfirm({title:'Ștergere comenzi', text:'Ștergi comenzile locale?', confirmText:'Șterge', cancelText:'Anulează', danger:true, onConfirm:()=>{orders=[];save();render();}})}
+function clearOrders(){if(!isAdmin())return;showAppConfirm({title:'Ștergere comenzi', text:'Ștergi comenzile locale?', confirmText:'Șterge', cancelText:'Anulează', danger:true, onConfirm:()=>{orders=[];save();render();}})}
 
 document.addEventListener('DOMContentLoaded',()=>{
   const user=document.getElementById('user');
   const pass=document.getElementById('pass');
   const btn=document.getElementById('loginBtn');
-  if(user) user.value='';
-  if(pass) pass.value='';
+  const remembered=localStorage.getItem('sphera_remembered_user')||sessionStorage.getItem('sphera_session_user')||'';
+  if(user) user.value=remembered;
+  const rememberedPass=localStorage.getItem('sphera_remembered_pass')||'';
+  if(pass) pass.value=rememberedPass;
+  const rememberBox=document.getElementById('rememberMe');
+  if(rememberBox) rememberBox.checked=!!localStorage.getItem('sphera_remembered_user');
   if(btn) btn.addEventListener('click', doLogin);
   [user,pass].filter(Boolean).forEach(el=>el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doLogin(); }}));
-  if(user) user.focus();
+  if(remembered&&rememberedPass&&btn)btn.focus();else if(remembered&&pass)pass.focus();else if(user)user.focus();
 });
 </script>
+
+<style>
+.delivery-client{display:inline!important;padding:0!important;border-radius:0!important;background:transparent!important;color:#e11d48!important;font-weight:800!important}
+</style>
+<script>
+(function(){
+ const originalApplyPermissions=applyPermissions;
+ applyPermissions=function(){
+   originalApplyPermissions();
+   const admin=!!isAdmin();
+   ['menuNomenclators','menuSettings'].forEach(id=>{
+     const el=document.getElementById(id);
+     if(el){el.classList.toggle('hide',!admin);el.style.setProperty('display',admin?'flex':'none','important');}
+   });
+ };
+ const originalShowPage=showPage;
+ showPage=function(id,btn){
+   if(!isAdmin() && (id==='nomenclators'||id==='settings')){id='dashboard';btn=document.getElementById('menuDashboard');}
+   return originalShowPage(id,btn);
+ };
+})();
+</script>
+
+
+<script>
+/* SPHERA actualizare: coduri operatori, zile lucrătoare, filtrare județe */
+(function(){
+  const preferredOperators=[
+    'Adriana Pintilie','Ioana Lăpușneanu','Cristina Andraș','Denisa Dorofte',
+    'Bianca Pintilescu','Dana Hobjilă','Valentina Osniceanu','Constantin Spătar',
+    'Ileana Stan','Alexandra Ilie','Marius Constantin','Mihai Corciova','Daniel Țilea'
+  ];
+  const idMap={};
+  preferredOperators.forEach((name,i)=>idMap[norm(name)]=String(i+1).padStart(2,'0'));
+  let nextId=preferredOperators.length+1;
+  CENTERS.forEach(op=>{
+    const key=norm(op.operator||'');
+    if(!idMap[key]) idMap[key]=String(nextId++).padStart(2,'0');
+    op.operatorCode=idMap[key];
+  });
+  USERS.forEach(u=>{
+    const key=norm(u.name||'');
+    if(idMap[key]) u.operatorCode=idMap[key];
+  });
+  saveUsers();
+
+  window.processingCenterLabel=function(o){
+    const center=String(o?.center||'').trim();
+    const operator=String(o?.operator||'').trim();
+    const match=CENTERS.find(x=>norm(x.operator)===norm(operator)) || CENTERS.find(x=>norm(x.center)===norm(center));
+    const code=String(match?.operatorCode||o?.operatorCode||'').trim();
+    return [code,center].filter(Boolean).join(' · ');
+  };
+
+  window.canManageClients=function(){
+    return !!currentUser && ['admin','operator','iasi'].includes(currentUser.role);
+  };
+
+  const originalOpenWizard=window.openWizard;
+  window.openWizard=function(){
+    if(!canCreateOrders())return;
+    step=0;
+    const own=CENTERS.find(x=>norm(x.operator)===norm(currentUser?.name||'')) || CENTERS.find(x=>norm(x.center)===norm(currentUser?.center||''));
+    draft={
+      date:new Date().toISOString().slice(0,10),status:'Lansată',odActive:true,osActive:true,
+      hasMount:true,
+      mount:isAdmin()?'':(currentUser?.center||own?.center||''),
+      center:isAdmin()?'':(currentUser?.center||own?.center||''),
+      operator:isAdmin()?'':(own?.operator||currentUser?.name||'')
+    };
+    modal.classList.add('open');drawStep();
+  };
+
+  function nextWorkingCodeDate(base, now){
+    const d=new Date(base.getFullYear(),base.getMonth(),base.getDate());
+    const weekend=now.getDay()===0 || now.getDay()===6;
+    if(weekend || now.getHours()>=14) d.setDate(d.getDate()+1);
+    while(d.getDay()===0 || d.getDay()===6) d.setDate(d.getDate()+1);
+    return d;
+  }
+
+  window.createOrder=function(){
+    if(!canCreateOrders())return;
+    resolveMountStep();
+    let op=CENTERS.find(x=>norm(x.center)===norm(draft.center)&&norm(x.operator)===norm(draft.operator))
+      ||CENTERS.find(x=>norm(x.operator)===norm(draft.operator))
+      ||CENTERS.find(x=>norm(x.center)===norm(draft.center));
+    let max=Number(op?.last||0);
+    orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n});
+    let seq=String(max+1).padStart(5,'0');
+    const now=new Date();
+    const base=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    const codeDate=nextWorkingCodeDate(base,now);
+    let zz=String(codeDate.getDate()).padStart(2,'0'), ll=String(codeDate.getMonth()+1).padStart(2,'0');
+    let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code;
+    let order={
+      id:'RX'+Date.now(),code,seq,date:draft.date,codeDate:codeDate.toISOString().slice(0,10),
+      client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,
+      material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,
+      hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',
+      deliveryDestination:draft.deliveryDestination||'center',center:draft.center,operator:draft.operator,
+      operatorCode:op?.operatorCode||idMap[norm(draft.operator)]||'',notes:draft.notes,status:'Lansată',workflowStatus:'Lansată',
+      rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}
+    };
+    orders.unshift(order);save();closeWizard();render();showGeneratedCode(code);
+  };
+
+  window.processingVisibleOrders=function(){
+    const active=orders.filter(o=>o.status!=='Livrată' && o.workflowStatus!=='Livrată');
+    return (isAdmin()||isOperatorMaster())?active:active.filter(o=>norm(o.center)===norm(currentUser?.center));
+  };
+
+  window.clientAllowedForLoggedCenter=function(c){
+    const center=norm(currentUser?.center||'');
+    if(!center || ['iasi','ploiesti','bucuresti','cluj napoca','cluj-napoca'].includes(center)) return true;
+    const county=clientCountyForCenter(center);
+    const city=norm(c?.city||'');
+    const clientCounty=norm(c?.county||'');
+    if(center==='botosani') return ['botosani','suceava'].some(x=>clientCounty===x || city.includes(x));
+    return clientCounty===county || city===county || city.includes(county) || county.includes(city);
+  };
+
+  function allowedCountiesForCurrentUser(){
+    const center=norm(currentUser?.center||'');
+    if(!center || ['iasi','ploiesti','bucuresti','cluj napoca','cluj-napoca'].includes(center))return null;
+    if(center==='botosani')return ['Botoșani','Suceava'];
+    const labels={
+      'piatra-neamt':'Neamț','piatra neamt':'Neamț','bacau':'Bacău','constanta':'Constanța',
+      'brasov':'Brașov','craiova':'Dolj','oradea':'Bihor'
+    };
+    return [labels[center]||capWords(currentUser.center||'')];
+  }
+
+  window.openNewClientDialog=function(){
+    if(!canManageClients())return;
+    const code=nextClientCode();
+    const counties=allowedCountiesForCurrentUser();
+    const countyField=counties?`<div class="field" style="text-align:left"><label>Județ</label>${counties.length===1?`<input id="newClientCounty" value="${esc(counties[0])}" readonly>`:`<select id="newClientCounty">${counties.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select>`}</div>`:'';
+    const wrap=document.createElement('div');wrap.className='modal open';
+    wrap.innerHTML=`<div class="wizard alert-card" style="max-width:420px"><div class="alert-icon" style="background:#eaf1ff;color:#2457ff">${ICON_PLUS}</div><div class="alert-title">Adaugă client</div><div class="alert-text">Completează datele pentru generarea codului.</div><div class="field" style="text-align:left"><label>Denumirea clientului</label><input id="newClientName" placeholder="Scrie denumirea clientului" autofocus></div>${countyField}<div class="field" style="text-align:left"><label>Localitate</label><input id="newClientCity" placeholder="Scrie localitatea"></div><input id="newClientCode" value="${code}" type="hidden"><div id="newClientErr" class="err"></div><div class="alert-actions"><button class="btn cancel" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn ok" onclick="createNewClientFromDialog()">Adaugă</button></div></div>`;
+    document.body.appendChild(wrap);setTimeout(()=>document.getElementById('newClientName')?.focus(),30);
+  };
+
+  window.createNewClientFromDialog=function(){
+    const nameEl=document.getElementById('newClientName'),cityEl=document.getElementById('newClientCity'),countyEl=document.getElementById('newClientCounty'),codeEl=document.getElementById('newClientCode'),err=document.getElementById('newClientErr');
+    const name=roFixText(String(nameEl?.value||'').trim()).toUpperCase();
+    const city=roFixText(String(cityEl?.value||'').trim()).toUpperCase();
+    const county=roFixText(String(countyEl?.value||'').trim()).toUpperCase();
+    let code=String(codeEl?.value||nextClientCode()).padStart(3,'0').slice(-3);
+    if(!name||!city){if(err)err.textContent='Completează denumirea clientului și localitatea.';return;}
+    const allowed=allowedCountiesForCurrentUser();
+    if(allowed && !allowed.some(x=>norm(x)===norm(county))){if(err)err.textContent='Poți adăuga clienți doar din raza centrului tău.';return;}
+    if(CLIENTS.some(c=>String(c.code)===String(code)))code=nextClientCode();
+    const c={name,city,county,code,createdAt:Date.now()};CLIENTS.unshift(c);USER_CLIENTS.unshift(c);saveUserClients();
+    draft.client=c;draft.clientQuery=c.name;
+    document.getElementById('newClientCode')?.closest('.modal')?.remove();render();
+    if(document.getElementById('modal')?.classList.contains('open')){step=1;drawStep();}
+  };
+
+  setTimeout(()=>{render();},0);
+})();
+</script>
+
+<style>
+/* SPHERA vFinal: capitalizare, dioptrii compacte, editare comandă */
+#ordersListBox td:nth-child(5),#ordersListBox td:nth-child(6),
+#dashboardOrdersCard td:nth-child(5),#dashboardOrdersCard td:nth-child(6){white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important}
+#ordersListBox th:nth-child(5),#ordersListBox th:nth-child(6){white-space:nowrap!important}
+.order-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.order-edit-grid .full{grid-column:1/-1}
+.order-edit-rx{display:grid;grid-template-columns:54px repeat(4,minmax(0,1fr));gap:8px;align-items:end}
+.order-edit-rx .rx-label{font-weight:900;padding-bottom:13px}
+.order-edit-rx .head{font-size:12px;font-weight:700;color:#667085;text-transform:uppercase}
+.edit-code-readonly{font-size:22px!important;font-weight:700!important;letter-spacing:.4px!important;background:#f8fafc!important}
+@media(max-width:760px){.order-edit-grid{grid-template-columns:1fr}.order-edit-rx{grid-template-columns:42px repeat(4,minmax(82px,1fr));overflow-x:auto}.order-edit-grid .full{grid-column:auto}}
+</style>
+<script>
+(function(){
+  const CITY_MAP={
+    'Bacău':['Bacău','Onești','Moinești','Comănești','Buhuși','Târgu Ocna','Dărmănești','Slănic Moldova'],
+    'Bihor':['Oradea','Salonta','Marghita','Beiuș','Aleșd','Ștei','Valea lui Mihai'],
+    'Botoșani':['Botoșani','Dorohoi','Darabani','Săveni','Flămânzi','Bucecea','Ștefănești'],
+    'Brașov':['Brașov','Făgăraș','Săcele','Codlea','Râșnov','Zărnești','Ghimbav','Victoria'],
+    'București':['București'],
+    'Cluj':['Cluj-Napoca','Turda','Dej','Câmpia Turzii','Gherla','Huedin'],
+    'Constanța':['Constanța','Mangalia','Medgidia','Năvodari','Cernavodă','Eforie','Ovidiu','Murfatlar'],
+    'Dolj':['Craiova','Băilești','Calafat','Filiași','Segarcea','Dăbuleni'],
+    'Iași':['Iași','Pașcani','Târgu Frumos','Hârlău','Podu Iloaiei'],
+    'Ilfov':['Voluntari','Popești-Leordeni','Otopeni','Pantelimon','Buftea','Bragadiru','Chitila','Măgurele'],
+    'Neamț':['Piatra-Neamț','Roman','Târgu Neamț','Bicaz','Roznov'],
+    'Prahova':['Ploiești','Câmpina','Băicoi','Breaza','Bușteni','Mizil','Sinaia','Urlați','Vălenii de Munte'],
+    'Suceava':['Suceava','Fălticeni','Rădăuți','Câmpulung Moldovenesc','Vatra Dornei','Gura Humorului','Siret','Vicovu de Sus']
+  };
+  const ALL_CITIES=[...new Set(Object.values(CITY_MAP).flat())].sort((a,b)=>a.localeCompare(b,'ro'));
+
+  function shouldCapitalize(el){
+    if(!el || !['INPUT','TEXTAREA'].includes(el.tagName))return false;
+    const type=(el.type||'text').toLowerCase();
+    if(['password','email','number','date','time','hidden'].includes(type))return false;
+    if(el.readOnly||el.disabled)return false;
+    const id=(el.id||'').toLowerCase(), cls=String(el.className||'').toLowerCase();
+    if(/code|user|pass|search|filter|query|sph|cyl|axis|ax|add|rx/.test(id+' '+cls))return false;
+    return true;
+  }
+  document.addEventListener('blur',function(e){
+    const el=e.target;if(!shouldCapitalize(el))return;
+    const old=el.value;const value=capWords(roFixText(String(old||'').trim()));
+    if(value!==old){el.value=value;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));}
+  },true);
+
+  function allowedCityOptions(){
+    const center=norm(currentUser?.center||'');
+    let counties=null;
+    if(!center || ['iasi','ploiesti','bucuresti','cluj napoca','cluj-napoca'].includes(center)) counties=null;
+    else if(center==='botosani') counties=['Botoșani','Suceava'];
+    else {
+      const map={'piatra-neamt':'Neamț','piatra neamt':'Neamț','bacau':'Bacău','constanta':'Constanța','brasov':'Brașov','craiova':'Dolj','oradea':'Bihor'};
+      counties=[map[center]||capWords(currentUser?.center||'')];
+    }
+    const fromClients=(CLIENTS||[]).filter(c=>{
+      if(!counties)return true;
+      const cc=norm(c.county||'');
+      return counties.some(x=>cc===norm(x));
+    }).map(c=>capWords(c.city||'')).filter(Boolean);
+    const base=counties?counties.flatMap(c=>CITY_MAP[c]||[]):ALL_CITIES;
+    return [...new Set(base.concat(fromClients))].sort((a,b)=>a.localeCompare(b,'ro'));
+  }
+
+  window.openNewClientDialog=function(){
+    if(!canManageClients())return;
+    const code=nextClientCode();
+    const cities=allowedCityOptions();
+    const wrap=document.createElement('div');wrap.className='modal open';
+    wrap.innerHTML=`<div class="wizard alert-card" style="max-width:420px"><div class="alert-icon" style="background:#eaf1ff;color:#2457ff">${ICON_PLUS}</div><div class="alert-title">Adaugă client</div><div class="alert-text">Completează datele pentru generarea codului.</div><div class="field" style="text-align:left"><label>Denumirea clientului</label><input id="newClientName" placeholder="Scrie denumirea clientului" autofocus></div><div class="field" style="text-align:left"><label>Localitate</label><select id="newClientCity"><option value="">Selectează localitatea</option>${cities.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div><input id="newClientCode" value="${code}" type="hidden"><div id="newClientErr" class="err"></div><div class="alert-actions"><button class="btn cancel" onclick="this.closest('.modal').remove()">Anulează</button><button id="defaultAddClientBtn" class="btn ok" onclick="createNewClientFromDialog()">Adaugă</button></div></div>`;
+    document.body.appendChild(wrap);
+    wrap.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('defaultAddClientBtn')?.click();}});
+    setTimeout(()=>document.getElementById('newClientName')?.focus(),30);
+  };
+
+  window.createNewClientFromDialog=function(){
+    const nameEl=document.getElementById('newClientName'),cityEl=document.getElementById('newClientCity'),codeEl=document.getElementById('newClientCode'),err=document.getElementById('newClientErr');
+    const name=capWords(roFixText(String(nameEl?.value||'').trim())).toUpperCase();
+    const city=capWords(roFixText(String(cityEl?.value||'').trim())).toUpperCase();
+    let code=String(codeEl?.value||nextClientCode()).padStart(3,'0').slice(-3);
+    const allowed=allowedCityOptions();
+    if(!name||!city){if(err)err.textContent='Completează denumirea clientului și selectează localitatea.';return;}
+    if(!allowed.some(x=>norm(x)===norm(city))){if(err)err.textContent='Selectează o localitate disponibilă din listă.';return;}
+    if(CLIENTS.some(c=>String(c.code)===String(code)))code=nextClientCode();
+    const county=Object.keys(CITY_MAP).find(k=>(CITY_MAP[k]||[]).some(x=>norm(x)===norm(city)))||'';
+    const c={name,city,county:county.toUpperCase(),code,createdAt:Date.now()};CLIENTS.unshift(c);USER_CLIENTS.unshift(c);saveUserClients();
+    draft.client=c;draft.clientQuery=c.name;
+    codeEl?.closest('.modal')?.remove();render();
+    if(document.getElementById('modal')?.classList.contains('open')){step=1;drawStep();}
+  };
+
+  function optionList(arr,value){return `<option value="">Selectează</option>`+(arr||[]).map(x=>`<option value="${esc(x)}" ${norm(x)===norm(value)?'selected':''}>${esc(x)}</option>`).join('');}
+  window.openOrderEdit=function(id){
+    const o=orders.find(x=>String(x.id)===String(id));if(!o)return;
+    const clients=[...CLIENTS].sort((a,b)=>String(a.name).localeCompare(String(b.name),'ro'));
+    const centers=orderedProcessingCenters();
+    const operators=[...new Set(CENTERS.map(x=>x.operator).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ro'));
+    const modalEl=document.createElement('div');modalEl.className='modal open';
+    modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="order-edit-grid"><div class="field full"><label>Cod RX</label><input class="edit-code-readonly" value="${esc(o.code)}" readonly></div><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div><div class="field"><label>Design</label><input id="editProduct" value="${esc(o.product||'')}"></div><div class="field"><label>Produs</label><input id="editDesign" value="${esc(o.design||'')}"></div><div class="field"><label>Indice</label><input id="editIndex" value="${esc(o.index||'')}"></div><div class="field"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div><div class="field"><label>Material</label><input id="editMaterial" value="${esc(o.material||'')}"></div><div class="field"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div><div class="field"><label>Tratament</label><input id="editTreatment" value="${esc(o.treatment||'')}"></div><div class="field"><label>Centru procesare</label><select id="editCenter">${optionList(centers,o.center)}</select></div><div class="field"><label>Operator</label><select id="editOperator">${optionList(operators,o.operator)}</select></div><div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div><div class="field"><label>Centru montaj</label><select id="editMount">${optionList(centers.filter(c=>!['craiova','oradea'].includes(norm(c))),o.mount)}</select></div><div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>În centru</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>La client</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
+    document.body.appendChild(modalEl);
+  };
+  window.saveOrderEdit=function(id,btn){
+    const o=orders.find(x=>String(x.id)===String(id));if(!o)return;
+    const client=CLIENTS.find(c=>String(c.code)===String(document.getElementById('editClient')?.value));if(client)o.client=client;
+    const val=id=>capWords(roFixText(String(document.getElementById(id)?.value||'').trim()));
+    o.patient=val('editPatient');o.product=val('editProduct');o.design=val('editDesign');o.index=val('editIndex');o.geometry=val('editGeometry');o.material=val('editMaterial');o.materialColor=val('editColor');o.treatment=val('editTreatment');
+    o.center=val('editCenter');o.operator=val('editOperator');o.hasMount=document.getElementById('editHasMount')?.value==='1';o.mount=o.hasMount?val('editMount'):'';o.deliveryDestination=document.getElementById('editDelivery')?.value||'center';o.notes=capWords(roFixText(String(document.getElementById('editNotes')?.value||'').trim()));
+    o.rx=o.rx||{};['OdSph','OdCyl','OdAx','OdAdd','OsSph','OsCyl','OsAx','OsAdd'].forEach(k=>{const key=k.charAt(0).toLowerCase()+k.slice(1);o.rx[key]=String(document.getElementById('e'+k)?.value||'').trim();});
+    save();render();renderProcessingOrders();btn.closest('.modal')?.remove();showOrderDetails(id);
+  };
+
+  window.showOrderDetails=function(id){
+    let o=processingVisibleOrders().find(x=>x.id===id)||visibleOrders().find(x=>x.id===id)||orders.find(x=>x.id===id);if(!o)return;
+    let lines=[['Cod',o.code],['Data',formatDateRO(o.date)],['Client',(o.client?.name||'')+' · '+(o.client?.city||'')+' · cod '+(o.client?.code||'')],['Produs',productSummary(o)],['Design filtrare',o.product],['OD',odText(o)+(o.rx?.odAdd?' add '+o.rx.odAdd:'')],['OS',osText(o)+(o.rx?.osAdd?' add '+o.rx.osAdd:'')],['Nume pacient',o.patient],['Montaj',o.hasMount===false?'Fără montaj':(o.mount||'Fără montaj')],['Livrare',o.deliveryDestination==='client'?(o.client?.name||'Client'):(o.center||'')],['Centru procesare',o.center],['Operator',o.operator],['Status comandă',WORKFLOW_STEPS[workflowIndex(o)]||o.status],['Mențiuni',o.notes||'']];
+    let html=lines.map(([k,v])=>`<div class="muted">${esc(k)}</div><div><b>${esc(v)}</b></div>`).join('');
+    let wrap=document.createElement('div');wrap.className='modal open';wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="detail-grid">${html}</div><div class="icon-btns"><button class="icon-btn primary" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}')" title="Copiază codul">${ICON_COPY}</button><button class="icon-btn primary" onclick="this.closest('.modal').remove();openOrderEdit('${esc(o.id)}')" title="Editează comanda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg></button></div></div>`;document.body.appendChild(wrap);
+  };
+})();
+</script>
+
+
+<style>
+.order-code-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.order-code-head .step-title{margin:0}
+.order-code-copy{width:40px!important;height:40px!important;min-width:40px!important}
+.user-code-input{max-width:72px;text-align:center;font-weight:800}
+.edit-rx-disabled{background:#f1f5f9!important;color:#98a2b3!important;cursor:not-allowed}
+</style>
+<script>
+(function(){
+  function nextUniqueUserCode(){
+    const used=new Set();
+    (USERS||[]).forEach(u=>{const c=String(u.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);if(c!=='00')used.add(c)});
+    (CENTERS||[]).forEach(u=>{const c=String(u.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);if(c!=='00')used.add(c)});
+    for(let i=1;i<=99;i++){const c=String(i).padStart(2,'0');if(!used.has(c))return c}
+    return '';
+  }
+  const _suggestUsername=window.suggestUsername||suggestUsername;
+  window.suggestUsername=function(){
+    _suggestUsername();
+    const code=document.getElementById('newUserOperatorCode');
+    if(code&&!code.value)code.value=nextUniqueUserCode();
+  };
+  const _openUserDialog=window.openUserDialog||openUserDialog;
+  window.openUserDialog=function(){
+    _openUserDialog();
+    const code=document.getElementById('newUserOperatorCode');
+    if(code)code.value=nextUniqueUserCode();
+  };
+  window.addUserAccount=function(){
+    if(!guardAdmin())return;
+    const name=capWords(cleanVal('newUserFullName'));
+    const parts=String(name||'').trim().split(/\s+/).filter(Boolean);
+    const username=parts.length>=2?slug(parts[0])+'.'+slug(parts[1]):slug(cleanVal('newUsername'));
+    const role=document.getElementById('newUserRole')?.value||'operator';
+    const center=cleanVal('newUserCenter');
+    const pass=cleanVal('newUserPassword')||generateUserPassword(username);
+    let operatorCode=String(document.getElementById('newUserOperatorCode')?.value||nextUniqueUserCode()).replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(!name||parts.length<2||!username||(role!=='admin'&&!center)||!operatorCode){showAppConfirm({title:'Date incomplete',text:'Completează numele, tipul utilizatorului și centrul de procesare.',confirmText:'OK'});return;}
+    if(USERS.some(x=>slug(x.username)===username)){showAppConfirm({title:'Utilizator existent',text:'Există deja contul '+username+'.',confirmText:'OK'});return;}
+    if(USERS.some(x=>String(x.operatorCode||'').padStart(2,'0')===operatorCode)){operatorCode=nextUniqueUserCode();}
+    USERS.unshift({name,username,pass,role,center:role==='admin'?'':center,operatorCode,createdAt:Date.now()});saveUsers();
+    ['newUserFullName','newUsername','newUserPassword','newUserOperatorCode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+    document.getElementById('newUserRole').value='operator';syncUserCenterField();renderUsersAdmin();closeUserDialog();
+    showAppConfirm({title:'Utilizator creat',text:'Utilizator: '+username+'\nCod: '+operatorCode+'\nParolă: '+pass,confirmText:'OK'});
+  };
+  const _updateUserAccount=window.updateUserAccount||updateUserAccount;
+  window.updateUserAccount=function(index,field,value){
+    if(field!=='operatorCode')return _updateUserAccount(index,field,value);
+    if(!guardAdmin())return;const u=USERS[index];if(!u)return;
+    const code=String(value||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(!code||code==='00'||USERS.some((x,i)=>i!==index&&String(x.operatorCode||'').padStart(2,'0')===code)){renderUsersAdmin();return;}
+    u.operatorCode=code;saveUsers();renderUsersAdmin();
+  };
+  window.renderUsersAdmin=function(){
+    const box=document.getElementById('usersAdminList');if(!box||!isAdmin())return;const centers=orderedProcessingCenters();
+    box.innerHTML=USERS.map((u,i)=>({u,i})).sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i))).map(({u,i})=>`<div class="user-row"><div><b>${esc(u.name)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator"><input type="text" value="${esc(u.pass)}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă"><input class="user-code-input" maxlength="2" inputmode="numeric" value="${esc(String(u.operatorCode||'').padStart(2,'0').slice(-2))}" onchange="updateUserAccount(${i},'operatorCode',this.value)" aria-label="Cod utilizator"><select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select><select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select><button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button></div>`).join('');
+  };
+
+  const unrestricted=['iasi','ploiesti','bucuresti','cluj napoca','cluj-napoca'];
+  const countyCities={
+    'brasov':['brasov','fagaras','sacele','codlea','rasnov','zarnesti','ghimbav','victoria'],
+    'galati':['galati','tecuci','targu bujor','beresti'],
+    'botosani':['botosani','dorohoi','darabani','saveni','flamanzi','bucecea','stefanesti'],
+    'suceava':['suceava','falticeni','radauti','campulung moldovenesc','vatra dornei','gura humorului','siret','vicovu de sus'],
+    'bacau':['bacau','onesti','moinesti','comanesti','buhusi','targu ocna','darmanesti','slanic moldova'],
+    'constanta':['constanta','mangalia','medgidia','navodari','cernavoda','eforie','ovidiu','murfatlar'],
+    'neamt':['piatra neamt','piatra-neamt','roman','targu neamt','bicaz','roznov'],
+    'bihor':['oradea','salonta','marghita','beius','alest','stei','valea lui mihai'],
+    'dolj':['craiova','bailesti','calafat','filiasi','segarcea','dabuleni']
+  };
+  function centerCounties(center){
+    const c=norm(center||'');if(!c||unrestricted.includes(c))return null;
+    if(c==='botosani')return ['botosani','suceava'];
+    if(c==='brasov')return ['brasov','galati'];
+    const map={'piatra-neamt':'neamt','piatra neamt':'neamt','bacau':'bacau','constanta':'constanta','oradea':'bihor','craiova':'dolj'};
+    return [map[c]||c];
+  }
+  function clientInCounties(c,counties){
+    if(!counties)return true;
+    const county=norm(c?.county||'');const city=norm(c?.city||'');
+    return counties.some(k=>county===k||county.includes(k)||(countyCities[k]||[]).some(x=>city===x||city.includes(x))||city===k||city.includes(k));
+  }
+  window.clientAllowedForLoggedCenter=function(c){return clientInCounties(c,centerCounties(currentUser?.center));};
+  window.renderClients=function(){
+    const body=document.getElementById('clientRows');if(!body)return;const q=norm(document.getElementById('clientFilter')?.value||'');
+    const rows=CLIENTS.map((c,i)=>({...c,__i:i})).filter(c=>clientAllowedForLoggedCenter(c)).filter(c=>!q||norm(c.name+' '+c.city+' '+c.code).includes(q)).sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0))||a.__i-b.__i).slice(0,500);
+    body.innerHTML=rows.map(c=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nu există clienți pentru zona acestui centru.</td></tr>';
+  };
+
+  const oldOpenClient=window.openNewClientDialog;
+  window.openNewClientDialog=function(){oldOpenClient();setTimeout(()=>{const actions=document.querySelector('.modal.open .alert-actions');if(!actions)return;const add=actions.querySelector('#defaultAddClientBtn,.ok');const cancel=actions.querySelector('.cancel');if(add&&cancel&&actions.firstElementChild!==add){actions.insertBefore(add,cancel);}},0);};
+
+  function selectHtml(id,label,values,current){return `<div class="field"><label>${label}</label><select id="${id}">${(values||[]).map(v=>`<option value="${esc(v)}" ${norm(v)===norm(current)?'selected':''}>${esc(v)}</option>`).join('')}</select></div>`;}
+  function parseSignedEdit(raw){
+    let s=String(raw||'').trim().replace(',','.');if(!s)return '';
+    let sign=s.startsWith('-')?'-':'+';s=s.replace(/[+-]/g,'').replace(/[^0-9.]/g,'');if(!s)return '';
+    let n=s.includes('.')?Number(s):(s.length>=2?Number(s)/100:Number(s));if(!Number.isFinite(n))return '';
+    n=Math.round(n*4)/4;if(n>20)return '';return sign+n.toFixed(2);
+  }
+  function parseAddEdit(raw){let s=String(raw||'').trim().replace(',','.').replace(/[^0-9.]/g,'');if(!s)return '';let n=s.includes('.')?Number(s):(s.length>=2?Number(s)/100:Number(s));if(!Number.isFinite(n)||n<0||n>4)return '';n=Math.round(n*4)/4;return n<=4?n.toFixed(2):'';}
+  function syncEditAxis(prefix){const cyl=document.getElementById('e'+prefix+'Cyl'),ax=document.getElementById('e'+prefix+'Ax');if(!cyl||!ax)return;const n=Number(String(cyl.value||'').replace(',','.'));const enabled=!!cyl.value&&Number.isFinite(n)&&Math.abs(n)>0.0001;ax.disabled=!enabled;ax.classList.toggle('edit-rx-disabled',!enabled);if(!enabled)ax.value='';}
+  window.syncEditProductOptions=function(){const design=document.getElementById('editProduct')?.value||'';const sel=document.getElementById('editDesign');if(!sel)return;const values=PRODUCTS[Object.keys(PRODUCTS).find(k=>norm(k)===norm(design))]||[];const old=sel.value;sel.innerHTML=values.map(v=>`<option value="${esc(v)}" ${norm(v)===norm(old)?'selected':''}>${esc(v)}</option>`).join('');};
+  window.openOrderEdit=function(id){
+    const o=orders.find(x=>String(x.id)===String(id));if(!o)return;
+    const clients=[...CLIENTS].filter(clientAllowedForLoggedCenter).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ro'));
+    const centers=orderedProcessingCenters();const operators=[...new Set(CENTERS.map(x=>x.operator).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ro'));
+    const designVals=designKeys();const productVals=PRODUCTS[Object.keys(PRODUCTS).find(k=>norm(k)===norm(o.product))]||designKeys().flatMap(k=>PRODUCTS[k]||[]);
+    const modalEl=document.createElement('div');modalEl.className='modal open';
+    modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="order-edit-grid"><div class="field full"><label>Cod RX</label><input class="edit-code-readonly" value="${esc(o.code)}" readonly></div><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div>${selectHtml('editProduct','Design',designVals,o.product).replace('<select id="editProduct">','<select id="editProduct" onchange="syncEditProductOptions()">')}${selectHtml('editDesign','Produs',productVals,o.design)}${selectHtml('editIndex','Indice',INDICES,o.index)}<div class="field"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div>${selectHtml('editMaterial','Material',MATERIALS,o.material)}<div class="field"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div>${selectHtml('editTreatment','Tratament',TREATMENTS,o.treatment)}${selectHtml('editCenter','Centru procesare',centers,o.center)}${selectHtml('editOperator','Operator',operators,o.operator)}<div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div>${selectHtml('editMount','Centru montaj',centers.filter(c=>!['craiova','oradea'].includes(norm(c))),o.mount)}<div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>${esc(o.center||'Centru')}</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>${esc(o.client?.name||'Client')}</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
+    document.body.appendChild(modalEl);
+    ['Od','Os'].forEach(p=>{const sph=document.getElementById('e'+p+'Sph'),cyl=document.getElementById('e'+p+'Cyl'),ax=document.getElementById('e'+p+'Ax'),add=document.getElementById('e'+p+'Add');sph?.addEventListener('blur',()=>sph.value=parseSignedEdit(sph.value));cyl?.addEventListener('blur',()=>{cyl.value=parseSignedEdit(cyl.value);syncEditAxis(p)});ax?.addEventListener('blur',()=>{let n=Number(String(ax.value||'').replace(/\D/g,''));ax.value=Number.isFinite(n)&&n>=0&&n<=180?String(n).padStart(3,'0'):''});add?.addEventListener('blur',()=>add.value=parseAddEdit(add.value));syncEditAxis(p)});
+  };
+  window.saveOrderEdit=function(id,btn){
+    const o=orders.find(x=>String(x.id)===String(id));if(!o)return;const client=CLIENTS.find(c=>String(c.code)===String(document.getElementById('editClient')?.value));if(client)o.client=client;
+    const val=id=>capWords(roFixText(String(document.getElementById(id)?.value||'').trim()));
+    o.patient=val('editPatient');o.product=val('editProduct');o.design=val('editDesign');o.index=val('editIndex');o.geometry=val('editGeometry');o.material=val('editMaterial');o.materialColor=val('editColor');o.treatment=val('editTreatment');o.center=val('editCenter');o.operator=val('editOperator');o.hasMount=document.getElementById('editHasMount')?.value==='1';o.mount=o.hasMount?val('editMount'):'';o.deliveryDestination=document.getElementById('editDelivery')?.value||'center';o.notes=capWords(roFixText(String(document.getElementById('editNotes')?.value||'').trim()));
+    o.rx=o.rx||{};['Od','Os'].forEach(p=>{o.rx[p.toLowerCase()+'Sph']=parseSignedEdit(document.getElementById('e'+p+'Sph')?.value);o.rx[p.toLowerCase()+'Cyl']=parseSignedEdit(document.getElementById('e'+p+'Cyl')?.value);const cyl=Number(o.rx[p.toLowerCase()+'Cyl']||0);o.rx[p.toLowerCase()+'Ax']=Math.abs(cyl)>0?String(document.getElementById('e'+p+'Ax')?.value||'').replace(/\D/g,'').padStart(3,'0').slice(-3):'';o.rx[p.toLowerCase()+'Add']=parseAddEdit(document.getElementById('e'+p+'Add')?.value)});
+    save();render();renderProcessingOrders();btn.closest('.modal')?.remove();showOrderDetails(id);
+  };
+  window.showOrderDetails=function(id){
+    let o=processingVisibleOrders().find(x=>x.id===id)||visibleOrders().find(x=>x.id===id)||orders.find(x=>x.id===id);if(!o)return;
+    let lines=[['Data',formatDateRO(o.date)],['Client',(o.client?.name||'')+' · '+(o.client?.city||'')+' · cod '+(o.client?.code||'')],['Produs',productSummary(o)],['Design filtrare',o.product],['OD',odText(o)+(o.rx?.odAdd?' add '+o.rx.odAdd:'')],['OS',osText(o)+(o.rx?.osAdd?' add '+o.rx.osAdd:'')],['Nume pacient',o.patient],['Montaj',o.hasMount===false?'Fără montaj':(o.mount||'Fără montaj')],['Livrare',o.deliveryDestination==='client'?(o.client?.name||'Client'):(o.center||'')],['Centru procesare',o.center],['Operator',o.operator],['Status comandă',WORKFLOW_STEPS[workflowIndex(o)]||o.status],['Mențiuni',o.notes||'']];
+    let html=lines.map(([k,v])=>`<div class="muted">${esc(k)}</div><div><b>${esc(v)}</b></div>`).join('');let wrap=document.createElement('div');wrap.className='modal open';wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="order-code-head"><div class="step-title">${esc(o.code)}</div><button class="icon-btn primary order-code-copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}')" title="Copiază codul">${ICON_COPY}</button></div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="detail-grid">${html}</div><div class="icon-btns"><button class="icon-btn primary" onclick="this.closest('.modal').remove();openOrderEdit('${esc(o.id)}')" title="Editează comanda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg></button></div></div>`;document.body.appendChild(wrap);
+  };
+  setTimeout(()=>{const code=document.getElementById('newUserOperatorCode');if(code&&!code.value)code.value=nextUniqueUserCode();renderUsersAdmin();renderClients();},0);
+})();
+</script>
+
+
+<style id="sphera-final-layout-fixes">
+.grid.dashboard-stats{grid-template-columns:repeat(6,minmax(0,1fr)) !important}
+.processing-status-panel{padding:18px 20px 16px !important;margin-bottom:16px !important}
+.processing-status-copy h2{margin:0 0 4px !important;font-size:26px !important}
+.processing-status-panel .processing-filters{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;margin-top:16px;padding:0;background:transparent;border:0;box-shadow:none}
+.user-row{grid-template-columns:minmax(250px,1.15fr) minmax(170px,1fr) minmax(170px,1fr) 72px minmax(170px,1fr) minmax(145px,.8fr) 42px !important;gap:8px !important;padding:10px 12px !important;align-items:center !important}
+.user-row .user-name-code{display:flex;align-items:center;gap:8px;min-width:0}
+.user-row .user-name-code b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-row .user-inline-code{font-size:14px;font-weight:800;color:#165dff;min-width:24px}
+.user-row .icon-btn{margin:0 !important;align-self:center !important}
+.user-code-input{text-align:center;font-weight:800}
+.order-edit-conditional.hide-field{display:none !important}
+.order-edit-grid .full{grid-column:1/-1}
+@media(max-width:1250px){.grid.dashboard-stats{grid-template-columns:repeat(3,minmax(0,1fr)) !important}.user-row{grid-template-columns:1fr 1fr !important}.user-row .icon-btn{justify-self:end}}
+@media(max-width:700px){.grid.dashboard-stats{grid-template-columns:1fr !important}.user-row{grid-template-columns:1fr !important}.processing-status-panel .processing-filters{grid-template-columns:1fr auto}}
+</style>
+
+<script id="sphera-final-behavior-fixes">
+(function(){
+  function nextCodeForList(excludeIndex){
+    const used=new Set(USERS.map((u,i)=>i===excludeIndex?null:String(u.operatorCode||'').padStart(2,'0')).filter(Boolean));
+    for(let i=1;i<=99;i++){const c=String(i).padStart(2,'0');if(!used.has(c))return c;}return '99';
+  }
+  USERS.forEach((u,i)=>{if(u.role!=='admin'&&(!u.operatorCode||String(u.operatorCode).padStart(2,'0')==='00'))u.operatorCode=nextCodeForList(i)});saveUsers();
+
+  window.renderUsersAdmin=function(){
+    const box=document.getElementById('usersAdminList');if(!box||!isAdmin())return;
+    const centers=orderedProcessingCenters();
+    box.innerHTML=USERS.map((u,i)=>({u,i})).sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i))).map(({u,i})=>{
+      const code=u.role==='admin'?'00':String(u.operatorCode||nextCodeForList(i)).padStart(2,'0').slice(-2);
+      return `<div class="user-row"><div><div class="user-name-code"><span class="user-inline-code">${esc(code)}</span><b>${esc(u.name)}</b></div><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator"><input type="text" value="${esc(u.pass)}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă"><input class="user-code-input" maxlength="2" inputmode="numeric" value="${esc(code)}" ${u.role==='admin'?'disabled':''} onchange="updateUserAccount(${i},'operatorCode',this.value)" aria-label="Cod utilizator"><select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select><select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select><button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button></div>`;
+    }).join('');
+  };
+
+  const baseUpdate=window.updateUserAccount;
+  window.updateUserAccount=function(index,field,value){
+    if(field==='role'&&value!=='admin'&&(!USERS[index]?.operatorCode||String(USERS[index].operatorCode).padStart(2,'0')==='00'))USERS[index].operatorCode=nextCodeForList(index);
+    return baseUpdate(index,field,value);
+  };
+
+  function isAttractionMonofocal(o){return norm(o.product).includes('monofocal')&&norm(o.design).includes('attraction')}
+  function colorAllowed(o){const m=norm(o.material);return !(m.includes('incolor')||m.includes('uv pro')||m.includes('led pro'))}
+  function addAllowed(o){
+    const p=norm(o.product),d=norm(o.design);
+    if(p.includes('gestionarea miopiei')||p.includes('monofocal clinic'))return false;
+    if(p.includes('monofocal specializat'))return d.includes('drive');
+    if(p==='monofocal'||(p.includes('monofocal')&&!p.includes('progresiv')))return false;
+    return true;
+  }
+  window.updateEditVisibility=function(){
+    const o={product:document.getElementById('editProduct')?.value||'',design:document.getElementById('editDesign')?.value||'',material:document.getElementById('editMaterial')?.value||''};
+    document.getElementById('editGeometryWrap')?.classList.toggle('hide-field',!isAttractionMonofocal(o));
+    document.getElementById('editColorWrap')?.classList.toggle('hide-field',!colorAllowed(o));
+    document.querySelectorAll('.edit-add-col').forEach(el=>el.classList.toggle('hide-field',!addAllowed(o)));
+  };
+  const originalSync=window.syncEditProductOptions;
+  window.syncEditProductOptions=function(){if(originalSync)originalSync();setTimeout(updateEditVisibility,0)};
+
+  function selectField(id,label,values,current,extra=''){return `<div class="field"><label>${label}</label><select id="${id}" ${extra}>${(values||[]).map(v=>`<option value="${esc(v)}" ${norm(v)===norm(current)?'selected':''}>${esc(v)}</option>`).join('')}</select></div>`}
+  window.openOrderEdit=function(id){
+    const o=orders.find(x=>String(x.id)===String(id));if(!o)return;
+    const clients=[...CLIENTS].filter(clientAllowedForLoggedCenter).sort((a,b)=>String(a.name).localeCompare(String(b.name),'ro'));
+    const centers=orderedProcessingCenters(), mountCenters=centers.filter(c=>!['craiova','oradea'].includes(norm(c)));
+    const operators=[...new Set(CENTERS.map(x=>x.operator).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ro'));
+    const designVals=designKeys(),productVals=PRODUCTS[Object.keys(PRODUCTS).find(k=>norm(k)===norm(o.product))]||designKeys().flatMap(k=>PRODUCTS[k]||[]);
+    const modalEl=document.createElement('div');modalEl.className='modal open';
+    modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div></div><div class="order-edit-grid"><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div>${selectField('editProduct','Design',designVals,o.product,'onchange="syncEditProductOptions();updateEditVisibility()"')}${selectField('editDesign','Produs',productVals,o.design,'onchange="updateEditVisibility()"')}${selectField('editIndex','Indice',INDICES,o.index)}<div class="field order-edit-conditional" id="editGeometryWrap"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div>${selectField('editMaterial','Material',MATERIALS,o.material,'onchange="updateEditVisibility()"')}<div class="field order-edit-conditional" id="editColorWrap"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div>${selectField('editTreatment','Tratament',TREATMENTS,o.treatment)}${selectField('editCenter','Centru procesare',centers,o.center)}${selectField('editOperator','Operator',operators,o.operator)}<div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div>${selectField('editMount','Centru montaj',mountCenters,o.mount)}<div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>${esc(o.center||'Centru')}</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>${esc(o.client?.name||'Client')}</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head edit-add-col">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input class="edit-add-col" id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input class="edit-add-col" id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
+    document.body.appendChild(modalEl);
+    ['Od','Os'].forEach(p=>{const sph=document.getElementById('e'+p+'Sph'),cyl=document.getElementById('e'+p+'Cyl'),ax=document.getElementById('e'+p+'Ax'),add=document.getElementById('e'+p+'Add');sph?.addEventListener('blur',()=>sph.value=parseSignedEdit(sph.value));cyl?.addEventListener('blur',()=>{cyl.value=parseSignedEdit(cyl.value);syncEditAxis(p)});ax?.addEventListener('blur',()=>{let n=Number(String(ax.value||'').replace(/\D/g,''));ax.value=Number.isFinite(n)&&n>=0&&n<=180?String(n).padStart(3,'0'):''});add?.addEventListener('blur',()=>add.value=parseAddEdit(add.value));syncEditAxis(p)});
+    updateEditVisibility();
+  };
+
+  const oldSave=window.saveOrderEdit;
+  window.saveOrderEdit=function(id,btn){
+    const showAdd=!document.querySelector('.edit-add-col')?.classList.contains('hide-field');
+    if(!showAdd){const a=document.getElementById('eOdAdd'),b=document.getElementById('eOsAdd');if(a)a.value='';if(b)b.value='';}
+    return oldSave(id,btn);
+  };
+
+  window.showOrderDetails=function(id){
+    let o=processingVisibleOrders().find(x=>x.id===id)||visibleOrders().find(x=>x.id===id)||orders.find(x=>x.id===id);if(!o)return;
+    let lines=[['Data',formatDateRO(o.date)],['Client',(o.client?.name||'')+' · '+(o.client?.city||'')+' · cod '+(o.client?.code||'')],['Produs',productSummary(o)],['Design filtrare',o.product],['OD',odText(o)+(o.rx?.odAdd?' add '+o.rx.odAdd:'')],['OS',osText(o)+(o.rx?.osAdd?' add '+o.rx.osAdd:'')],['Nume pacient',o.patient],['Montaj',o.hasMount===false?'Fără montaj':(o.mount||'Fără montaj')],['Livrare',o.deliveryDestination==='client'?(o.client?.name||'Client'):(o.center||'')],['Centru procesare',o.center],['Operator',o.operator],['Status comandă',WORKFLOW_STEPS[workflowIndex(o)]||o.status],['Mențiuni',o.notes||'']];
+    let html=lines.map(([k,v])=>`<div class="muted">${esc(k)}</div><div><b>${esc(v)}</b></div>`).join('');let wrap=document.createElement('div');wrap.className='modal open';wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="order-code-head"><div class="step-title">${esc(o.code)}</div><button class="icon-btn primary order-code-copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}')" title="Copiază codul">${ICON_COPY}</button></div></div></div><div class="detail-grid">${html}</div><div class="icon-btns"><button class="icon-btn primary" onclick="this.closest('.modal').remove();openOrderEdit('${esc(o.id)}')" title="Editează comanda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg></button></div></div>`;document.body.appendChild(wrap);
+  };
+
+  setTimeout(()=>{renderUsersAdmin();render();},0);
+})();
+</script>
+
+
+<style>
+.logout-icon{
+  min-height:44px!important;
+  height:44px!important;
+  width:auto!important;
+  min-width:44px!important;
+  border-radius:14px!important;
+  padding:0 13px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:9px!important;
+  background:#fff!important;
+  color:#344054!important;
+  border:1px solid #e4e7ec!important;
+  box-shadow:none!important;
+  font-weight:800!important;
+}
+.logout-icon svg{width:19px!important;height:19px!important;stroke:currentColor!important;flex:0 0 auto}
+.logout-icon:hover{background:#e8f0ff!important;color:#165dff!important;border-color:#b7ccff!important}
+#logoutFirstName{white-space:nowrap;font-size:14px;line-height:1}
+.client-search-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:10px;align-items:end}
+.client-search-row .field{margin-bottom:0!important}
+.wizard-client-add{
+  width:44px!important;height:44px!important;min-width:44px!important;border-radius:999px!important;
+  padding:0!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  align-self:end!important;
+}
+.wizard-client-add svg{width:21px!important;height:21px!important;stroke:currentColor!important;stroke-width:2.2!important}
+.user-dialog-actions{gap:10px!important}
+@media(max-width:700px){
+  .logout-icon{padding:0 11px!important}
+  #logoutFirstName{font-size:13px}
+}
+</style>
+<script>
+(function(){
+  function loggedFirstName(){
+    const raw=String(currentUser?.name||'').trim();
+    if(raw)return capWords(raw.split(/\s+/)[0]||'');
+    return firstNameFromUsername(currentUser?.username||'');
+  }
+  function updateTopIdentity(){
+    const name=loggedFirstName();
+    const logoutName=document.getElementById('logoutFirstName');
+    if(logoutName)logoutName.textContent=name;
+    const who=document.getElementById('who');
+    const active=document.querySelector('.page:not(.hide)')?.id||'dashboard';
+    if(who){
+      who.textContent=active==='dashboard'&&name?'Bună ziua, '+name:'';
+      who.classList.toggle('hide',active!=='dashboard');
+    }
+  }
+  function updateTransitCardVisibility(){
+    const card=document.getElementById('transitDashboardCard');
+    if(!card)return;
+    const hide=!!currentUser && (currentUser.role==='admin'||norm(currentUser.center)==='iasi');
+    card.classList.toggle('hide',hide);
+  }
+
+  const baseApply=window.applyPermissions||applyPermissions;
+  window.applyPermissions=function(){
+    const r=baseApply.apply(this,arguments);
+    updateTopIdentity();
+    updateTransitCardVisibility();
+    return r;
+  };
+
+  const baseShowPage=window.showPage||showPage;
+  window.showPage=function(id,btn){
+    const r=baseShowPage.call(this,id,btn);
+    updateTopIdentity();
+    updateTransitCardVisibility();
+    return r;
+  };
+
+  const baseRender=window.render||render;
+  window.render=function(){
+    const r=baseRender.apply(this,arguments);
+    updateTransitCardVisibility();
+    updateTopIdentity();
+    return r;
+  };
+
+  const baseDrawStep=window.drawStep||drawStep;
+  window.drawStep=function(resetErr=true){
+    const r=baseDrawStep.call(this,resetErr);
+    if(step===0){
+      const search=document.getElementById('clientSearch');
+      const field=search?.closest('.field');
+      if(field&&!field.parentElement.classList.contains('client-search-row')){
+        const row=document.createElement('div');
+        row.className='client-search-row';
+        field.parentNode.insertBefore(row,field);
+        row.appendChild(field);
+        const add=document.createElement('button');
+        add.type='button';
+        add.className='icon-btn primary wizard-client-add';
+        add.title='Adaugă client';
+        add.setAttribute('aria-label','Adaugă client');
+        add.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+        add.onclick=function(){openNewClientDialog();};
+        row.appendChild(add);
+      }
+    }
+    return r;
+  };
+
+  document.addEventListener('keydown',function(e){
+    const modal=document.getElementById('userModal');
+    if(e.key==='Enter'&&modal?.classList.contains('open')&&!e.shiftKey){
+      const tag=String(e.target?.tagName||'').toLowerCase();
+      if(tag!=='textarea'){
+        e.preventDefault();
+        document.getElementById('defaultAddUserBtn')?.click();
+      }
+    }
+  },true);
+
+  setTimeout(()=>{updateTopIdentity();updateTransitCardVisibility();},0);
+})();
+</script>
+
+
+<style>
+/* Ajustări finale solicitate */
+.logout-icon{
+  min-height:48px!important;
+  height:48px!important;
+  padding:0 18px!important;
+  border-radius:14px!important;
+  background:#f04438!important;
+  border:1px solid #f04438!important;
+  color:#fff!important;
+  box-shadow:0 12px 24px rgba(240,68,56,.22)!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  font-weight:800!important;
+}
+.logout-icon:hover{
+  background:#d92d20!important;
+  border-color:#d92d20!important;
+  color:#fff!important;
+  box-shadow:0 16px 30px rgba(240,68,56,.28)!important;
+}
+.logout-icon svg{width:20px!important;height:20px!important;stroke:#fff!important}
+#logoutFirstName{font-size:14px!important;font-weight:800!important;color:#fff!important}
+.user-dialog-actions #defaultAddUserBtn{
+  background:#165dff!important;
+  color:#fff!important;
+  box-shadow:0 12px 24px rgba(22,93,255,.22)!important;
+}
+#dashboardPage .grid.dashboard-five-cards{
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+}
+@media(max-width:1180px){#dashboardPage .grid.dashboard-five-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:760px){#dashboardPage .grid.dashboard-five-cards{grid-template-columns:1fr!important}}
+.client-not-found-actions .btn.ok{order:-1}
+</style>
+<script>
+(function(){
+  function patchDashboardCards(){
+    const grid=document.querySelector('#dashboardPage .grid');
+    const transit=document.getElementById('transitDashboardCard');
+    if(!grid||!transit)return;
+    grid.classList.toggle('dashboard-five-cards',transit.classList.contains('hide'));
+  }
+
+  function patchAdminMountSelection(){
+    if(step!==4||!isAdmin())return;
+    const input=document.getElementById('mountInput');
+    const list=document.getElementById('mountOptions');
+    if(!input)return;
+    const all=orderedProcessingCenters();
+    if(list)list.innerHTML=all.map(c=>'<option value="'+esc(c)+'"></option>').join('');
+    input.onblur=function(){
+      const exact=all.find(c=>norm(c)===norm(this.value));
+      if(exact){this.value=exact;draft.mount=exact;}
+      else if(!String(this.value||'').trim()){draft.mount='';}
+    };
+  }
+
+  const oldRender=window.render;
+  window.render=function(){
+    const r=oldRender.apply(this,arguments);
+    patchDashboardCards();
+    return r;
+  };
+
+  const oldApply=window.applyPermissions;
+  window.applyPermissions=function(){
+    const r=oldApply.apply(this,arguments);
+    patchDashboardCards();
+    return r;
+  };
+
+  const oldDraw=window.drawStep;
+  window.drawStep=function(resetErr=true){
+    const r=oldDraw.call(this,resetErr);
+    patchAdminMountSelection();
+    return r;
+  };
+
+  window.canSetWorkflowStep=function(status,order){
+    if(!currentUser||!order)return false;
+    const target=WORKFLOW_STEPS.indexOf(status);
+    const current=workflowIndex(order);
+    if(target<0||target!==current+1)return false;
+    if(isAdmin())return true;
+    if(isOperatorMaster()){
+      if(norm(order.center)==='iasi')return true;
+      return current>=WORKFLOW_STEPS.indexOf('Check-out') && ['Recepție','La montaj','Facturată','Livrată'].includes(status);
+    }
+    if(currentUser.role==='operator'){
+      return current>=WORKFLOW_STEPS.indexOf('Check-out') && ['Recepție','La montaj','Facturată','Livrată'].includes(status);
+    }
+    return false;
+  };
+
+  function askToAddMissingClient(){
+    const query=String(draft.clientQuery||document.getElementById('clientSearch')?.value||'').trim();
+    if(!query)return;
+    showAppConfirm({
+      title:'Client inexistent',
+      text:'Clientul nu este existent în listă. Vrei să îl adaugi?',
+      confirmText:'Da',
+      cancelText:'Nu',
+      onConfirm:function(){
+        openNewClientDialog();
+        setTimeout(function(){
+          const name=document.getElementById('newClientName');
+          if(name){name.value=capWords(query);name.dispatchEvent(new Event('input',{bubbles:true}));}
+        },40);
+      }
+    });
+    setTimeout(function(){
+      const modal=[...document.querySelectorAll('.modal.open')].pop();
+      const actions=modal?.querySelector('.alert-actions');
+      if(actions)actions.classList.add('client-not-found-actions');
+      const yes=actions?.querySelector('.btn.ok');
+      if(yes)yes.focus();
+    },0);
+  }
+
+  const oldNext=window.nextStep;
+  window.nextStep=function(auto=false){
+    if(step===0&&!draft.client){
+      const q=norm(draft.clientQuery||document.getElementById('clientSearch')?.value||'');
+      if(q){
+        const allowed=CLIENTS.filter(c=>clientAllowedForLoggedCenter(c));
+        const matches=allowed.filter(c=>norm(c.name).includes(q)||String(c.code).includes(q));
+        if(matches.length===1){
+          draft.client=matches[0];
+          draft.clientQuery=matches[0].name;
+        }else if(matches.length===0){
+          askToAddMissingClient();
+          return;
+        }
+      }
+    }
+    return oldNext.call(this,auto);
+  };
+
+  const oldClientKey=window.clientKey;
+  window.clientKey=function(e){
+    if(e.key==='Enter'&&!clientResults.length&&String(draft.clientQuery||'').trim()){
+      e.preventDefault();e.stopPropagation();askToAddMissingClient();return;
+    }
+    return oldClientKey.call(this,e);
+  };
+
+  document.addEventListener('DOMContentLoaded',patchDashboardCards);
+})();
+</script>
+
+
+<style>
+/* Corecții finale: logout, dashboard și montaj administrator */
+.logout-icon{
+  min-height:48px!important;
+  height:48px!important;
+  padding:0 18px!important;
+  font-size:16px!important;
+  font-weight:800!important;
+}
+#logoutFirstName{
+  font-size:16px!important;
+  line-height:1!important;
+  font-weight:800!important;
+}
+#dashboard .grid.dashboard-stats.dashboard-five-cards{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  width:100%!important;
+  max-width:none!important;
+}
+#dashboard .grid.dashboard-stats.dashboard-five-cards .stat-btn{
+  width:100%!important;
+  min-width:0!important;
+}
+@media(max-width:1180px){
+  #dashboard .grid.dashboard-stats.dashboard-five-cards{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:760px){
+  #dashboard .grid.dashboard-stats.dashboard-five-cards{grid-template-columns:1fr!important}
+}
+</style>
+<script>
+(function(){
+  function fixDashboardWidth(){
+    const grid=document.querySelector('#dashboard .grid.dashboard-stats');
+    const transit=document.getElementById('transitDashboardCard');
+    if(!grid||!transit)return;
+    grid.classList.toggle('dashboard-five-cards',transit.classList.contains('hide'));
+  }
+
+  function validMountCenters(){
+    return orderedProcessingCenters().filter(c=>!['craiova','oradea'].includes(norm(c)));
+  }
+
+  function fixAdminMountStep(){
+    if(step!==4||!isAdmin())return;
+    const input=document.getElementById('mountInput');
+    const list=document.getElementById('mountOptions');
+    const centers=validMountCenters();
+    if(list) list.innerHTML=centers.map(c=>'<option value="'+esc(c)+'"></option>').join('');
+    if(!input)return;
+    input.disabled=false;
+    input.readOnly=false;
+    input.removeAttribute('disabled');
+    input.removeAttribute('readonly');
+    input.setAttribute('list','mountOptions');
+    input.placeholder='Selectează centrul de montaj';
+    if(['craiova','oradea'].includes(norm(input.value))){input.value='';draft.mount='';}
+    input.oninput=function(){draft.mount=capWords(this.value)};
+    input.onblur=function(){
+      const exact=centers.find(c=>norm(c)===norm(this.value));
+      if(exact){this.value=exact;draft.mount=exact;}
+      else if(String(this.value||'').trim()){this.value='';draft.mount='';}
+    };
+  }
+
+  const prevRender=window.render;
+  window.render=function(){const r=prevRender.apply(this,arguments);fixDashboardWidth();return r};
+  const prevApply=window.applyPermissions;
+  window.applyPermissions=function(){const r=prevApply.apply(this,arguments);fixDashboardWidth();return r};
+  const prevDraw=window.drawStep;
+  window.drawStep=function(resetErr=true){const r=prevDraw.call(this,resetErr);fixAdminMountStep();return r};
+
+  const prevNext=window.nextStep;
+  window.nextStep=function(auto=false){
+    if(step===4&&isAdmin()){
+      if(draft.hasMount===true){
+        const centers=validMountCenters();
+        const exact=centers.find(c=>norm(c)===norm(draft.mount));
+        if(!exact){
+          const err=document.getElementById('stepErr');
+          if(err)err.textContent='Selectează centrul unde se realizează montajul.';
+          return;
+        }
+        draft.mount=exact;
+      }
+      if(!draft.center)draft.center=draft.mount||'Iasi';
+      if(!draft.operator)draft.operator=currentUser?.name||'Administrator';
+    }
+    return prevNext.call(this,auto);
+  };
+
+  document.addEventListener('keydown',function(e){
+    if(e.key!=='Enter'||e.shiftKey)return;
+    const open=[...document.querySelectorAll('.modal.open')].pop();
+    if(!open)return;
+    const title=norm(open.textContent||'');
+    if(!title.includes('client inexistent'))return;
+    const yes=open.querySelector('.alert-actions .btn.ok');
+    if(yes){e.preventDefault();e.stopPropagation();yes.click();}
+  },true);
+
+  setTimeout(function(){fixDashboardWidth();fixAdminMountStep()},0);
+})();
+</script>
+
+<script>
+(function(){
+  function isNoMountCenter(order){
+    const c=norm(order?.center||'');
+    return c==='oradea'||c==='craiova';
+  }
+
+  window.orderWorkflowSteps=function(order){
+    return isNoMountCenter(order)
+      ? ['Lansată','Check-out','Recepție','Facturată','Livrată']
+      : ['Lansată','Check-out','Recepție','La montaj','Facturată','Livrată'];
+  };
+
+  window.orderWorkflowIndex=function(order){
+    const steps=orderWorkflowSteps(order);
+    let value=order?.workflowStatus || (order?.status==='Livrată'?'Livrată':'Lansată');
+    if(value==='Launched')value='Lansată';
+    let i=steps.indexOf(value);
+    if(i<0 && value==='La montaj' && isNoMountCenter(order)) i=steps.indexOf('Recepție');
+    return i<0?0:i;
+  };
+
+  window.canSetWorkflowStep=function(status,order){
+    if(!currentUser||!order)return false;
+    const steps=orderWorkflowSteps(order);
+    const target=steps.indexOf(status);
+    const current=orderWorkflowIndex(order);
+    if(target<0||target!==current+1)return false;
+
+    if(isAdmin())return true;
+
+    if(isOperatorMaster()){
+      if(norm(order.center)==='iasi')return true;
+      return status==='Check-out' && current===0;
+    }
+
+    if(currentUser.role==='operator'){
+      return current>=steps.indexOf('Check-out') && ['Recepție','La montaj','Facturată','Livrată'].includes(status);
+    }
+    return false;
+  };
+
+  window.setWorkflowStatus=function(id,status){
+    const order=orders.find(o=>String(o.id)===String(id));
+    if(!order||!canSetWorkflowStep(status,order))return;
+    const steps=orderWorkflowSteps(order);
+    if(!steps.includes(status))return;
+    order.workflowStatus=status;
+    order.status=status==='Livrată'?'Livrată':'Lansată';
+    save();render();renderProcessingOrders();
+  };
+
+  window.renderProcessingOrders=function(){
+    const box=document.getElementById('processingOrdersList');if(!box)return;
+    const query=norm(document.getElementById('processingSearch')?.value||'');
+    let list=processingVisibleOrders().filter(o=>o.status!=='Livrată' || (o.workflowStatus && o.workflowStatus!=='Livrată'));
+    if(query){
+      list=list.filter(o=>{
+        const steps=orderWorkflowSteps(o);
+        const status=steps[orderWorkflowIndex(o)]||'Lansată';
+        const hay=norm([o.code,o.client?.name,o.client?.code,processingCenterLabel(o),o.notes,status,productSummary(o),o.patient].join(' '));
+        return query.split(/\s+/).filter(Boolean).every(t=>hay.includes(t));
+      });
+    }
+    const count=document.getElementById('processingCount');if(count)count.textContent=list.length;
+    box.innerHTML=list.map(o=>{
+      const stepsForOrder=orderWorkflowSteps(o);
+      const idx=orderWorkflowIndex(o);
+      const width=idx===0?0:(idx/(stepsForOrder.length-1))*88;
+      const steps=stepsForOrder.map((st,i)=>{
+        const enabled=canSetWorkflowStep(st,o);
+        return `<button class="workflow-step ${i<idx?'done':''} ${i===idx?'active':''}" ${enabled?'':'disabled'} onclick="event.stopPropagation();setWorkflowStatus('${o.id}','${st}')" title="${enabled?'Setează '+st:'Fără drept de modificare'}"><span class="workflow-dot">${i+1}</span><span>${st}</span></button>`;
+      }).join('');
+      const notes=String(o.notes||'').trim();
+      const notesCell=notes?`<div><div class="workflow-label">Mențiuni</div><div class="workflow-value">${esc(notes)}</div></div>`:'';
+      let readonly='';
+      if(isOperatorMaster() && norm(o.center)!=='iasi'){
+        readonly=idx===0?'<div class="workflow-readonly">Poți confirma doar etapa Check-out pentru comenzile din afara centrului Iași.</div>':'<div class="workflow-readonly">După Check-out, etapele sunt gestionate de operatorii centrului respectiv.</div>';
+      }else if(!isAdmin()&&!isOperatorMaster()&&currentUser?.role==='operator'){
+        readonly=idx>=1?'<div class="workflow-readonly">Poți modifica etapele permise după Check-out.</div>':'<div class="workflow-readonly">Etapele următoare devin editabile după confirmarea Check-out de către Operatorul Master.</div>';
+      }
+      const deliveryToClient=o.deliveryDestination==='client';
+      const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.center||'');
+      return `<div class="workflow-order" onclick="showOrderDetails('${o.id}')"><div class="workflow-head ${notes?'':'no-notes'}"><div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(o.code||'')}</div></div><div><div class="workflow-label">Client</div><div class="workflow-value">${esc(o.client?.name||'')}</div></div><div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(o.client?.code||'')}</div></div><div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(o))}</div></div><div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient?'delivery-client':''}">${esc(deliveryLabel)}</div></div>${notesCell}</div><div class="workflow-track"><div class="workflow-progress" style="width:${width}%"></div>${steps}</div>${readonly}</div>`;
+    }).join('')||'<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
+  };
+
+  setTimeout(function(){ if(typeof renderProcessingOrders==='function')renderProcessingOrders(); },0);
+})();
+</script>
+
 </body>
 </html>
