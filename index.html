@@ -2441,7 +2441,10 @@ function render(){
  idxList.innerHTML=INDICES.map(x=>`<div class="item item-row"><b>${x}</b><button class="icon-btn red" tabindex="-1" title="Șterge" onclick="deleteSimple('INDICES','${x}')">${ICON_TRASH}</button></div>`).join('');
  matList.innerHTML=MATERIALS.map(x=>`<div class="item item-row"><b>${x}</b><button class="icon-btn red" tabindex="-1" title="Șterge" onclick="deleteSimple('MATERIALS','${x}')">${ICON_TRASH}</button></div>`).join('');
  trList.innerHTML=TREATMENTS.map(x=>`<div class="item item-row"><b>${x}</b><button class="icon-btn red" tabindex="-1" title="Șterge" onclick="deleteSimple('TREATMENTS','${x}')">${ICON_TRASH}</button></div>`).join('');
- opList.innerHTML=CENTERS.map((o,i)=>`<div class="item item-row"><div><b>${o.operator}</b><br><span class="muted">${o.center} · cod operator ${o.operatorCode} · cod centru ${o.centerCode}</span></div><button class="icon-btn red" tabindex="-1" title="Șterge operator" onclick="deleteOperator(${i})">${ICON_TRASH}</button></div>`).join('')
+ const opListEl=document.getElementById('opList');
+ if(opListEl){
+   opListEl.innerHTML=CENTERS.map((o,i)=>`<div class="item item-row"><div><b>${o.operator}</b><br><span class="muted">${o.center} · cod operator ${o.operatorCode} · cod centru ${o.centerCode}</span></div><button class="icon-btn red" tabindex="-1" title="Șterge operator" onclick="deleteOperator(${i})">${ICON_TRASH}</button></div>`).join('');
+ }
  }
  renderClients();
  renderRecentClients();
