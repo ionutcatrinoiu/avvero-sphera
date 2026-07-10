@@ -1193,6 +1193,24 @@ html,
 .delivery-client{display:inline-flex!important;align-items:center!important;padding:6px 10px!important;border-radius:999px!important;background:#fff4cc!important;color:#8a5a00!important;font-weight:850!important}
 #generatedCodeInput{font-size:34px!important;font-weight:850!important;letter-spacing:1.2px!important;min-height:66px!important}
 @media(max-width:1050px){.workflow-head{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+
+
+/* SPHERA vNext, administrare utilizatori și nomenclatoare */
+.user-row{grid-template-columns:1.15fr 1fr 1fr 72px 1fr 1fr auto!important}
+.user-search-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;margin:14px 0 16px}
+.user-search-wrap .count-dot{min-width:38px}
+.nomenclature-stack{display:grid;grid-template-columns:1fr;gap:16px;width:100%}
+.nomen-card{width:100%;max-width:none!important}
+.nomen-card-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.nomen-card-head h2{margin:0}
+.nomen-toggle{width:42px;height:42px;min-width:42px;border-radius:999px;border:1px solid #dbe4f0;background:#fff;color:#165dff;display:inline-flex;align-items:center;justify-content:center;padding:0;box-shadow:0 8px 20px rgba(16,24,40,.07);transition:.18s}
+.nomen-toggle svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .18s}
+.nomen-toggle.collapsed svg{transform:rotate(180deg)}
+.nomen-card-body{margin-top:16px}
+.nomen-card-body.collapsed{display:none}
+@media(max-width:1000px){.user-row{grid-template-columns:1fr!important}}
+@media(max-width:900px){.user-search-wrap{grid-template-columns:1fr auto}.nomen-card .two{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -1279,16 +1297,41 @@ html,
       <div id="processingOrdersList" class="workflow-list"></div>
     </section>
     <section id="nomenclators" class="page hide">
-      <div class="admin-grid">
-        <div class="card"><h2>Designuri și produse</h2><div class="two"><input id="newProduct" placeholder="Design nou"><button class="btn" onclick="addProduct()">Adaugă design</button></div><div id="prodList" class="list" style="margin-top:14px"></div></div>
-        <div class="card"><h2>Indice</h2><div class="two"><input id="newIndex" placeholder="Ex: 1.53"><button class="btn" onclick="addIndex()">Adaugă indice</button></div><div id="idxList" class="list" style="margin-top:14px"></div></div>
-        <div class="card"><h2>Materiale</h2><div class="two"><input id="newMaterial" placeholder="Material nou"><button class="btn" onclick="addMaterial()">Adaugă material</button></div><div id="matList" class="list" style="margin-top:14px"></div></div>
-        <div class="card"><h2>Tratamente</h2><div class="two"><input id="newTreatment" placeholder="Tratament nou"><button class="btn" onclick="addTreatment()">Adaugă tratament</button></div><div id="trList" class="list" style="margin-top:14px"></div></div>
+      <div class="nomenclature-stack">
+        <div class="card nomen-card">
+          <div class="nomen-card-head"><h2>Designuri și produse</h2><button type="button" class="nomen-toggle" onclick="toggleNomenCard('nomenProducts',this)" aria-expanded="true" title="Ascunde sau afișează"><svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6"/></svg></button></div>
+          <div id="nomenProducts" class="nomen-card-body"><div class="two"><input id="newProduct" placeholder="Design nou"><button class="btn" onclick="addProduct()">Adaugă design</button></div><div id="prodList" class="list" style="margin-top:14px"></div></div>
+        </div>
+        <div class="card nomen-card">
+          <div class="nomen-card-head"><h2>Indice</h2><button type="button" class="nomen-toggle" onclick="toggleNomenCard('nomenIndices',this)" aria-expanded="true" title="Ascunde sau afișează"><svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6"/></svg></button></div>
+          <div id="nomenIndices" class="nomen-card-body"><div class="two"><input id="newIndex" placeholder="Ex: 1.53"><button class="btn" onclick="addIndex()">Adaugă indice</button></div><div id="idxList" class="list" style="margin-top:14px"></div></div>
+        </div>
+        <div class="card nomen-card">
+          <div class="nomen-card-head"><h2>Materiale</h2><button type="button" class="nomen-toggle" onclick="toggleNomenCard('nomenMaterials',this)" aria-expanded="true" title="Ascunde sau afișează"><svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6"/></svg></button></div>
+          <div id="nomenMaterials" class="nomen-card-body"><div class="two"><input id="newMaterial" placeholder="Material nou"><button class="btn" onclick="addMaterial()">Adaugă material</button></div><div id="matList" class="list" style="margin-top:14px"></div></div>
+        </div>
+        <div class="card nomen-card">
+          <div class="nomen-card-head"><h2>Tratamente</h2><button type="button" class="nomen-toggle" onclick="toggleNomenCard('nomenTreatments',this)" aria-expanded="true" title="Ascunde sau afișează"><svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6"/></svg></button></div>
+          <div id="nomenTreatments" class="nomen-card-body"><div class="two"><input id="newTreatment" placeholder="Tratament nou"><button class="btn" onclick="addTreatment()">Adaugă tratament</button></div><div id="trList" class="list" style="margin-top:14px"></div></div>
+        </div>
       </div>
-      <div class="card" style="margin-top:16px"><h2>Operatori</h2><div class="two"><input id="newOperatorCenter" placeholder="Centru procesare"><input id="newOperatorName" placeholder="Nume operator"></div><div class="two"><input id="newCenterCode" placeholder="Cod centru, ex: 01"><input id="newOperatorCode" placeholder="Cod operator, ex: 14"></div><button class="btn" onclick="addOperator()">Adaugă operator</button><div id="opList" class="list" style="margin-top:14px"></div></div>
     </section>
     <section id="settings" class="page hide">
-      <div class="card" style="margin-top:16px"><div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Administrare utilizatori</h2><div class="muted">Modifică parola, centrul sau privilegiile fiecărui cont.</div></div></div><div id="usersAdminList" class="list"></div></div>
+      <div class="card admin-users-card" style="margin-top:16px">
+        <div class="nomen-card-head">
+          <div><h2 style="margin:0">Administrare utilizatori</h2><div class="muted">Modifică parola, centrul sau privilegiile fiecărui cont.</div></div>
+          <button type="button" class="nomen-toggle" onclick="toggleAdminUsers(this)" aria-expanded="true" title="Ascunde sau afișează">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6"/></svg>
+          </button>
+        </div>
+        <div id="adminUsersBody" class="nomen-card-body">
+          <div class="user-search-wrap">
+            <input id="userAdminSearch" type="search" placeholder="Caută după nume, utilizator, centru, cod sau tipul contului" autocomplete="off">
+            <span id="userAdminCount" class="count-dot">0</span>
+          </div>
+          <div id="usersAdminList" class="list"></div>
+        </div>
+      </div>
     </section>
   </main>
  </div>
@@ -1393,7 +1436,7 @@ orders=(orders||[]).map(o=>{
   return o;
 });
 const DEFAULT_USERS = (()=>{
-  const result=[{username:'administrator',pass:'Sphera#Admin26',name:'Administrator SPHERA',role:'admin',center:''}];
+  const result=[{username:'administrator',pass:'sunset1987',name:'Administrator SPHERA',role:'admin',center:''}];
   const used=new Set(['administrator']);
   CENTERS.forEach((op,i)=>{
     const parts=String(op.operator||'Operator').trim().split(/\s+/);
@@ -1409,7 +1452,28 @@ const DEFAULT_USERS = (()=>{
   return result;
 })();
 let USERS=safeLoad('sphera_users_v1',DEFAULT_USERS);
-function saveUsers(){localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));}
+const RECOVERY_ADMIN={username:'administrator',pass:'sunset1987',name:'Administrator SPHERA',role:'admin',center:'',operatorCode:'00',createdAt:0};
+function ensureAdminAccount(){
+  if(!Array.isArray(USERS))USERS=[];
+  let recovery=USERS.find(u=>u&&slug(u.username)==='administrator');
+  if(!recovery){
+    recovery={...RECOVERY_ADMIN};
+    USERS.unshift(recovery);
+  }else{
+    recovery.username='administrator';
+    recovery.pass='sunset1987';
+    recovery.name=recovery.name||'Administrator SPHERA';
+    recovery.role='admin';
+    recovery.center='';
+    recovery.operatorCode=recovery.operatorCode||'00';
+  }
+  localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));
+}
+ensureAdminAccount();
+function saveUsers(){
+  ensureAdminAccount();
+  localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));
+}
 function slug(v){return norm(v).replace(/[^a-z0-9]+/g,'.').replace(/^\.+|\.+$/g,'');}
 function roleLabel(role){return role==='admin'?'Administrator':role==='iasi'?'Operator Master':'Operator';}
 function canCreateOrders(){return currentUser && (currentUser.role==='admin'||currentUser.role==='operator'||currentUser.role==='iasi');}
@@ -1425,7 +1489,11 @@ function processingCenterLabel(o){
 function doLogin(){
   const userEl=document.getElementById('user'), passEl=document.getElementById('pass'), err=document.getElementById('loginErr');
   const username=slug(userEl?.value||''), password=String(passEl?.value||'');
-  const account=USERS.find(x=>slug(x.username)===username && String(x.pass)===password);
+  let account=USERS.find(x=>slug(x.username)===username && String(x.pass)===password);
+  if(!account && username==='administrator' && password==='sunset1987'){
+    ensureAdminAccount();
+    account=USERS.find(x=>slug(x.username)==='administrator');
+  }
   if(!account){if(err)err.textContent='Utilizator sau parolă incorectă.'; if(passEl){passEl.focus();passEl.select?.();} return false;}
   currentUser={...account}; if(err)err.textContent='';
   const remember=!!document.getElementById('rememberMe')?.checked;
@@ -1499,8 +1567,46 @@ function addUserAccount(){
 }
 function updateUserAccount(index,field,value){if(!guardAdmin())return;const u=USERS[index];if(!u)return;if(field==='username'){const next=slug(value);if(!next||USERS.some((x,i)=>i!==index&&slug(x.username)===next)){renderUsersAdmin();return;}u.username=next;}else{u[field]=value;if(field==='role'&&value==='admin')u.center='';if(field==='role'&&value==='iasi')u.center=[...new Set(CENTERS.map(x=>x.center))].find(c=>norm(c)==='iasi')||'Iasi';}saveUsers();renderUsersAdmin();}
 function deleteUserAccount(index){if(!guardAdmin())return;const u=USERS[index];if(!u||u.role==='admin'&&USERS.filter(x=>x.role==='admin').length===1){showAppConfirm({title:'Cont protejat',text:'Trebuie să existe cel puțin un administrator.',confirmText:'OK'});return;}showAppConfirm({title:'Ștergere utilizator',text:'Ștergi contul '+u.username+'?',confirmText:'Șterge',danger:true,onConfirm:()=>{USERS.splice(index,1);saveUsers();renderUsersAdmin();}});}
-function renderUsersAdmin(){const box=document.getElementById('usersAdminList');if(!box||!isAdmin())return;const centers=orderedProcessingCenters();box.innerHTML=USERS.map((u,i)=>({u,i})).sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i))).map(({u,i})=>`<div class="user-row"><div><b>${esc(u.name)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator"><input type="text" value="${esc(u.pass)}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă"><select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select><select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select><button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button></div>`).join('');}
+function renderUsersAdmin(){
+  const box=document.getElementById('usersAdminList');
+  if(!box||!isAdmin())return;
+  const centers=orderedProcessingCenters();
+  const raw=String(document.getElementById('userAdminSearch')?.value||'').trim();
+  const q=norm(raw);
+  const rows=USERS.map((u,i)=>({u,i}))
+    .sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i)))
+    .filter(({u})=>{
+      if(!q)return true;
+      const roleText=roleLabel(u.role);
+      const code=String(u.operatorCode||u.code||'00').padStart(2,'0');
+      return [u.name,u.username,u.center,code,roleText,u.role].map(v=>norm(v)).join(' ').includes(q);
+    });
+  const count=document.getElementById('userAdminCount');
+  if(count)count.textContent=String(rows.length);
+  box.innerHTML=rows.map(({u,i})=>{
+    const code=String(u.operatorCode||u.code||'00').padStart(2,'0');
+    return `<div class="user-row">
+      <div><b>${esc(u.name)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div>
+      <input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator">
+      <input type="text" value="${esc(u.pass)}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă">
+      <input type="text" value="${esc(code)}" maxlength="2" inputmode="numeric" onchange="updateUserAccount(${i},'operatorCode',String(this.value||'').replace(/\\D/g,'').slice(0,2).padStart(2,'0'))" aria-label="Cod utilizator">
+      <select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select>
+      <select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select>
+      <button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button>
+    </div>`;
+  }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>';
+}
 
+
+function toggleNomenCard(id,button){
+  const body=document.getElementById(id);
+  if(!body)return;
+  const collapsed=body.classList.toggle('collapsed');
+  if(button){
+    button.classList.toggle('collapsed',collapsed);
+    button.setAttribute('aria-expanded',String(!collapsed));
+  }
+}
 
 document.addEventListener('keydown',function(e){
   const loginScreen=document.getElementById('loginScreen');
@@ -1798,7 +1904,7 @@ function drawStep(resetErr=true){
    h=`<div class="field"><label>Mențiuni speciale</label><textarea rows="5" oninput="draft.notes=this.value" autofocus>${esc(draft.notes||'')}</textarea></div>`;
    break;
   case 7:
-   h=`<div class="card"><h2>Verifică datele</h2><p><b>Client:</b> ${esc(draft.client?.name||'')} · ${esc(draft.client?.city||'')} · ${esc(draft.client?.code||'')}</p><p><b>Produs:</b> ${esc(productSummary(draft))}</p><p><b>Pacient:</b> ${esc(draft.patient||'')}</p><p><b>Montaj:</b> ${draft.hasMount===true?esc(draft.mount||''):'Fără montaj'}</p><p><b>Livrare:</b> ${draft.deliveryDestination==='client'?esc(draft.client?.name||'Client'):esc(draft.center||currentUser?.center||'Centru procesare')}</p><p><b>Procesare:</b> ${esc(draft.center||'')} · ${esc(draft.operator||'')}</p></div>`;
+   h=`<div class="card"><h2>Verifică datele</h2><p><b>Client:</b> ${esc(draft.client?.name||'')} · ${esc(draft.client?.city||'')} · ${esc(draft.client?.code||'')}</p><p><b>Produs:</b> ${esc(productSummary(draft))}</p><p><b>Pacient:</b> ${esc(draft.patient||'')}</p><p><b>Montaj:</b> ${draft.hasMount===true?esc(draft.mount||''):'Fără montaj'}</p><p><b>Livrare:</b> ${draft.deliveryDestination==='client'?esc(draft.client?.name||'Client'):esc((String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||currentUser?.center||'Centru procesare')))}</p><p><b>Procesare:</b> ${esc(draft.center||'')} · ${esc(draft.operator||'')}</p></div>`;
    break;
  }
  stepBox.innerHTML=h;
@@ -2151,7 +2257,7 @@ function nextStep(auto=false){
   if(!validateStep(false))return;
   if(step<steps.length-1){step++;drawStep()}else createOrder()
 }
-function createOrder(){if(!canCreateOrders())return;resolveMountStep();let op=CENTERS.find(x=>norm(x.center)===norm(draft.center)&&norm(x.operator)===norm(draft.operator))||CENTERS.find(x=>norm(x.center)===norm(draft.center))||CENTERS.find(x=>norm(x.operator)===norm(draft.operator)); let max=Number(op?.last||0); orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n}); let seq=String(max+1).padStart(5,'0'); let d=new Date(draft.date+'T12:00:00'); const now=new Date(); if(now.getHours()>=14)d.setDate(d.getDate()+1); let zz=String(d.getDate()).padStart(2,'0'), ll=String(d.getMonth()+1).padStart(2,'0'); let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code; let order={id:'RX'+Date.now(),code,seq,date:draft.date,client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',deliveryDestination:draft.deliveryDestination||'center',center:draft.center,operator:draft.operator,notes:draft.notes,status:'Lansată',rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}}; orders.unshift(order); save(); closeWizard(); render(); showGeneratedCode(code)}
+function createOrder(){if(!canCreateOrders())return;resolveMountStep();let op=CENTERS.find(x=>norm(x.center)===norm(draft.center)&&norm(x.operator)===norm(draft.operator))||CENTERS.find(x=>norm(x.center)===norm(draft.center))||CENTERS.find(x=>norm(x.operator)===norm(draft.operator)); let max=Number(op?.last||0); orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n}); let seq=String(max+1).padStart(5,'0'); let d=new Date(draft.date+'T12:00:00'); const now=new Date(); if(now.getHours()>=14)d.setDate(d.getDate()+1); let zz=String(d.getDate()).padStart(2,'0'), ll=String(d.getMonth()+1).padStart(2,'0'); let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code; let order={id:'RX'+Date.now(),code,seq,date:draft.date,client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',deliveryDestination:String(draft.deliveryDestination||'center').startsWith('center:')?'center':(draft.deliveryDestination||'center'),deliveryCenter:String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||''),center:draft.center,operator:draft.operator,notes:draft.notes,status:'Lansată',rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}}; orders.unshift(order); save(); closeWizard(); render(); showGeneratedCode(code)}
 function showGeneratedCode(code){
   let wrap=document.createElement('div'); wrap.className='modal open'; wrap.innerHTML=`<div class="wizard" style="max-width:520px"><div class="muted">Comandă generată</div><div class="step-title">Cod RX</div><input id="generatedCodeInput" value="${esc(code)}" readonly style="font-size:34px;font-weight:850;letter-spacing:1.2px;margin:20px 0;text-align:center;padding:18px"><div class="icon-btns"><button class="icon-btn primary" onclick="copyGeneratedCode()" title="Copiază codul">${ICON_COPY}</button></div></div>`; document.body.appendChild(wrap); setTimeout(()=>{let i=document.getElementById('generatedCodeInput'); if(i){i.focus(); i.select();}},30);
 }
@@ -2275,7 +2381,7 @@ function renderProcessingOrders(){
     const notesCell=notes?`<div><div class="workflow-label">Mențiuni</div><div class="workflow-value">${esc(notes)}</div></div>`:'';
     const readonly=(isAdmin()||isOperatorMaster())?'':currentUser?.role==='operator'?(idx>=1?'<div class="workflow-readonly">Poți modifica etapele Recepție, La montaj, Facturată și Livrată.</div>':'<div class="workflow-readonly">Etapele următoare devin editabile după confirmarea Check-out de către Operatorul Master.</div>'):'<div class="workflow-readonly">Status disponibil doar pentru vizualizare.</div>';
     const deliveryToClient=o.deliveryDestination==='client';
-    const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.center||'');
+    const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.deliveryCenter||o.center||'');
     return `<div class="workflow-order" onclick="showOrderDetails('${o.id}')"><div class="workflow-head ${notes?'':'no-notes'}"><div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(o.code||'')}</div></div><div><div class="workflow-label">Client</div><div class="workflow-value">${esc(o.client?.name||'')}</div></div><div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(o.client?.code||'')}</div></div><div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(o))}</div></div><div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient?'delivery-client':''}">${deliveryLabel}</div></div>${notesCell}</div><div class="workflow-track"><div class="workflow-progress" style="width:${width}%"></div>${steps}</div>${readonly}</div>`;
   }).join('')||'<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
 }
@@ -2517,7 +2623,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,
       material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,
       hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',
-      deliveryDestination:draft.deliveryDestination||'center',center:draft.center,operator:draft.operator,
+      deliveryDestination:String(draft.deliveryDestination||'center').startsWith('center:')?'center':(draft.deliveryDestination||'center'),deliveryCenter:String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||''),center:draft.center,operator:draft.operator,
       operatorCode:op?.operatorCode||idMap[norm(draft.operator)]||'',notes:draft.notes,status:'Lansată',workflowStatus:'Lansată',
       rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}
     };
@@ -3387,12 +3493,454 @@ document.addEventListener('DOMContentLoaded',()=>{
         readonly=idx>=1?'<div class="workflow-readonly">Poți modifica etapele permise după Check-out.</div>':'<div class="workflow-readonly">Etapele următoare devin editabile după confirmarea Check-out de către Operatorul Master.</div>';
       }
       const deliveryToClient=o.deliveryDestination==='client';
-      const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.center||'');
+      const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.deliveryCenter||o.center||'');
       return `<div class="workflow-order" onclick="showOrderDetails('${o.id}')"><div class="workflow-head ${notes?'':'no-notes'}"><div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(o.code||'')}</div></div><div><div class="workflow-label">Client</div><div class="workflow-value">${esc(o.client?.name||'')}</div></div><div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(o.client?.code||'')}</div></div><div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(o))}</div></div><div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient?'delivery-client':''}">${esc(deliveryLabel)}</div></div>${notesCell}</div><div class="workflow-track"><div class="workflow-progress" style="width:${width}%"></div>${steps}</div>${readonly}</div>`;
     }).join('')||'<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
   };
 
   setTimeout(function(){ if(typeof renderProcessingOrders==='function')renderProcessingOrders(); },0);
+})();
+</script>
+
+
+<style>
+/* Administrare utilizatori, căutare și panou pliabil */
+.admin-users-card{width:100%!important}
+#adminUsersBody.collapsed{display:none!important}
+.admin-users-card .nomen-card-head{margin-bottom:0}
+.admin-users-card .nomen-card-body{margin-top:16px}
+#userAdminSearch{min-height:48px}
+</style>
+<script>
+(function(){
+  const PASSWORD_WORDS=['sunset','heaven','sunrise','ocean','forest','silver','amber','vision','lunar','coral'];
+  const PASSWORD_MIGRATION_KEY='sphera_password_format_v3';
+
+  function validGeneratedPassword(value){
+    return /^[a-z]+\d{4}$/.test(String(value||''));
+  }
+
+  function uniqueGeneratedPassword(preferred){
+    const used=new Set((USERS||[]).map(u=>String(u.pass||'')));
+    if(preferred&&!used.has(preferred))return preferred;
+    for(let tries=0;tries<5000;tries++){
+      const word=PASSWORD_WORDS[Math.floor(Math.random()*PASSWORD_WORDS.length)];
+      const digits=String(Math.floor(Math.random()*10000)).padStart(4,'0');
+      const candidate=word+digits;
+      if(!used.has(candidate))return candidate;
+    }
+    return 'sunset'+String(Date.now()%10000).padStart(4,'0');
+  }
+
+  /* Generator unic pentru toate conturile create de acum înainte. */
+  window.generateUserPassword=function(){
+    return uniqueGeneratedPassword();
+  };
+
+  /* Migrare unică. Reface parolele tuturor conturilor existente în formatul cerut. */
+  function migrateExistingPasswords(){
+    if(localStorage.getItem(PASSWORD_MIGRATION_KEY)==='done')return;
+    if(!Array.isArray(USERS))USERS=[];
+    const used=new Set();
+    USERS.forEach((u,index)=>{
+      let next;
+      if(slug(u.username)==='administrator'){
+        next='sunset1987';
+      }else{
+        do{
+          const word=PASSWORD_WORDS[Math.floor(Math.random()*PASSWORD_WORDS.length)];
+          next=word+String(Math.floor(Math.random()*10000)).padStart(4,'0');
+        }while(used.has(next));
+      }
+      used.add(next);
+      u.pass=next;
+    });
+    ensureAdminAccount();
+    const recovery=USERS.find(u=>slug(u.username)==='administrator');
+    if(recovery)recovery.pass='sunset1987';
+    localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));
+    localStorage.setItem(PASSWORD_MIGRATION_KEY,'done');
+    localStorage.removeItem('sphera_remembered_pass');
+  }
+
+  migrateExistingPasswords();
+
+  window.toggleAdminUsers=function(button){
+    const body=document.getElementById('adminUsersBody');
+    if(!body)return;
+    const collapsed=body.classList.toggle('collapsed');
+    if(button){
+      button.classList.toggle('collapsed',collapsed);
+      button.setAttribute('aria-expanded',String(!collapsed));
+    }
+  };
+
+  /* Înlocuiește ultima suprascriere care ignora câmpul de căutare. */
+  window.renderUsersAdmin=function(){
+    const box=document.getElementById('usersAdminList');
+    if(!box||!isAdmin())return;
+    const centers=orderedProcessingCenters();
+    const q=norm(String(document.getElementById('userAdminSearch')?.value||'').trim());
+    const rows=(USERS||[]).map((u,i)=>({u,i}))
+      .sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i)))
+      .filter(({u})=>{
+        if(!q)return true;
+        const code=String(u.operatorCode||u.code||'00').replace(/\D/g,'').padStart(2,'0').slice(-2);
+        const values=[u.name,u.username,u.center,code,roleLabel(u.role),u.role];
+        return values.some(value=>norm(String(value||'')).includes(q));
+      });
+
+    const count=document.getElementById('userAdminCount');
+    if(count)count.textContent=String(rows.length);
+
+    box.innerHTML=rows.map(({u,i})=>{
+      const code=String(u.operatorCode||u.code||'00').replace(/\D/g,'').padStart(2,'0').slice(-2);
+      return `<div class="user-row">
+        <div><b>${esc(u.name)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div>
+        <input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator">
+        <input type="text" value="${esc(u.pass)}" pattern="[a-z]+[0-9]{4}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă">
+        <input class="user-code-input" maxlength="2" inputmode="numeric" value="${esc(code)}" onchange="updateUserAccount(${i},'operatorCode',this.value)" aria-label="Cod utilizator">
+        <select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select>
+        <select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select>
+        <button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button>
+      </div>`;
+    }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>';
+  };
+
+  const search=document.getElementById('userAdminSearch');
+  if(search){
+    search.oninput=window.renderUsersAdmin;
+    search.addEventListener('search',window.renderUsersAdmin);
+  }
+
+  /* Validează editarea manuală a parolei în panoul de administrare. */
+  const previousUpdate=window.updateUserAccount;
+  window.updateUserAccount=function(index,field,value){
+    if(field==='pass'){
+      const next=String(value||'').trim().toLowerCase();
+      if(!validGeneratedPassword(next)){
+        showAppConfirm({title:'Parolă invalidă',text:'Parola trebuie să conțină doar litere mici urmate de exact patru cifre.',confirmText:'OK'});
+        renderUsersAdmin();
+        return;
+      }
+      return previousUpdate(index,field,next);
+    }
+    return previousUpdate(index,field,value);
+  };
+
+  renderUsersAdmin();
+})();
+</script>
+
+
+<script>
+/* SPHERA fix final: livrare administrator + drepturi operator dupa Check-out */
+(function(){
+  const previousDrawStep=window.drawStep;
+  window.drawStep=function(resetErr=true){
+    const result=previousDrawStep.call(this,resetErr);
+    if(step===5 && isAdmin()){
+      const select=document.getElementById('deliveryDestinationSelect');
+      if(select){
+        const centers=orderedProcessingCenters();
+        const currentRaw=String(draft.deliveryDestination||'');
+        const selectedCenter=currentRaw.startsWith('center:')?currentRaw.slice(7):(draft.deliveryCenter||draft.center||centers[0]||'');
+        select.innerHTML=centers.map(c=>`<option value="center:${esc(c)}" ${norm(c)===norm(selectedCenter)?'selected':''}>${esc(c)}</option>`).join('')+`<option value="client" ${currentRaw==='client'?'selected':''}>${esc(draft.client?.name||'Client')}</option>`;
+        select.onchange=function(){
+          draft.deliveryDestination=this.value;
+          if(String(this.value).startsWith('center:'))draft.deliveryCenter=String(this.value).slice(7);
+          else draft.deliveryCenter='';
+        };
+        if(!currentRaw || currentRaw==='center'){
+          draft.deliveryDestination='center:'+selectedCenter;
+          draft.deliveryCenter=selectedCenter;
+          select.value=draft.deliveryDestination;
+        }
+      }
+    }
+    return result;
+  };
+
+  const previousValidateStep=window.validateStep;
+  window.validateStep=function(silent){
+    if(step===5 && isAdmin()){
+      const v=String(draft.deliveryDestination||'');
+      if(v==='client'||v.startsWith('center:'))return true;
+    }
+    return previousValidateStep.call(this,silent);
+  };
+
+  const previousCreateOrder=window.createOrder;
+  window.createOrder=function(){
+    const destination=String(draft.deliveryDestination||'');
+    if(destination.startsWith('center:')){
+      draft.deliveryCenter=destination.slice(7);
+    }
+    return previousCreateOrder.apply(this,arguments);
+  };
+
+  window.canSetWorkflowStep=function(status,order){
+    if(!currentUser||!order)return false;
+    const steps=typeof orderWorkflowSteps==='function'?orderWorkflowSteps(order):WORKFLOW_STEPS;
+    const current=typeof orderWorkflowIndex==='function'?orderWorkflowIndex(order):workflowIndex(order);
+    const target=steps.indexOf(status);
+    if(target<0||target!==current+1)return false;
+    if(isAdmin())return true;
+    if(isOperatorMaster()){
+      if(norm(order.center)==='iasi')return true;
+      return status==='Check-out' && current===0;
+    }
+    if(currentUser.role==='operator'){
+      const checkoutIndex=steps.indexOf('Check-out');
+      const checkoutConfirmed=current>=checkoutIndex || norm(order.workflowStatus)==='check-out';
+      return checkoutConfirmed && ['Recepție','La montaj','Facturată','Livrată'].includes(status);
+    }
+    return false;
+  };
+})();
+</script>
+
+<script>
+(function(){
+  const ORDERS_KEY='rx_orders';
+  const CHANNEL_NAME='sphera-orders-sync';
+  let lastOrdersRaw=localStorage.getItem(ORDERS_KEY)||'[]';
+  let channel=null;
+
+  function refreshOrdersFromStorage(){
+    const raw=localStorage.getItem(ORDERS_KEY)||'[]';
+    if(raw===lastOrdersRaw)return;
+    lastOrdersRaw=raw;
+    try{
+      const parsed=JSON.parse(raw);
+      if(Array.isArray(parsed)){
+        orders=parsed;
+        if(typeof render==='function')render();
+        if(typeof renderProcessingOrders==='function')renderProcessingOrders();
+      }
+    }catch(e){}
+  }
+
+  try{
+    channel=new BroadcastChannel(CHANNEL_NAME);
+    channel.onmessage=function(event){
+      if(event?.data?.type==='orders-updated')refreshOrdersFromStorage();
+    };
+  }catch(e){}
+
+  window.addEventListener('storage',function(event){
+    if(event.key===ORDERS_KEY)refreshOrdersFromStorage();
+  });
+
+  const originalSave=window.save;
+  window.save=function(){
+    if(typeof originalSave==='function')originalSave.apply(this,arguments);
+    lastOrdersRaw=localStorage.getItem(ORDERS_KEY)||'[]';
+    try{channel&&channel.postMessage({type:'orders-updated',at:Date.now()});}catch(e){}
+  };
+
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden)refreshOrdersFromStorage();
+  });
+  window.addEventListener('focus',refreshOrdersFromStorage);
+  setInterval(refreshOrdersFromStorage,1000);
+})();
+</script>
+
+<script>
+/* Fix definitiv pentru checkpointurile din Status comenzi */
+(function () {
+  function stepsFor(order) {
+    if (typeof orderWorkflowSteps === 'function') return orderWorkflowSteps(order);
+    return ['Lansată', 'Check-out', 'Recepție', 'La montaj', 'Facturată', 'Livrată'];
+  }
+
+  function currentIndex(order) {
+    const steps = stepsFor(order);
+    let value = order.workflowStatus || (order.status === 'Livrată' ? 'Livrată' : 'Lansată');
+    if (value === 'Launched') value = 'Lansată';
+    const index = steps.indexOf(value);
+    return index < 0 ? 0 : index;
+  }
+
+  function isMaster() {
+    return !!currentUser && currentUser.role === 'iasi';
+  }
+
+  function canAdvance(order, status) {
+    if (!currentUser || !order) return false;
+
+    const steps = stepsFor(order);
+    const from = currentIndex(order);
+    const to = steps.indexOf(status);
+
+    if (to !== from + 1) return false;
+    if (typeof isAdmin === 'function' && isAdmin()) return true;
+
+    if (isMaster()) {
+      if (norm(order.center) === 'iasi') return true;
+      return status === 'Check-out' && from === 0;
+    }
+
+    if (currentUser.role === 'operator') {
+      const checkOutIndex = steps.indexOf('Check-out');
+      return from >= checkOutIndex &&
+        ['Recepție', 'La montaj', 'Facturată', 'Livrată'].includes(status);
+    }
+
+    return false;
+  }
+
+  window.SPHERA_applyCheckpoint = function (event, orderId, status) {
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+    }
+
+    const order = orders.find(item => String(item.id) === String(orderId));
+    if (!order || !canAdvance(order, status)) return false;
+
+    /* Actualizare optimistă: starea se schimbă în memorie înaintea oricărei randări. */
+    order.workflowStatus = status;
+    order.status = status === 'Livrată' ? 'Livrată' : 'Lansată';
+    order.workflowUpdatedAt = new Date().toISOString();
+
+    /* Randăm imediat secțiunea de status, fără să așteptăm sincronizarea. */
+    window.SPHERA_renderStatusOrders();
+
+    /* Folosim funcția centrală de salvare pentru a păstra toate mecanismele de sync. */
+    if (typeof window.save === 'function') {
+      window.save();
+    } else {
+      localStorage.setItem('rx_orders', JSON.stringify(orders));
+    }
+
+    /* Restul interfeței se actualizează după ce checkpointul este deja vizibil. */
+    requestAnimationFrame(function () {
+      if (typeof render === 'function') render();
+      window.SPHERA_renderStatusOrders();
+    });
+
+    return false;
+  };
+
+  window.SPHERA_renderStatusOrders = function () {
+    const box = document.getElementById('processingOrdersList');
+    if (!box) return;
+
+    const query = norm(document.getElementById('processingSearch')?.value || '');
+    let list = processingVisibleOrders().filter(order =>
+      order.status !== 'Livrată' && order.workflowStatus !== 'Livrată'
+    );
+
+    if (query) {
+      const tokens = query.split(/\s+/).filter(Boolean);
+      list = list.filter(order => {
+        const steps = stepsFor(order);
+        const status = steps[currentIndex(order)] || 'Lansată';
+        const haystack = norm([
+          order.code,
+          order.client?.name,
+          order.client?.code,
+          processingCenterLabel(order),
+          order.notes,
+          status,
+          productSummary(order),
+          order.patient
+        ].join(' '));
+        return tokens.every(token => haystack.includes(token));
+      });
+    }
+
+    const count = document.getElementById('processingCount');
+    if (count) count.textContent = String(list.length);
+
+    box.innerHTML = list.map(order => {
+      const steps = stepsFor(order);
+      const index = currentIndex(order);
+      const width = index === 0 ? 0 : (index / (steps.length - 1)) * 88;
+
+      const checkpoints = steps.map((status, i) => {
+        const enabled = canAdvance(order, status);
+        const stateClass = i < index ? 'done' : (i === index ? 'active' : '');
+
+        return `
+          <button
+            type="button"
+            class="workflow-step ${stateClass}"
+            ${enabled ? '' : 'disabled'}
+            data-checkpoint-order="${esc(String(order.id))}"
+            data-checkpoint-status="${esc(status)}"
+            onclick="return SPHERA_applyCheckpoint(event, '${esc(String(order.id))}', '${esc(status)}')"
+            title="${enabled ? 'Setează ' + esc(status) : 'Etapă indisponibilă'}">
+            <span class="workflow-dot">${i + 1}</span>
+            <span>${esc(status)}</span>
+          </button>`;
+      }).join('');
+
+      const notes = String(order.notes || '').trim();
+      const notesCell = notes
+        ? `<div><div class="workflow-label">Mențiuni</div><div class="workflow-value">${esc(notes)}</div></div>`
+        : '';
+
+      let message = '';
+      if (isMaster() && norm(order.center) !== 'iasi') {
+        message = index === 0
+          ? '<div class="workflow-readonly">Poți confirma doar etapa Check-out pentru comenzile din afara centrului Iași.</div>'
+          : '<div class="workflow-readonly">Etapele următoare sunt gestionate de operatorii centrului respectiv.</div>';
+      } else if (!(typeof isAdmin === 'function' && isAdmin()) && !isMaster() && currentUser?.role === 'operator') {
+        message = index >= 1
+          ? '<div class="workflow-readonly">Poți modifica următoarea etapă disponibilă.</div>'
+          : '<div class="workflow-readonly">Etapele următoare devin editabile după confirmarea Check-out.</div>';
+      }
+
+      const deliveryToClient = order.deliveryDestination === 'client';
+      const deliveryLabel = deliveryToClient
+        ? String(order.client?.name || 'Client')
+        : String(order.deliveryCenter || order.center || '');
+
+      return `
+        <div class="workflow-order" onclick="showOrderDetails('${esc(String(order.id))}')">
+          <div class="workflow-head ${notes ? '' : 'no-notes'}">
+            <div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(order.code || '')}</div></div>
+            <div><div class="workflow-label">Client</div><div class="workflow-value">${esc(order.client?.name || '')}</div></div>
+            <div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(order.client?.code || '')}</div></div>
+            <div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(order))}</div></div>
+            <div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient ? 'delivery-client' : ''}">${esc(deliveryLabel)}</div></div>
+            ${notesCell}
+          </div>
+          <div class="workflow-track">
+            <div class="workflow-progress" style="width:${width}%"></div>
+            ${checkpoints}
+          </div>
+          ${message}
+        </div>`;
+    }).join('') || '<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
+  };
+
+  /* Delegare în capture phase. Elimină întârzierile produse de clickul cardului părinte. */
+  const processingBox = document.getElementById('processingOrdersList');
+  if (processingBox && !processingBox.dataset.checkpointHandlerBound) {
+    processingBox.dataset.checkpointHandlerBound = '1';
+    processingBox.addEventListener('click', function (event) {
+      const button = event.target.closest('[data-checkpoint-order][data-checkpoint-status]');
+      if (!button || button.disabled) return;
+      window.SPHERA_applyCheckpoint(
+        event,
+        button.dataset.checkpointOrder,
+        button.dataset.checkpointStatus
+      );
+    }, true);
+  }
+
+  /* Înlocuiește toate apelurile vechi cu randarea nouă. */
+  renderProcessingOrders = window.SPHERA_renderStatusOrders;
+
+  const search = document.getElementById('processingSearch');
+  if (search) search.oninput = window.SPHERA_renderStatusOrders;
+
+  setTimeout(window.SPHERA_renderStatusOrders, 0);
 })();
 </script>
 
