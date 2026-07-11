@@ -4651,7 +4651,43 @@ cursor:pointer;
     if(btn){btn.disabled=false;btn.textContent='Intră în aplicație'};
     return false;
   };
-  window.logout=async function(){cloudReady=false;ordersReady=false;if(unsubscribeShared)unsubscribeShared();if(unsubscribeOrders)unsubscribeOrders();if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();if(unsubscribeUsers)unsubscribeUsers();await auth.signOut();currentUser=null;showLogin();setCloudStatus('Cloud: deconectat','wait')};
+  window.logout=async function(){
+    cloudReady=false;
+    ordersReady=false;
+    if(unsubscribeShared)unsubscribeShared();
+    if(unsubscribeOrders)unsubscribeOrders();
+    if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();
+    if(unsubscribeUsers)unsubscribeUsers();
+
+    localStorage.removeItem('sphera_remembered_user');
+    localStorage.removeItem('sphera_remembered_pass');
+    sessionStorage.removeItem('sphera_session_user');
+
+    const userEl=document.getElementById('user');
+    const passEl=document.getElementById('pass');
+    const rememberEl=document.getElementById('rememberMe');
+    const errEl=document.getElementById('loginErr');
+
+    if(userEl){
+      userEl.value='';
+      userEl.setAttribute('value','');
+    }
+    if(passEl){
+      passEl.value='';
+      passEl.setAttribute('value','');
+    }
+    if(rememberEl)rememberEl.checked=false;
+    if(errEl)errEl.textContent='';
+
+    await auth.signOut();
+    currentUser=null;
+    showLogin();
+    setCloudStatus('Cloud: deconectat','wait');
+
+    setTimeout(()=>{
+      if(userEl)userEl.focus();
+    },0);
+  };
 
   window.renderUsersAdmin=function(){
     const box=document.getElementById('usersAdminList');if(!box)return;
