@@ -1212,113 +1212,45 @@ html,
 @media(max-width:900px){.user-search-wrap{grid-template-columns:1fr auto}.nomen-card .two{grid-template-columns:1fr}}
 
 
-/* SPHERA administrare utilizatori integrată */
-.local-admin-toolbar{
-  display:flex;align-items:center;justify-content:space-between;gap:16px;
-  padding:14px 16px;margin-bottom:14px;border:1px solid #e4e7ec;
-  border-radius:16px;background:#f8fafc;
-}
-.local-admin-status{display:flex;align-items:center;gap:12px;min-width:0}
-.local-admin-dot{width:12px;height:12px;border-radius:50%;background:#f79009;box-shadow:0 0 0 4px rgba(247,144,9,.12);flex:0 0 auto}
-.local-admin-dot.ok{background:#12b76a;box-shadow:0 0 0 4px rgba(18,183,106,.12)}
-.local-admin-dot.error{background:#f04438;box-shadow:0 0 0 4px rgba(240,68,56,.12)}
-.local-admin-actions{display:flex;gap:10px;flex-wrap:wrap}
-.local-admin-actions .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
-.firebase-user-row{
-  display:grid;
-  grid-template-columns:minmax(290px,1.15fr) minmax(210px,1fr) minmax(210px,1fr) 72px minmax(210px,1.15fr) minmax(190px,1fr) 46px;
-  gap:10px;
-  align-items:center;
-  padding:10px 12px;
-  border:1px solid #e4e7ec;
-  border-radius:18px;
-  background:#fff;
-}
-.firebase-user-summary{
-  min-width:0;
-  padding-right:8px;
-}
-.firebase-user-title{
+/* SPHERA, vizualizare utilizatori și număr clienți */
+#spheraCloudStatus{display:none!important}
+#settingsPage .local-admin-toolbar{display:none!important}
+.clients-filter-row{
   display:flex;
+  gap:12px;
   align-items:center;
-  gap:10px;
-  min-width:0;
-  font-size:15px;
-  line-height:1.15;
-  color:#101828;
 }
-.firebase-user-code{
-  flex:0 0 auto;
-  color:#165dff;
-  font-weight:900;
-  min-width:24px;
+.clients-filter-row input{flex:1}
+.clients-filter-row .count-dot{flex:0 0 auto;min-width:34px;justify-content:center}
+.user-view-head,
+.user-view-row{
+  display:grid;
+  grid-template-columns:90px minmax(280px,1.5fr) minmax(220px,1fr) minmax(180px,.9fr);
+  gap:16px;
+  align-items:center;
 }
-.firebase-user-name{
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-  font-weight:900;
-}
-.firebase-user-meta{
-  margin-top:4px;
+.user-view-head{
+  padding:2px 16px 10px;
   color:#667085;
   font-size:11px;
-  font-weight:600;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-.firebase-user-row input,
-.firebase-user-row select{
-  height:48px!important;
-  min-width:0;
-  border-radius:14px!important;
-  padding:0 14px!important;
-  font-size:13px!important;
-  font-weight:500!important;
-}
-.firebase-user-row .firebase-password{
-  letter-spacing:.02em;
-}
-.firebase-user-row .delete-user-btn{
-  width:42px!important;
-  height:42px!important;
-  min-width:42px!important;
-  border-radius:999px!important;
-  justify-self:end;
-}
-.firebase-save-state{
-  font-size:10px;
   font-weight:800;
-  color:#12b76a;
-  margin-top:3px;
-  min-height:12px;
+  text-transform:uppercase;
 }
-@media(max-width:1180px){
-  .firebase-user-row{
-    grid-template-columns:minmax(240px,1.2fr) minmax(180px,1fr) minmax(180px,1fr) 70px minmax(180px,1fr) minmax(170px,1fr) 44px;
-  }
+.user-view-row{
+  padding:15px 16px;
+  border:1px solid #e4e7ec;
+  border-radius:16px;
+  background:#fff;
+  color:#101828;
 }
-@media(max-width:900px){
-  .firebase-user-row{
-    grid-template-columns:1fr 1fr;
-  }
-  .firebase-user-summary{
-    grid-column:1/-1;
-  }
-  .firebase-user-row .delete-user-btn{
-    justify-self:start;
-  }
+.user-view-code{color:#165dff;font-weight:900}
+.user-view-name{font-weight:900}
+.user-view-center,.user-view-role{color:#344054;font-weight:600}
+@media(max-width:760px){
+  .user-view-head{display:none}
+  .user-view-row{grid-template-columns:70px 1fr}
+  .user-view-center,.user-view-role{grid-column:2}
 }
-@media(max-width:620px){
-  .firebase-user-row{
-    grid-template-columns:1fr;
-  }
-  .firebase-user-summary{
-    grid-column:auto;
-  }
-}
-
 
 </style>
 </head>
@@ -1364,7 +1296,7 @@ html,
   <main class="main">
     <div class="top">
       <div><h1 id="pageTitle">Dashboard RX</h1><div class="muted" id="who"></div></div>
-      <div class="top-actions"><span id="accountBadge" class="account-badge"></span><button id="newOrderBtn" class="btn" onclick="openWizard()">Comandă nouă</button><button id="newClientBtn" class="btn" onclick="openNewClientDialog()">Adaugă client</button><button id="addUserTopBtn" class="btn hide" data-access="admin" onclick="showPage('settings');setTimeout(checkLocalAdminService,80)">Administrare utilizatori</button><button id="logoutBtn" class="logout-icon" onclick="logout()" title="Logout" aria-label="Logout"><span id="logoutFirstName"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"/></svg></button></div>
+      <div class="top-actions"><span id="accountBadge" class="account-badge"></span><button id="newOrderBtn" class="btn" onclick="openWizard()">Comandă nouă</button><button id="newClientBtn" class="btn" onclick="openNewClientDialog()">Adaugă client</button><button id="logoutBtn" class="logout-icon" onclick="logout()" title="Logout" aria-label="Logout"><span id="logoutFirstName"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"/></svg></button></div>
     </div>
     <section id="dashboard" class="page">
       <div class="grid dashboard-stats">
@@ -1390,7 +1322,10 @@ html,
     <section id="clientsPage" class="page hide">
       <div class="card">
         <div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Clienți</h2><div class="muted">Filtrează după nume, localitate sau cod.</div></div><div class="clients-head-actions"><button class="btn ghost" onclick="showPage('dashboard',document.querySelector('.menu button'))">Dashboard</button></div></div>
-        <input id="clientFilter" placeholder="Caută nume, localitate sau cod" oninput="renderClients()">
+        <div class="clients-filter-row">
+          <input id="clientFilter" placeholder="Caută nume, localitate sau cod" oninput="renderClients()">
+          <span id="clientFilterCount" class="pill count-dot">0</span>
+        </div>
       </div>
       <div class="card" style="margin-top:16px"><div class="table-wrap"><table><thead><tr><th>Client</th><th>Localitate</th><th>Cod</th><th></th></tr></thead><tbody id="clientRows"></tbody></table></div></div>
     </section>
@@ -1428,27 +1363,14 @@ html,
     <section id="settings" class="page hide">
       <div class="card admin-users-card" style="margin-top:16px">
         <div class="nomen-card-head">
-          <div><h2 style="margin:0">Administrare utilizatori</h2><div class="muted">Creează și gestionează conturile Firebase prin serviciul local securizat.</div></div>
+          <div><h2 style="margin:0">Administrare utilizatori</h2><div class="muted">Modifică parola, centrul sau privilegiile fiecărui cont.</div></div>
           <button type="button" class="nomen-toggle" onclick="toggleAdminUsers(this)" aria-expanded="true" title="Ascunde sau afișează">
             <svg viewBox="0 0 24 24" fill="none"><path d="M6 15l6-6 6 6"/></svg>
           </button>
         </div>
         <div id="adminUsersBody" class="nomen-card-body">
-          <div class="local-admin-toolbar">
-            <div class="local-admin-status">
-              <span id="localAdminDot" class="local-admin-dot"></span>
-              <div>
-                <b id="localAdminStatusText">Se verifică serviciul local...</b>
-                <div id="localAdminStatusSub" class="muted">Serviciul trebuie pornit cu PORNESTE.bat pe acest calculator.</div>
-              </div>
-            </div>
-            <div class="local-admin-actions">
-              <button type="button" class="btn ghost" onclick="checkLocalAdminService(true)">Actualizează</button>
-              <button type="button" id="createFirebaseUserBtn" class="btn" onclick="openUserDialog()" disabled>Creează utilizator</button>
-            </div>
-          </div>
           <div class="user-search-wrap">
-            <input id="userAdminSearch" type="search" placeholder="Caută după nume, utilizator, centru, cod sau rol" autocomplete="off">
+            <input id="userAdminSearch" type="search" placeholder="Caută după nume, utilizator, centru, cod sau tipul contului" autocomplete="off">
             <span id="userAdminCount" class="count-dot">0</span>
           </div>
           <div id="usersAdminList" class="list"></div>
@@ -1462,18 +1384,17 @@ html,
 <div id="userModal" class="modal" aria-hidden="true">
  <div class="wizard user-dialog">
   <div class="top" style="margin-bottom:10px">
-   <div><div class="step-title">Creează utilizator</div><div class="muted">Cont Firebase Authentication și profil Firestore</div></div>
+   <div><div class="step-title">Adaugă utilizator</div><div class="muted">Cont nou SPHERA</div></div>
    <button type="button" class="icon-btn" onclick="closeUserDialog()" title="Închide">×</button>
   </div>
   <div class="user-form-grid">
    <div class="field"><label>Nume complet</label><input id="newUserFullName" placeholder="Ex: Ana Popescu" oninput="this.value=capWords(this.value); suggestUsername()" onblur="this.value=capWords(this.value); suggestUsername()"></div>
-   <div class="field"><label>Utilizator</label><input id="newUsername" placeholder="nume.prenume"></div>
-   <div class="field"><label>Parolă inițială</label><input id="newUserPassword" type="text" placeholder="Minimum 6 caractere"></div>
+   <div class="field"><label>Utilizator</label><input id="newUsername" placeholder="nume.prenume" readonly></div>
+   <div class="field"><label>Parolă</label><input id="newUserPassword" type="text" placeholder="Se generează automat" readonly></div>
    <div class="field"><label>Tip utilizator</label><select id="newUserRole" onchange="syncUserCenterField()"><option value="operator">Operator</option><option value="iasi">Operator Master</option><option value="admin">Administrator</option></select></div>
    <div class="field" id="newUserCenterField" style="grid-column:1/-1"><label>Centru de procesare</label><select id="newUserCenter"></select></div>
-   <div class="field"><label>Cod operator</label><input id="newUserOperatorCode" maxlength="2" inputmode="numeric" placeholder="Ex: 07"></div>
   </div>
-  <div class="actions user-dialog-actions" style="justify-content:flex-end"><button id="defaultAddUserBtn" class="btn" onclick="createFirebaseUser()">Creează utilizator</button><button class="btn ghost" onclick="closeUserDialog()">Renunță</button></div>
+  <div class="actions user-dialog-actions" style="justify-content:flex-end"><button id="defaultAddUserBtn" class="btn" onclick="addUserAccount()">Adaugă utilizator</button><button class="btn ghost" onclick="closeUserDialog()">Renunță</button></div>
  </div>
 </div>
 
@@ -2588,7 +2509,12 @@ function toggleRecentClients(){
 function renderClients(){
  const body=document.getElementById('clientRows'); if(!body)return;
  const q=norm(document.getElementById('clientFilter')?.value||'');
- const rows=CLIENTS.map((c,i)=>({...c,__i:i})).filter(c=>!q || norm(c.name+' '+c.city+' '+c.code).includes(q)).sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0)) || a.__i-b.__i).slice(0,500);
+ const filtered=CLIENTS.map((c,i)=>({...c,__i:i}))
+   .filter(c=>!q || norm(c.name+' '+c.city+' '+c.code).includes(q))
+   .sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0)) || a.__i-b.__i);
+ const count=document.getElementById('clientFilterCount');
+ if(count)count.textContent=String(filtered.length);
+ const rows=filtered.slice(0,10000);
  body.innerHTML=rows.map((c,i)=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
 }
 function updateClient(code,field,value){if(!canManageClients())return;
@@ -2615,10 +2541,43 @@ function showOrderDetails(id){
 function showAppConfirm({title='Confirmare', text='', confirmText='Confirmă', cancelText='Anulează', danger=false, onConfirm=null, onCancel=null}={}){
  let wrap=document.createElement('div');
  wrap.className='modal open';
- wrap.innerHTML=`<div class="wizard alert-card"><div class="alert-icon">!</div><div class="alert-title">${esc(title)}</div><div class="alert-text">${esc(text).replace(/\n/g,'<br>')}</div><div class="alert-actions"><button class="btn cancel" onclick="this.closest('.modal').remove(); window.__lastCancel&&window.__lastCancel()"> ${esc(cancelText)} </button><button class="btn ${danger?'danger':'ok'}" onclick="this.closest('.modal').remove(); window.__lastConfirm&&window.__lastConfirm()"> ${esc(confirmText)} </button></div></div>`;
- window.__lastConfirm=onConfirm||function(){};
- window.__lastCancel=onCancel||function(){};
+ const confirmButton=`<button class="btn ${danger?'danger':'ok'} app-confirm-default" autofocus> ${esc(confirmText)} </button>`;
+ const cancelButton=`<button class="btn cancel"> ${esc(cancelText)} </button>`;
+ wrap.innerHTML=`<div class="wizard alert-card"><div class="alert-icon">!</div><div class="alert-title">${esc(title)}</div><div class="alert-text">${esc(text).replace(/\n/g,'<br>')}</div><div class="alert-actions">${danger?confirmButton+cancelButton:cancelButton+confirmButton}</div></div>`;
+
+ const confirm=wrap.querySelector('.app-confirm-default');
+ const cancel=wrap.querySelector('.cancel');
+ let closed=false;
+
+ const closeAndRun=(callback)=>{
+   if(closed)return;
+   closed=true;
+   wrap.remove();
+   document.removeEventListener('keydown',keyHandler,true);
+   if(typeof callback==='function')callback();
+ };
+
+ const keyHandler=(event)=>{
+   if(event.key==='Enter'){
+     event.preventDefault();
+     event.stopPropagation();
+     closeAndRun(onConfirm);
+   }else if(event.key==='Escape'){
+     event.preventDefault();
+     event.stopPropagation();
+     closeAndRun(onCancel);
+   }
+ };
+
+ confirm?.addEventListener('click',()=>closeAndRun(onConfirm));
+ cancel?.addEventListener('click',()=>closeAndRun(onCancel));
+ wrap.addEventListener('click',event=>{
+   if(event.target===wrap)closeAndRun(onCancel);
+ });
+
  document.body.appendChild(wrap);
+ document.addEventListener('keydown',keyHandler,true);
+ setTimeout(()=>confirm?.focus(),0);
 }
 
 function toggleOrderStatus(id){
@@ -3019,7 +2978,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.clientAllowedForLoggedCenter=function(c){return clientInCounties(c,centerCounties(currentUser?.center));};
   window.renderClients=function(){
     const body=document.getElementById('clientRows');if(!body)return;const q=norm(document.getElementById('clientFilter')?.value||'');
-    const rows=CLIENTS.map((c,i)=>({...c,__i:i})).filter(c=>clientAllowedForLoggedCenter(c)).filter(c=>!q||norm(c.name+' '+c.city+' '+c.code).includes(q)).sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0))||a.__i-b.__i).slice(0,500);
+    const rows=CLIENTS.map((c,i)=>({...c,__i:i})).filter(c=>clientAllowedForLoggedCenter(c)).filter(c=>!q||norm(c.name+' '+c.city+' '+c.code).includes(q)).sort((a,b)=>(Number(b.createdAt||0)-Number(a.createdAt||0))||a.__i-b.__i).slice(0,10000);
     body.innerHTML=rows.map(c=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nu există clienți pentru zona acestui centru.</td></tr>';
   };
 
@@ -4316,6 +4275,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(unsubscribeUsers)unsubscribeUsers();
     unsubscribeUsers=db.collection('users').onSnapshot(snap=>{
       USERS=snap.docs.map(d=>{const x=d.data()||{};return {uid:d.id,username:cleanUsername(x.username||String(x.email||'').split('@')[0]),name:x.displayName||x.name||x.fullName||x.username||'Utilizator',role:normalizeRole(x.role),center:x.center||x.centru||'',operatorCode:String(x.operatorCode||x.code||'00').padStart(2,'0'),active:x.active!==false,email:x.email||''}});
+      window.__spheraUsersCache=USERS.slice();
       if(typeof renderUsersAdmin==='function')renderUsersAdmin();
     });
   }
@@ -4381,283 +4341,157 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 <script>
 (function(){
-  'use strict';
-  const LOCAL_ADMIN_URL='http://127.0.0.1:4173';
-  let localAdminOnline=false;
-  let localAdminUsers=[];
-
-  function adminMessage(title,text){
-    if(typeof showAppConfirm==='function'){
-      showAppConfirm({title,text,confirmText:'OK'});
-    }else{
-      alert(title+'\n\n'+text);
-    }
-  }
-
-  async function localRequest(path,options={}){
-    const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),5000);
+  function currentUsers(){
+    if(Array.isArray(window.__spheraUsersCache))return window.__spheraUsersCache;
     try{
-      const response=await fetch(LOCAL_ADMIN_URL+path,{
-        ...options,
-        headers:{'Content-Type':'application/json',...(options.headers||{})},
-        signal:controller.signal,
-        cache:'no-store'
-      });
-      let payload={};
-      try{payload=await response.json()}catch(_){}
-      if(!response.ok||payload.ok===false)throw new Error(payload.error||('Eroare HTTP '+response.status));
-      return payload;
-    }finally{
-      clearTimeout(timeout);
-    }
+      if(typeof USERS!=='undefined'&&Array.isArray(USERS))return USERS;
+    }catch(_){}
+    return [];
   }
 
-  function setLocalAdminState(ok,message,sub){
-    localAdminOnline=!!ok;
-    const dot=document.getElementById('localAdminDot');
-    const text=document.getElementById('localAdminStatusText');
-    const desc=document.getElementById('localAdminStatusSub');
-    const create=document.getElementById('createFirebaseUserBtn');
-    if(dot){dot.classList.toggle('ok',ok);dot.classList.toggle('error',!ok)}
-    if(text)text.textContent=message;
-    if(desc)desc.textContent=sub||'';
-    if(create)create.disabled=!ok;
-  }
-
-  window.checkLocalAdminService=async function(showError=false){
-    if(!isAdmin())return;
-    setLocalAdminState(false,'Se verifică serviciul local...','Conectare la 127.0.0.1:4173');
-    try{
-      const status=await localRequest('/api/status');
-      setLocalAdminState(true,'Serviciul local este conectat','Proiect Firebase: '+(status.projectId||'avvero-sphera'));
-      await loadLocalAdminUsers();
-    }catch(error){
-      localAdminUsers=[];
-      setLocalAdminState(false,'Serviciul local nu este pornit','Rulează PORNESTE.bat pe acest calculator.');
-      renderIntegratedUsers();
-      if(showError)adminMessage('Serviciu indisponibil','Pornește PORNESTE.bat și lasă fereastra neagră deschisă.');
-    }
-  };
-
-  async function loadLocalAdminUsers(){
-    try{
-      const result=await localRequest('/api/users');
-      localAdminUsers=Array.isArray(result.users)?result.users:[];
-      renderIntegratedUsers();
-    }catch(error){
-      setLocalAdminState(false,'Conexiunea cu serviciul local s-a întrerupt',error.message);
-      renderIntegratedUsers();
-    }
-  }
-
-  function filteredLocalUsers(){
-    const q=norm(String(document.getElementById('userAdminSearch')?.value||'').trim());
-    return localAdminUsers.filter(u=>{
-      if(!q)return true;
-      return [u.name,u.username,u.email,u.center,u.operatorCode,roleLabel(u.role)]
-        .some(v=>norm(String(v||'')).includes(q));
-    });
-  }
-
-  function rowValue(id){
-    return String(document.getElementById(id)?.value||'').trim();
-  }
-
-  window.renderIntegratedUsers=function(){
+  function renderReadOnlyUsers(){
     const box=document.getElementById('usersAdminList');
-    if(!box||!isAdmin())return;
-    const rows=filteredLocalUsers();
+    if(!box)return;
+
+    const q=norm(String(document.getElementById('userAdminSearch')?.value||'').trim());
+    const rows=currentUsers()
+      .filter(user=>user&&user.active!==false)
+      .filter(user=>{
+        if(!q)return true;
+        return [
+          user.operatorCode,
+          user.name,
+          user.username,
+          user.center,
+          roleLabel(user.role)
+        ].some(value=>norm(String(value||'')).includes(q));
+      })
+      .sort((a,b)=>{
+        const ac=String(a.operatorCode||'00').padStart(2,'0');
+        const bc=String(b.operatorCode||'00').padStart(2,'0');
+        return ac.localeCompare(bc,'ro',{numeric:true}) ||
+          String(a.name||a.username||'').localeCompare(String(b.name||b.username||''),'ro');
+      });
+
     const count=document.getElementById('userAdminCount');
     if(count)count.textContent=String(rows.length);
 
-    if(!localAdminOnline){
-      box.innerHTML='<div class="muted" style="padding:18px 4px">Pornește serviciul local pentru a crea, modifica, reseta parola sau șterge utilizatori.</div>';
-      return;
-    }
-
-    const centers=typeof orderedProcessingCenters==='function'?orderedProcessingCenters():[];
-    box.innerHTML=rows.map((u,index)=>{
-      const uid=String(u.uid||'');
-      const safe=uid.replace(/[^a-zA-Z0-9_-]/g,'');
-      const shownCode=String(u.operatorCode||'00').padStart(2,'0').slice(-2);
-      const shownRole=roleLabel(u.role)||'Operator';
-      const shownCenter=u.role==='admin'?'Fără centru':(u.center||'Fără centru');
-      return `<div class="firebase-user-row">
-        <div class="firebase-user-summary">
-          <div class="firebase-user-title">
-            <span class="firebase-user-code">${esc(shownCode)}</span>
-            <span class="firebase-user-name" id="fu_name_text_${safe}">${esc(u.name||'')}</span>
-          </div>
-          <div class="firebase-user-meta" id="fu_meta_${safe}">${esc(shownRole)} · ${esc(shownCenter)}</div>
-          <div class="firebase-save-state" id="fu_state_${safe}"></div>
-        </div>
-        <input id="fu_username_${safe}" value="${esc(u.username||'')}" aria-label="Utilizator" onblur="queueIntegratedUserSave('${uid}','${safe}')">
-        <input id="fu_password_${safe}" class="firebase-password" type="password" placeholder="Parolă nouă" aria-label="Parolă nouă" onblur="saveIntegratedPassword('${uid}','${safe}')" onkeydown="if(event.key==='Enter'){event.preventDefault();saveIntegratedPassword('${uid}','${safe}')}">
-        <input id="fu_code_${safe}" maxlength="2" inputmode="numeric" value="${esc(shownCode)}" aria-label="Cod operator" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,2)" onblur="queueIntegratedUserSave('${uid}','${safe}')">
-        <select id="fu_role_${safe}" aria-label="Rol" onchange="syncIntegratedCenter('${safe}');queueIntegratedUserSave('${uid}','${safe}')">
-          <option value="operator" ${u.role==='operator'?'selected':''}>Operator</option>
-          <option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option>
-          <option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option>
-        </select>
-        <select id="fu_center_${safe}" aria-label="Centru" ${u.role==='admin'?'disabled':''} onchange="queueIntegratedUserSave('${uid}','${safe}')">
-          <option value="">Fără centru</option>
-          ${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}
-        </select>
-        <button class="icon-btn red delete-user-btn" onclick="deleteIntegratedUser('${uid}','${esc(u.name||u.username||'')}')" title="Șterge">${ICON_TRASH}</button>
-      </div>`;
-    }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>';
-  };
-
-  window.syncIntegratedCenter=function(safe){
-    const role=document.getElementById('fu_role_'+safe)?.value;
-    const center=document.getElementById('fu_center_'+safe);
-    if(center){
-      center.disabled=role==='admin';
-      if(role==='admin')center.value='';
-    }
-  };
-
-  const integratedSaveTimers=new Map();
-
-  function setIntegratedState(safe,text,error=false){
-    const state=document.getElementById('fu_state_'+safe);
-    if(!state)return;
-    state.textContent=text||'';
-    state.style.color=error?'#f04438':'#12b76a';
+    box.innerHTML=
+      '<div class="user-view-head"><span>Cod</span><span>Nume prenume</span><span>Centru procesare</span><span>Tip cont</span></div>'+
+      (rows.map(user=>{
+        const code=String(user.operatorCode||'00').padStart(2,'0').slice(-2);
+        const name=user.name||user.username||'Utilizator';
+        const center=user.role==='admin'?'Fără centru':(user.center||'Fără centru');
+        const role=roleLabel(user.role)||'Operator';
+        return `<div class="user-view-row">
+          <div class="user-view-code">${esc(code)}</div>
+          <div class="user-view-name">${esc(name)}</div>
+          <div class="user-view-center">${esc(center)}</div>
+          <div class="user-view-role">${esc(role)}</div>
+        </div>`;
+      }).join('') || '<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>');
   }
 
-  window.queueIntegratedUserSave=function(uid,safe){
-    clearTimeout(integratedSaveTimers.get(uid));
-    setIntegratedState(safe,'Se salvează...');
-    integratedSaveTimers.set(uid,setTimeout(()=>saveIntegratedUser(uid,safe),350));
-  };
-
-  window.saveIntegratedUser=async function(uid,safe){
-    const existing=localAdminUsers.find(u=>String(u.uid)===String(uid))||{};
-    try{
-      const role=rowValue('fu_role_'+safe);
-      const code=rowValue('fu_code_'+safe).replace(/\D/g,'').padStart(2,'0').slice(-2);
-      await localRequest('/api/users/'+encodeURIComponent(uid),{
-        method:'PATCH',
-        body:JSON.stringify({
-          name:existing.name||'',
-          username:rowValue('fu_username_'+safe),
-          operatorCode:code,
-          role,
-          center:role==='admin'?'':rowValue('fu_center_'+safe),
-          active:existing.active!==false
-        })
-      });
-      const title=document.querySelector('#fu_name_text_'+safe);
-      const meta=document.getElementById('fu_meta_'+safe);
-      const codeView=document.querySelector('.firebase-user-row:has(#fu_code_'+safe+') .firebase-user-code');
-      if(codeView)codeView.textContent=code;
-      if(meta)meta.textContent=(roleLabel(role)||'Operator')+' · '+(role==='admin'?'Fără centru':(rowValue('fu_center_'+safe)||'Fără centru'));
-      setIntegratedState(safe,'Salvat');
-      setTimeout(()=>setIntegratedState(safe,''),1200);
-      await loadLocalAdminUsers();
-    }catch(error){
-      setIntegratedState(safe,'Eroare la salvare',true);
-    }
-  };
-
-  window.saveIntegratedPassword=async function(uid,safe){
-    const input=document.getElementById('fu_password_'+safe);
-    const password=String(input?.value||'');
-    if(!password)return;
-    if(password.length<6){
-      setIntegratedState(safe,'Parola trebuie să aibă minimum 6 caractere',true);
-      return;
-    }
-    try{
-      setIntegratedState(safe,'Se schimbă parola...');
-      await localRequest('/api/users/'+encodeURIComponent(uid)+'/password',{
-        method:'POST',
-        body:JSON.stringify({password})
-      });
-      input.value='';
-      setIntegratedState(safe,'Parolă schimbată');
-      setTimeout(()=>setIntegratedState(safe,''),1400);
-    }catch(error){
-      setIntegratedState(safe,'Eroare la schimbarea parolei',true);
-    }
-  };
-
-
-  window.deleteIntegratedUser=async function(uid,name){
-    const confirmed=confirm('Ștergi definitiv utilizatorul '+name+' din Authentication și Firestore?');
-    if(!confirmed)return;
-    try{
-      await localRequest('/api/users/'+encodeURIComponent(uid),{method:'DELETE'});
-      await loadLocalAdminUsers();
-      adminMessage('Utilizator șters','Contul a fost eliminat definitiv.');
-    }catch(error){
-      adminMessage('Ștergerea a eșuat',error.message);
-    }
-  };
-
-  window.createFirebaseUser=async function(){
-    if(!localAdminOnline){adminMessage('Serviciu indisponibil','Pornește PORNESTE.bat.');return}
-    const name=capWords(String(document.getElementById('newUserFullName')?.value||'').trim());
-    let username=cleanUsername(document.getElementById('newUsername')?.value||'');
-    if(!username){
-      const parts=name.split(/\s+/).filter(Boolean);
-      username=parts.length>=2?slug(parts[0])+'.'+slug(parts[1]):slug(name);
-    }
-    const password=String(document.getElementById('newUserPassword')?.value||'').trim();
-    const role=document.getElementById('newUserRole')?.value||'operator';
-    const center=role==='admin'?'':String(document.getElementById('newUserCenter')?.value||'').trim();
-    const operatorCode=String(document.getElementById('newUserOperatorCode')?.value||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
-    if(!name||!username||password.length<6||(role!=='admin'&&!center)){
-      adminMessage('Date incomplete','Completează numele, utilizatorul, parola și centrul. Parola trebuie să aibă minimum 6 caractere.');
-      return;
-    }
-    const button=document.getElementById('defaultAddUserBtn');
-    if(button){button.disabled=true;button.textContent='Se creează...'}
-    try{
-      const result=await localRequest('/api/users',{
-        method:'POST',
-        body:JSON.stringify({name,username,password,role,center,operatorCode})
-      });
-      closeUserDialog();
-      ['newUserFullName','newUsername','newUserPassword','newUserOperatorCode'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-      await loadLocalAdminUsers();
-      adminMessage('Utilizator creat','Contul '+result.username+' a fost creat cu adresa tehnică '+result.email+'.');
-    }catch(error){
-      adminMessage('Crearea a eșuat',error.message);
-    }finally{
-      if(button){button.disabled=false;button.textContent='Creează utilizator'}
-    }
-  };
-
-  const originalOpenUserDialog=window.openUserDialog;
-  window.openUserDialog=function(){
-    if(!isAdmin())return;
-    if(!localAdminOnline){checkLocalAdminService(true);return}
-    if(typeof originalOpenUserDialog==='function')originalOpenUserDialog();
-    const pass=document.getElementById('newUserPassword');
-    if(pass&&!pass.value)pass.value='Sphera'+String(Math.floor(1000+Math.random()*9000));
-    const code=document.getElementById('newUserOperatorCode');
-    if(code&&!code.value&&typeof nextUniqueUserCode==='function')code.value=nextUniqueUserCode();
-  };
+  window.renderUsersAdmin=renderReadOnlyUsers;
+  window.renderIntegratedUsers=renderReadOnlyUsers;
+  window.checkLocalAdminService=renderReadOnlyUsers;
+  window.openUserDialog=function(){};
 
   const search=document.getElementById('userAdminSearch');
-  if(search)search.addEventListener('input',renderIntegratedUsers);
+  if(search){
+    search.oninput=renderReadOnlyUsers;
+    search.onsearch=renderReadOnlyUsers;
+  }
 
-  const oldShowPage=window.showPage;
-  if(typeof oldShowPage==='function'){
+  const previousShowPage=window.showPage;
+  if(typeof previousShowPage==='function'){
     window.showPage=function(id){
-      const result=oldShowPage.apply(this,arguments);
-      if(id==='settings'&&isAdmin())setTimeout(()=>checkLocalAdminService(false),50);
+      const result=previousShowPage.apply(this,arguments);
+      if(id==='settings')setTimeout(renderReadOnlyUsers,0);
+      if(id==='clientsPage')setTimeout(()=>{if(typeof renderClients==='function')renderClients()},0);
       return result;
     };
   }
 
   document.addEventListener('DOMContentLoaded',()=>{
-    const obsolete=document.getElementById('defaultAddUserBtn');
-    if(obsolete)obsolete.onclick=createFirebaseUser;
+    document.getElementById('addUserTopBtn')?.remove();
+    document.getElementById('spheraCloudStatus')?.remove();
+    document.querySelector('#settingsPage .local-admin-toolbar')?.remove();
+    setTimeout(renderReadOnlyUsers,100);
+    setTimeout(()=>{if(typeof renderClients==='function')renderClients()},100);
   });
+
+  const usersBox=document.getElementById('usersAdminList');
+  if(usersBox){
+    const observer=new MutationObserver(()=>{
+      if(usersBox.querySelector('input,select,button') || usersBox.textContent.includes('Pornește serviciul local')){
+        observer.disconnect();
+        renderReadOnlyUsers();
+        observer.observe(usersBox,{childList:true,subtree:true});
+      }
+    });
+    observer.observe(usersBox,{childList:true,subtree:true});
+  }
+})();
+</script>
+
+
+<script>
+(function(){
+  function updateClientCounter(){
+    const badge=document.getElementById('clientFilterCount');
+    if(!badge)return;
+
+    const body=document.getElementById('clientRows');
+    let count=0;
+
+    if(body){
+      const visibleRows=[...body.querySelectorAll('tr')].filter(row=>{
+        if(row.querySelector('td[colspan]'))return false;
+        return row.style.display!=='none';
+      });
+      count=visibleRows.length;
+    }
+
+    if(count===0){
+      try{
+        const q=norm(String(document.getElementById('clientFilter')?.value||''));
+        const source=(typeof CLIENTS!=='undefined'&&Array.isArray(CLIENTS))?CLIENTS:[];
+        count=source.filter(c=>!q||norm((c.name||'')+' '+(c.city||'')+' '+(c.code||'')).includes(q)).length;
+      }catch(_){}
+    }
+
+    badge.textContent=String(count);
+  }
+
+  const previousRenderClients=window.renderClients;
+  if(typeof previousRenderClients==='function'){
+    window.renderClients=function(){
+      const result=previousRenderClients.apply(this,arguments);
+      requestAnimationFrame(updateClientCounter);
+      setTimeout(updateClientCounter,60);
+      return result;
+    };
+  }
+
+  const input=document.getElementById('clientFilter');
+  if(input){
+    input.addEventListener('input',()=>setTimeout(updateClientCounter,0));
+    input.addEventListener('search',()=>setTimeout(updateClientCounter,0));
+  }
+
+  const body=document.getElementById('clientRows');
+  if(body){
+    const observer=new MutationObserver(updateClientCounter);
+    observer.observe(body,{childList:true,subtree:true});
+  }
+
+  document.addEventListener('DOMContentLoaded',()=>{
+    setTimeout(updateClientCounter,100);
+    setTimeout(updateClientCounter,500);
+  });
+
+  window.updateClientCounter=updateClientCounter;
 })();
 </script>
 
