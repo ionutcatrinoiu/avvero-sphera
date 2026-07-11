@@ -2607,9 +2607,24 @@ function toggleOrderStatus(id){
 }
 
 function deleteOrder(id){
- const order=visibleOrders().find(o=>o.id===id);
+ const order=visibleOrders().find(o=>String(o.id)===String(id));
  if(!order)return;
- showAppConfirm({title:'Eliminare comandă', text:'Elimini această comandă din lista RX?', confirmText:'Elimină', cancelText:'Anulează', danger:true, onConfirm:()=>{orders=orders.filter(o=>o.id!==id); save(); render();}});
+ showAppConfirm({
+   title:'Eliminare comandă',
+   text:'Elimini definitiv această comandă din lista RX?',
+   confirmText:'Elimină',
+   cancelText:'Anulează',
+   danger:true,
+   onConfirm:async()=>{
+     if(typeof window.SPHERA_deleteOrderPermanently==='function'){
+       await window.SPHERA_deleteOrderPermanently(id);
+     }else{
+       orders=orders.filter(o=>String(o.id)!==String(id));
+       save();
+       render();
+     }
+   }
+ });
 }
 function clearOrders(){if(!isAdmin())return;showAppConfirm({title:'Ștergere comenzi', text:'Ștergi comenzile locale?', confirmText:'Șterge', cancelText:'Anulează', danger:true, onConfirm:()=>{orders=[];save();render();}})}
 
@@ -4253,10 +4268,12 @@ cursor:pointer;
 
   const SHARED_REF=db.collection('appData').doc('shared');
   const ORDERS_COL=db.collection('orders');
+  const DELETED_ORDERS_COL=db.collection('deletedOrders');
+  const ORDERS_STATE_REF=db.collection('appData').doc('ordersState');
   const CLOUD_KEYS=['sphera_user_clients','sphera_v19_centers','sphera_v19_indices','sphera_v19_materials','sphera_v19_products','sphera_v19_treatments'];
   let cloudReady=false, applyingRemote=false, saveTimer=null, unsubscribeShared=null, unsubscribeUsers=null;
-  let unsubscribeOrders=null, applyingOrdersRemote=false, ordersReady=false, ordersInitializing=false;
-  let ordersSaveTimer=null, ordersPendingSave=false, lastLocalOrderIds=new Set();
+  let unsubscribeOrders=null, unsubscribeDeletedOrders=null, applyingOrdersRemote=false, ordersReady=false, ordersInitializing=false;
+  let ordersSaveTimer=null, ordersPendingSave=false, lastLocalOrderIds=new Set(), deletedOrderIds=new Set();
 
   function setCloudStatus(text,type){
     let el=document.getElementById('spheraCloudStatus');
@@ -4375,6 +4392,7 @@ cursor:pointer;
     applyingOrdersRemote=true;
     try{
       orders=(Array.isArray(list)?list:[])
+        .filter(order=>!deletedOrderIds.has(String(order?.id||'')))
         .map((order,index)=>({order,index}))
         .sort((a,b)=>{
           const timeOf=item=>{
@@ -4401,7 +4419,9 @@ cursor:pointer;
       ordersPendingSave=true;
       return;
     }
-    const current=(Array.isArray(orders)?orders:[]).map(cleanOrderForCloud);
+    const current=(Array.isArray(orders)?orders:[])
+      .map(cleanOrderForCloud)
+      .filter(order=>!deletedOrderIds.has(String(order.id)));
     orders=current;
     const currentIds=new Set(current.map(o=>String(o.id)));
     const deletedIds=[...lastLocalOrderIds].filter(id=>!currentIds.has(id));
@@ -4427,12 +4447,23 @@ cursor:pointer;
         if(operations>=400)flush();
       }
       for(const id of deletedIds){
-        batch.delete(ORDERS_COL.doc(encodeURIComponent(String(id)).replace(/%/g,'_').slice(0,900)));
-        operations++;
-        if(operations>=400)flush();
+        const docId=encodeURIComponent(String(id)).replace(/%/g,'_').slice(0,900);
+        batch.delete(ORDERS_COL.doc(docId));
+        batch.set(DELETED_ORDERS_COL.doc(docId),{
+          orderId:String(id),
+          deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
+          deletedBy:auth.currentUser.uid
+        },{merge:true});
+        deletedOrderIds.add(String(id));
+        operations+=2;
+        if(operations>=398)flush();
       }
       flush();
       await Promise.all(commits);
+      await ORDERS_STATE_REF.set({
+        initialized:true,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
       lastLocalOrderIds=currentIds;
       ordersPendingSave=false;
       setCloudStatus('Cloud: sincronizat','ok');
@@ -4449,6 +4480,14 @@ cursor:pointer;
   }
   async function migrateInitialOrders(){
     let initial=[];
+    try{
+      const state=await ORDERS_STATE_REF.get();
+      if(state.exists&&state.data()?.initialized===true){
+        ordersReady=true;
+        applyOrdersFromCloud([]);
+        return;
+      }
+    }catch(e){}
     try{
       const legacy=await SHARED_REF.get();
       const legacyOrders=legacy.exists?legacy.data()?.orders:null;
@@ -4468,6 +4507,83 @@ cursor:pointer;
       applyOrdersFromCloud([]);
     }
   }
+  function startDeletedOrdersSync(){
+    if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();
+    unsubscribeDeletedOrders=DELETED_ORDERS_COL.onSnapshot(snap=>{
+      deletedOrderIds=new Set(
+        snap.docs.map(doc=>String(doc.data()?.orderId||'')).filter(Boolean)
+      );
+      const filtered=(Array.isArray(orders)?orders:[]).filter(
+        order=>!deletedOrderIds.has(String(order?.id||''))
+      );
+      if(filtered.length!==orders.length){
+        applyingOrdersRemote=true;
+        orders=filtered;
+        lastLocalOrderIds=new Set(orders.map(order=>String(order.id)));
+        originalSetItem('rx_orders',JSON.stringify(orders));
+        if(typeof render==='function')render();
+        if(typeof renderProcessingOrders==='function')renderProcessingOrders();
+        if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+        setTimeout(()=>{applyingOrdersRemote=false},0);
+      }
+    },error=>{
+      console.error('SPHERA deleted orders listener error',error);
+    });
+  }
+
+  window.SPHERA_deleteOrderPermanently=async function(id){
+    const orderId=String(id||'');
+    if(!orderId)return false;
+
+    const previousOrders=Array.isArray(orders)?orders.slice():[];
+    orders=previousOrders.filter(order=>String(order?.id)!==orderId);
+    deletedOrderIds.add(orderId);
+    lastLocalOrderIds.delete(orderId);
+    applyingOrdersRemote=true;
+    originalSetItem('rx_orders',JSON.stringify(orders));
+    applyingOrdersRemote=false;
+
+    if(typeof render==='function')render();
+    if(typeof renderProcessingOrders==='function')renderProcessingOrders();
+    if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+
+    if(!auth.currentUser){
+      setCloudStatus('Cloud: autentificare necesară pentru ștergere','error');
+      return false;
+    }
+
+    const docId=encodeURIComponent(orderId).replace(/%/g,'_').slice(0,900);
+    try{
+      const batch=db.batch();
+      batch.delete(ORDERS_COL.doc(docId));
+      batch.set(DELETED_ORDERS_COL.doc(docId),{
+        orderId,
+        deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        deletedBy:auth.currentUser.uid
+      },{merge:true});
+      batch.set(ORDERS_STATE_REF,{
+        initialized:true,
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+      await batch.commit();
+      setCloudStatus('Cloud: comanda a fost ștearsă definitiv','ok');
+      return true;
+    }catch(error){
+      console.error('SPHERA permanent order delete error',error);
+      orders=previousOrders;
+      deletedOrderIds.delete(orderId);
+      lastLocalOrderIds=new Set(orders.map(order=>String(order.id)));
+      applyingOrdersRemote=true;
+      originalSetItem('rx_orders',JSON.stringify(orders));
+      applyingOrdersRemote=false;
+      if(typeof render==='function')render();
+      if(typeof renderProcessingOrders==='function')renderProcessingOrders();
+      if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+      setCloudStatus('Cloud: comanda nu a putut fi ștearsă','error');
+      return false;
+    }
+  };
+
   function startOrdersSync(){
     if(unsubscribeOrders)unsubscribeOrders();
     ordersReady=false;
@@ -4530,12 +4646,12 @@ cursor:pointer;
       currentUser=profileToCurrent(profile,credential.user,username);
       if(!currentUser.active){await auth.signOut();throw new Error('Contul este dezactivat.')}
       await savePasswordForAdminPanel(profile,credential.user,password);
-      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startOrdersSync();startUsersSync();setCloudStatus('Cloud: conectare...','wait');
+      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startDeletedOrdersSync();startOrdersSync();startUsersSync();setCloudStatus('Cloud: conectare...','wait');
     }catch(e){if(err)err.textContent=e.message||'Profilul utilizatorului nu poate fi încărcat.';await auth.signOut();showLogin()}
     if(btn){btn.disabled=false;btn.textContent='Intră în aplicație'};
     return false;
   };
-  window.logout=async function(){cloudReady=false;ordersReady=false;if(unsubscribeShared)unsubscribeShared();if(unsubscribeOrders)unsubscribeOrders();if(unsubscribeUsers)unsubscribeUsers();await auth.signOut();currentUser=null;showLogin();setCloudStatus('Cloud: deconectat','wait')};
+  window.logout=async function(){cloudReady=false;ordersReady=false;if(unsubscribeShared)unsubscribeShared();if(unsubscribeOrders)unsubscribeOrders();if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();if(unsubscribeUsers)unsubscribeUsers();await auth.signOut();currentUser=null;showLogin();setCloudStatus('Cloud: deconectat','wait')};
 
   window.renderUsersAdmin=function(){
     const box=document.getElementById('usersAdminList');if(!box)return;
@@ -4552,7 +4668,7 @@ cursor:pointer;
       const profile=await findProfile(user,username);
       currentUser=profileToCurrent(profile,user,username);
       if(!currentUser.active){await auth.signOut();return}
-      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startOrdersSync();startUsersSync();
+      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startDeletedOrdersSync();startOrdersSync();startUsersSync();
     }catch(e){console.error(e);setCloudStatus('Cloud: eroare profil','error');showLogin()}
   });
 
