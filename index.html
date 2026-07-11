@@ -4613,65 +4613,10 @@ cursor:pointer;
     });
   }
 
-  async function migrateUserPasswordsToCloud(){
-    if(!auth.currentUser)return;
-    let localUsers=[];
-    try{
-      const parsed=JSON.parse(localStorage.getItem('sphera_users_v1')||'[]');
-      if(Array.isArray(parsed))localUsers=parsed;
-    }catch(_){}
-
-    try{
-      const snap=await db.collection('users').get();
-      const batch=db.batch();
-      let writes=0;
-
-      snap.docs.forEach(docSnap=>{
-        const data=docSnap.data()||{};
-        const username=cleanUsername(data.username||String(data.email||'').split('@')[0]);
-        const local=localUsers.find(item=>cleanUsername(item?.username)===username);
-        const knownPassword=
-          String(data.plainPassword||data.password||data.pass||local?.pass||
-            (username==='administrator'?'sunset1987':'')).trim();
-
-        if(knownPassword && !String(data.plainPassword||data.password||data.pass||'').trim()){
-          batch.set(docSnap.ref,{
-            plainPassword:knownPassword,
-            password:knownPassword,
-            pass:knownPassword,
-            passwordUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
-          },{merge:true});
-          writes++;
-        }
-      });
-
-      if(writes)await batch.commit();
-    }catch(error){
-      console.warn('Migrarea parolelor în Firestore nu a putut fi finalizată.',error);
-    }
-  }
-
-  async function startUsersSync(){
+  function startUsersSync(){
     if(unsubscribeUsers)unsubscribeUsers();
-    await migrateUserPasswordsToCloud();
     unsubscribeUsers=db.collection('users').onSnapshot(snap=>{
-      USERS=snap.docs.map(d=>{
-        const x=d.data()||{};
-        const password=String(x.plainPassword||x.password||x.pass||'');
-        return {
-          uid:d.id,
-          username:cleanUsername(x.username||String(x.email||'').split('@')[0]),
-          name:x.displayName||x.name||x.fullName||x.username||'Utilizator',
-          role:normalizeRole(x.role),
-          center:x.center||x.centru||'',
-          operatorCode:String(x.operatorCode||x.code||'00').padStart(2,'0'),
-          active:x.active!==false,
-          email:x.email||'',
-          pass:password,
-          password:password,
-          plainPassword:password
-        };
-      });
+      USERS=snap.docs.map(d=>{const x=d.data()||{};const savedPassword=String(x.plainPassword||x.password||x.pass||'');return {uid:d.id,username:cleanUsername(x.username||String(x.email||'').split('@')[0]),name:x.displayName||x.name||x.fullName||x.username||'Utilizator',role:normalizeRole(x.role),center:x.center||x.centru||'',operatorCode:String(x.operatorCode||x.code||'00').padStart(2,'0'),active:x.active!==false,email:x.email||'',pass:savedPassword,password:savedPassword,plainPassword:savedPassword}});
       window.__spheraUsersCache=USERS.slice();
       if(typeof renderUsersAdmin==='function')renderUsersAdmin();
     });
@@ -4926,11 +4871,11 @@ cursor:pointer;
 </script>
 
 <style>
-.user-view-head.password-enabled,
-.user-view-row.password-enabled{
-  grid-template-columns:76px minmax(180px,1.25fr) minmax(170px,1fr) minmax(130px,.8fr) 48px !important;
+.user-view-head.password-view,
+.user-view-row.password-view{
+  grid-template-columns:76px minmax(180px,1.25fr) minmax(170px,1fr) minmax(130px,.8fr) 46px !important;
 }
-.user-password-action{
+.password-eye-btn{
   width:38px !important;
   height:38px !important;
   min-width:38px !important;
@@ -4944,191 +4889,130 @@ cursor:pointer;
   justify-content:center !important;
   box-shadow:none !important;
 }
-.user-password-action:hover{
+.password-eye-btn:hover{
   background:#165dff !important;
   color:#fff !important;
   border-color:#165dff !important;
 }
-.user-password-action svg{
+.password-eye-btn svg{
   width:18px;
   height:18px;
-  stroke:currentColor;
   fill:none;
+  stroke:currentColor;
   stroke-width:2;
+  stroke-linecap:round;
+  stroke-linejoin:round;
 }
-.password-value-box{
+.admin-password-wrap{
   display:flex;
   align-items:center;
   gap:10px;
 }
-.password-value-box input{
+.admin-password-wrap input{
   flex:1;
   font-weight:800 !important;
-  letter-spacing:.02em;
-}
-.password-copy-btn{
-  width:42px !important;
-  height:42px !important;
-  min-width:42px !important;
-  padding:0 !important;
-  border-radius:999px !important;
 }
 @media(max-width:900px){
-  .user-view-head.password-enabled{display:none !important;}
-  .user-view-row.password-enabled{
+  .user-view-head.password-view{display:none !important;}
+  .user-view-row.password-view{
     grid-template-columns:54px 1fr 42px !important;
-  }
-  .user-view-row.password-enabled .user-view-center,
-  .user-view-row.password-enabled .user-view-role{
-    grid-column:2;
   }
 }
 </style>
 <script>
 (function(){
-  const EYE_ICON=`<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>`;
-  const COPY_ICON=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>`;
+  const eyeIcon='<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>';
 
-  function usersForPasswordPanel(){
+  function getUsers(){
     if(Array.isArray(window.__spheraUsersCache))return window.__spheraUsersCache;
     try{
-      if(typeof USERS!=='undefined'&&Array.isArray(USERS))return USERS;
-    }catch(_){}
+      if(typeof USERS!=="undefined" && Array.isArray(USERS))return USERS;
+    }catch(e){}
     return [];
   }
 
-  window.closeUserPasswordModal=function(){
-    document.getElementById('userPasswordModal')?.remove();
+  window.closePasswordViewer=function(){
+    const modal=document.getElementById("passwordViewerModal");
+    if(modal)modal.remove();
   };
 
-  window.copyVisibleUserPassword=async function(){
-    const input=document.getElementById('visibleUserPassword');
-    if(!input||!input.value)return;
-    try{
-      await navigator.clipboard.writeText(input.value);
-    }catch(_){
-      input.select();
-      document.execCommand('copy');
-    }
-  };
-
-  window.showUserPassword=function(uid){
-    const user=usersForPasswordPanel().find(item=>String(item.uid||item.username)===String(uid));
+  window.openPasswordViewer=function(key){
+    const user=getUsers().find(item=>String(item.uid||item.username)===String(key));
     if(!user)return;
 
-    const password=String(user.plainPassword||user.password||user.pass||'').trim();
-    const modal=document.createElement('div');
-    modal.id='userPasswordModal';
-    modal.className='modal open';
-    modal.innerHTML=`<div class="wizard" style="max-width:430px" onclick="event.stopPropagation()">
-      <div class="step-title" style="margin-bottom:16px">Parola utilizatorului</div>
-      <div class="field">
-        <label>Utilizator</label>
-        <input value="${esc(user.username||'')}" readonly>
-      </div>
-      <div class="field">
-        <label>Parolă</label>
-        ${password
-          ? `<div class="password-value-box">
-               <input id="visibleUserPassword" type="text" value="${esc(password)}" readonly>
-               <button class="icon-btn primary password-copy-btn" onclick="copyVisibleUserPassword()" title="Copiază parola">${COPY_ICON}</button>
-             </div>`
-          : `<div class="muted" style="line-height:1.5;padding:8px 0">Parola nu a fost încă salvată. Utilizatorul trebuie să se autentifice o dată cu această versiune a aplicației.</div>`}
-      </div>
-      <div class="icon-btns">
-        <button class="btn ghost" onclick="closeUserPasswordModal()">Închide</button>
-      </div>
-    </div>`;
-    modal.addEventListener('click',closeUserPasswordModal);
+    const password=String(user.plainPassword||user.password||user.pass||"").trim();
+    const modal=document.createElement("div");
+    modal.id="passwordViewerModal";
+    modal.className="modal open";
+    modal.innerHTML='<div class="wizard" style="max-width:430px" onclick="event.stopPropagation()">'+
+      '<div class="step-title" style="margin-bottom:16px">Parola utilizatorului</div>'+
+      '<div class="field"><label>Utilizator</label><input value="'+esc(user.username||"")+'" readonly></div>'+
+      '<div class="field"><label>Parolă</label>'+
+        (password
+          ? '<div class="admin-password-wrap"><input type="text" value="'+esc(password)+'" readonly></div>'
+          : '<div class="muted" style="padding:8px 0;line-height:1.5">Parola nu este încă salvată. Utilizatorul trebuie să se autentifice o dată în această versiune.</div>')+
+      '</div>'+
+      '<div class="icon-btns"><button class="btn ghost" onclick="closePasswordViewer()">Închide</button></div>'+
+    '</div>';
+    modal.addEventListener("click",window.closePasswordViewer);
     document.body.appendChild(modal);
   };
 
-  function renderUsersWithPasswords(){
-    const box=document.getElementById('usersAdminList');
-    if(!box||!isAdmin())return;
+  function renderUsersWithPasswordButton(){
+    const box=document.getElementById("usersAdminList");
+    if(!box)return;
 
-    const q=norm(String(document.getElementById('userAdminSearch')?.value||'').trim());
-    const rows=usersForPasswordPanel()
-      .filter(user=>user&&user.active!==false)
+    const q=norm(String(document.getElementById("userAdminSearch")?.value||"").trim());
+    const rows=getUsers()
+      .filter(user=>user && user.active!==false)
       .filter(user=>{
         if(!q)return true;
-        return [
-          user.operatorCode,
-          user.name,
-          user.username,
-          user.center,
-          roleLabel(user.role)
-        ].some(value=>norm(String(value||'')).includes(q));
+        return [user.operatorCode,user.name,user.username,user.center,roleLabel(user.role)]
+          .some(value=>norm(String(value||"")).includes(q));
       })
       .sort((a,b)=>{
-        const ac=String(a.operatorCode||'00').padStart(2,'0');
-        const bc=String(b.operatorCode||'00').padStart(2,'0');
-        return ac.localeCompare(bc,'ro',{numeric:true})||
-          String(a.name||a.username||'').localeCompare(String(b.name||b.username||''),'ro');
+        const ac=String(a.operatorCode||"00").padStart(2,"0");
+        const bc=String(b.operatorCode||"00").padStart(2,"0");
+        return ac.localeCompare(bc,"ro",{numeric:true}) ||
+          String(a.name||a.username||"").localeCompare(String(b.name||b.username||""),"ro");
       });
 
-    const count=document.getElementById('userAdminCount');
+    const count=document.getElementById("userAdminCount");
     if(count)count.textContent=String(rows.length);
 
     box.innerHTML=
-      '<div class="user-view-head password-enabled"><span>Cod</span><span>Nume prenume</span><span>Centru procesare</span><span>Tip cont</span><span></span></div>'+
+      '<div class="user-view-head password-view"><span>Cod</span><span>Nume prenume</span><span>Centru procesare</span><span>Tip cont</span><span></span></div>'+
       (rows.map(user=>{
-        const code=String(user.operatorCode||'00').padStart(2,'0').slice(-2);
-        const name=user.name||user.username||'Utilizator';
-        const center=user.role==='admin'?'Fără centru':(user.center||'Fără centru');
-        const role=roleLabel(user.role)||'Operator';
+        const code=String(user.operatorCode||"00").padStart(2,"0").slice(-2);
+        const name=user.name||user.username||"Utilizator";
+        const center=user.role==="admin"?"Fără centru":(user.center||"Fără centru");
+        const role=roleLabel(user.role)||"Operator";
         const key=String(user.uid||user.username);
-        return `<div class="user-view-row password-enabled">
-          <div class="user-view-code">${esc(code)}</div>
-          <div class="user-view-name">${esc(name)}</div>
-          <div class="user-view-center">${esc(center)}</div>
-          <div class="user-view-role">${esc(role)}</div>
-          <button class="user-password-action" onclick="showUserPassword('${esc(key)}')" title="Afișează parola">${EYE_ICON}</button>
-        </div>`;
-      }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>');
+        return '<div class="user-view-row password-view">'+
+          '<div class="user-view-code">'+esc(code)+'</div>'+
+          '<div class="user-view-name">'+esc(name)+'</div>'+
+          '<div class="user-view-center">'+esc(center)+'</div>'+
+          '<div class="user-view-role">'+esc(role)+'</div>'+
+          '<button class="password-eye-btn" onclick="openPasswordViewer(\''+esc(key)+'\')" title="Afișează parola">'+eyeIcon+'</button>'+
+        '</div>';
+      }).join("") || '<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>');
   }
 
-  window.renderUsersAdmin=renderUsersWithPasswords;
-  window.renderIntegratedUsers=renderUsersWithPasswords;
-  window.checkLocalAdminService=renderUsersWithPasswords;
+  window.renderUsersAdmin=renderUsersWithPasswordButton;
+  window.renderIntegratedUsers=renderUsersWithPasswordButton;
+  window.checkLocalAdminService=renderUsersWithPasswordButton;
 
-  const search=document.getElementById('userAdminSearch');
-  if(search){
-    search.oninput=renderUsersWithPasswords;
-    search.onsearch=renderUsersWithPasswords;
-  }
-
-  const oldShowPage=window.showPage;
-  if(typeof oldShowPage==='function'){
-    window.showPage=function(id){
-      const result=oldShowPage.apply(this,arguments);
-      if(id==='settings')setTimeout(renderUsersWithPasswords,0);
-      return result;
-    };
-  }
-
-  document.addEventListener('keydown',event=>{
-    if(event.key==='Escape'&&document.getElementById('userPasswordModal')){
-      closeUserPasswordModal();
+  document.addEventListener("DOMContentLoaded",()=>{
+    const search=document.getElementById("userAdminSearch");
+    if(search){
+      search.oninput=renderUsersWithPasswordButton;
+      search.onsearch=renderUsersWithPasswordButton;
     }
   });
 
-  document.addEventListener('DOMContentLoaded',()=>{
-    setTimeout(renderUsersWithPasswords,150);
-    setTimeout(renderUsersWithPasswords,700);
+  document.addEventListener("keydown",event=>{
+    if(event.key==="Escape")window.closePasswordViewer();
   });
-
-  const usersBox=document.getElementById('usersAdminList');
-  if(usersBox){
-    const observer=new MutationObserver(()=>{
-      if(isAdmin()&&!usersBox.querySelector('.user-password-action')){
-        observer.disconnect();
-        renderUsersWithPasswords();
-        observer.observe(usersBox,{childList:true,subtree:true});
-      }
-    });
-    observer.observe(usersBox,{childList:true,subtree:true});
-  }
 })();
 </script>
 
