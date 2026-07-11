@@ -4264,7 +4264,9 @@ cursor:pointer;
   if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const auth=firebase.auth();
   const db=firebase.firestore();
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
+  const authStartupReset=auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
+    .then(()=>auth.signOut())
+    .catch(async()=>{try{await auth.signOut()}catch(_){}});
 
   const SHARED_REF=db.collection('appData').doc('shared');
   const ORDERS_COL=db.collection('orders');
@@ -4803,15 +4805,18 @@ cursor:pointer;
     }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori.</div>';
   };
 
-  auth.onAuthStateChanged(async user=>{
-    if(!user){showLogin();setCloudStatus('Cloud: neautentificat','wait');return}
-    try{
-      const username=cleanUsername(String(user.email||'').split('@')[0]);
-      const profile=await findProfile(user,username);
-      currentUser=profileToCurrent(profile,user,username);
-      if(!currentUser.active){await auth.signOut();return}
-      showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startDeletedOrdersSync();startOrdersSync();startUsersSync();
-    }catch(e){console.error(e);setCloudStatus('Cloud: eroare profil','error');showLogin()}
+  showLogin();
+  authStartupReset.finally(()=>{
+    auth.onAuthStateChanged(async user=>{
+      if(!user){showLogin();setCloudStatus('Cloud: neautentificat','wait');return}
+      try{
+        const username=cleanUsername(String(user.email||'').split('@')[0]);
+        const profile=await findProfile(user,username);
+        currentUser=profileToCurrent(profile,user,username);
+        if(!currentUser.active){await auth.signOut();return}
+        showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startDeletedOrdersSync();startOrdersSync();startUsersSync();
+      }catch(e){console.error(e);setCloudStatus('Cloud: eroare profil','error');showLogin()}
+    });
   });
 
   document.addEventListener('DOMContentLoaded',()=>{
