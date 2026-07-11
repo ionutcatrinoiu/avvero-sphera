@@ -1320,7 +1320,7 @@ cursor:pointer;
 <main class="main">
 <div class="top">
 <div><h1 id="pageTitle">Dashboard RX</h1><div class="muted" id="who"></div></div>
-<div class="top-actions"><span class="account-badge" id="accountBadge"></span><button class="btn" id="newOrderBtn" onclick="openWizard()">Comandă nouă</button><button class="btn" id="newClientBtn" onclick="openNewClientDialog()">Adaugă client</button><button aria-label="Logout" class="logout-icon" id="logoutBtn" onclick="logout()" title="Logout"><span id="logoutFirstName"></span><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"></path></svg></button></div>
+<div class="top-actions"><button class="btn" id="newOrderBtn" onclick="openWizard()">Comandă nouă</button><button class="btn" id="newClientBtn" onclick="openNewClientDialog()">Adaugă client</button><div class="logout-account-wrap"><span class="account-badge" id="accountBadge"></span><button aria-label="Logout" class="logout-icon" id="logoutBtn" onclick="logout()" title="Logout"><span id="logoutFirstName"></span><svg fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" viewbox="0 0 24 24"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"></path></svg></button></div></div>
 </div>
 <section class="page" id="dashboard">
 <div class="grid dashboard-stats">
@@ -5082,7 +5082,10 @@ cursor:pointer;
     const first=raw?capWords(raw.split(/\s+/)[0]):firstNameFromUsername(currentUser.username||'');
     const center=userCenterName()||'centrul tău';
     who.className='muted dashboard-identity';
-    who.innerHTML=`<div class="welcome-line">Bun venit, <strong>${esc(first)}</strong></div><div class="weather-line">Cum e vremea în <strong>${esc(center)}</strong>?</div><div class="role-line">Tip cont: <strong>${esc(roleLabel(currentUser.role))}</strong></div>`;
+    const weatherLine=isAdmin()?'':`<div class="weather-line">Cum e vremea în ${esc(center)}?</div>`;
+    who.innerHTML=`<div class="welcome-line">Bun venit, ${esc(first)}</div>${weatherLine}`;
+    const badge=document.getElementById('accountBadge');
+    if(badge){badge.textContent=`Cont: ${roleLabel(currentUser.role)}`;badge.classList.remove('hide');}
   }
   const previousApply=window.applyPermissions;
   window.applyPermissions=function(){const result=previousApply&&previousApply.apply(this,arguments);updateDashboardIdentity();return result;};
@@ -5093,6 +5096,17 @@ cursor:pointer;
   document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{renderClients();renderRecentClients();updateDashboardIdentity();},250));
 })();
 </script>
+
+<style>
+/* Ajustare identitate dashboard */
+#who.dashboard-identity{gap:6px!important;margin-top:10px!important;line-height:1.4!important}
+#who.dashboard-identity .welcome-line{font-size:17px!important;color:#475467!important;font-weight:500!important}
+#who.dashboard-identity .weather-line{font-size:15px!important;color:#667085!important;font-weight:400!important}
+.logout-account-wrap{display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.logout-account-wrap #accountBadge{display:block!important;position:static!important;padding:0!important;margin:0 4px 0 0!important;background:transparent!important;border:0!important;box-shadow:none!important;color:#98a2b3!important;font-size:11px!important;line-height:1.2!important;font-weight:400!important;white-space:nowrap!important}
+.logout-account-wrap #accountBadge.hide{display:none!important}
+@media(max-width:900px){.logout-account-wrap{align-items:flex-start}.logout-account-wrap #accountBadge{margin-left:4px!important}}
+</style>
 
 </body>
 </html>
