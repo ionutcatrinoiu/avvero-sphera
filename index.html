@@ -4,7 +4,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1, maximum-scale=1" name="viewport"/>
-<title>AVVERO | SPHERA</title>
+<title>AVVERO | SPHERA - Smart Lenses Ordering</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
@@ -4374,7 +4374,18 @@ cursor:pointer;
   function applyOrdersFromCloud(list){
     applyingOrdersRemote=true;
     try{
-      orders=Array.isArray(list)?list:[];
+      orders=(Array.isArray(list)?list:[])
+        .map((order,index)=>({order,index}))
+        .sort((a,b)=>{
+          const timeOf=item=>{
+            const idMatch=String(item?.id||'').match(/(\d{10,})/);
+            if(idMatch)return Number(idMatch[1]);
+            const created=Date.parse(item?.createdAt||item?.addedAt||item?.dateCreated||'');
+            return Number.isFinite(created)?created:0;
+          };
+          return timeOf(b.order)-timeOf(a.order)||a.index-b.index;
+        })
+        .map(item=>item.order);
       lastLocalOrderIds=new Set(orders.map(o=>String(o.id)));
       originalSetItem('rx_orders',JSON.stringify(orders));
       if(typeof render==='function')render();
