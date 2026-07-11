@@ -2321,7 +2321,7 @@ function nextStep(auto=false){
   if(!validateStep(false))return;
   if(step<steps.length-1){step++;drawStep()}else createOrder()
 }
-function createOrder(){if(!canCreateOrders())return;resolveMountStep();let op=CENTERS.find(x=>norm(x.center)===norm(draft.center)&&norm(x.operator)===norm(draft.operator))||CENTERS.find(x=>norm(x.center)===norm(draft.center))||CENTERS.find(x=>norm(x.operator)===norm(draft.operator)); let max=Number(op?.last||0); orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n}); let seq=String(max+1).padStart(5,'0'); let d=new Date(draft.date+'T12:00:00'); const now=new Date(); if(now.getHours()>=14)d.setDate(d.getDate()+1); let zz=String(d.getDate()).padStart(2,'0'), ll=String(d.getMonth()+1).padStart(2,'0'); let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code; let order={id:'RX'+Date.now(),code,seq,date:draft.date,client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',deliveryDestination:String(draft.deliveryDestination||'center').startsWith('center:')?'center':(draft.deliveryDestination||'center'),deliveryCenter:String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||''),center:draft.center,operator:draft.operator,notes:draft.notes,status:'Lansată',rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}}; orders.unshift(order); save(); closeWizard(); render(); showGeneratedCode(code)}
+function createOrder(){if(!canCreateOrders())return;resolveMountStep();let op=CENTERS.find(x=>norm(x.center)===norm(draft.center)&&norm(x.operator)===norm(draft.operator))||CENTERS.find(x=>norm(x.center)===norm(draft.center))||CENTERS.find(x=>norm(x.operator)===norm(draft.operator)); let max=Number(op?.last||0); orders.filter(o=>o.center===draft.center).forEach(o=>{let n=Number(o.seq||0);if(n>max)max=n}); let seq=String(max+1).padStart(5,'0'); let d=new Date(draft.date+'T12:00:00'); const now=new Date(); if(now.getHours()>=14)d.setDate(d.getDate()+1); let zz=String(d.getDate()).padStart(2,'0'), ll=String(d.getMonth()+1).padStart(2,'0'); let code=zz+ll+String(op?.operatorCode||currentUser?.operatorCode||'00').padStart(2,'0').slice(-2)+seq+draft.client.code; let order={id:'RX'+Date.now(),code,seq,date:draft.date,client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',deliveryDestination:String(draft.deliveryDestination||'center').startsWith('center:')?'center':(draft.deliveryDestination||'center'),deliveryCenter:String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||''),center:draft.center,operator:draft.operator,notes:draft.notes,status:'Lansată',rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||''}}; orders.unshift(order); save(); closeWizard(); render(); showGeneratedCode(code)}
 function showGeneratedCode(code){
   let wrap=document.createElement('div'); wrap.className='modal open'; wrap.innerHTML=`<div class="wizard" style="max-width:520px"><div class="muted">Comandă generată</div><div class="step-title">Cod RX</div><input id="generatedCodeInput" value="${esc(code)}" readonly style="font-size:34px;font-weight:850;letter-spacing:1.2px;margin:20px 0;text-align:center;padding:18px"><div class="icon-btns"><button class="icon-btn primary" onclick="copyGeneratedCode()" title="Copiază codul">${ICON_COPY}</button></div></div>`; document.body.appendChild(wrap); setTimeout(()=>{let i=document.getElementById('generatedCodeInput'); if(i){i.focus(); i.select();}},30);
 }
@@ -2770,7 +2770,7 @@ cursor:pointer;
     const base=new Date(now.getFullYear(),now.getMonth(),now.getDate());
     const codeDate=nextWorkingCodeDate(base,now);
     let zz=String(codeDate.getDate()).padStart(2,'0'), ll=String(codeDate.getMonth()+1).padStart(2,'0');
-    let code=zz+ll+(op?.centerCode||'00')+seq+draft.client.code;
+    let code=zz+ll+String(op?.operatorCode||currentUser?.operatorCode||'00').padStart(2,'0').slice(-2)+seq+draft.client.code;
     let order={
       id:'RX'+Date.now(),code,seq,date:draft.date,codeDate:codeDate.toISOString().slice(0,10),
       client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,
@@ -2802,6 +2802,7 @@ cursor:pointer;
     const center=norm(currentUser?.center||'');
     if(!center || ['iasi','ploiesti','bucuresti','cluj napoca','cluj-napoca'].includes(center))return null;
     if(center==='botosani')return ['Botoșani','Suceava'];
+    if(center==='brasov')return ['Brașov','Galați'];
     const labels={
       'piatra-neamt':'Neamț','piatra neamt':'Neamț','bacau':'Bacău','constanta':'Constanța',
       'brasov':'Brașov','craiova':'Dolj','oradea':'Bihor'
@@ -2829,7 +2830,7 @@ cursor:pointer;
     const allowed=allowedCountiesForCurrentUser();
     if(allowed && !allowed.some(x=>norm(x)===norm(county))){if(err)err.textContent='Poți adăuga clienți doar din raza centrului tău.';return;}
     if(CLIENTS.some(c=>String(c.code)===String(code)))code=nextClientCode();
-    const c={name,city,county,code,createdAt:Date.now()};CLIENTS.unshift(c);USER_CLIENTS.unshift(c);saveUserClients();
+    const c={name,city,county,code,center:currentUser?.center||'',createdByCenter:currentUser?.center||'',createdAt:Date.now()};CLIENTS.unshift(c);USER_CLIENTS.unshift(c);saveUserClients();
     draft.client=c;draft.clientQuery=c.name;
     document.getElementById('newClientCode')?.closest('.modal')?.remove();render();
     if(document.getElementById('modal')?.classList.contains('open')){step=1;drawStep();}
@@ -4364,7 +4365,15 @@ cursor:pointer;
   function applyShared(data){
     applyingRemote=true;
     try{
-      if(Array.isArray(data.clients))localStorage.setItem('sphera_user_clients',JSON.stringify(data.clients));
+      if(Array.isArray(data.clients)){
+        USER_CLIENTS=data.clients.map(c=>({...c}));
+        localStorage.setItem('sphera_user_clients',JSON.stringify(USER_CLIENTS));
+        for(let i=CLIENTS.length-1;i>=0;i--){if(Number(CLIENTS[i]?.createdAt||0)>0)CLIENTS.splice(i,1);}
+        [...USER_CLIENTS].reverse().forEach(c=>{
+          const existing=CLIENTS.find(x=>String(x.code)===String(c.code));
+          if(existing)Object.assign(existing,c); else CLIENTS.unshift(c);
+        });
+      }
       if(Array.isArray(data.centers)){CENTERS=data.centers;localStorage.setItem('sphera_v19_centers',JSON.stringify(data.centers));}
       if(Array.isArray(data.indices)){INDICES=data.indices;window.INDICES=INDICES;localStorage.setItem('sphera_v19_indices',JSON.stringify(data.indices));}
       if(Array.isArray(data.materials)){MATERIALS=data.materials;window.MATERIALS=MATERIALS;localStorage.setItem('sphera_v19_materials',JSON.stringify(data.materials));}
@@ -5001,5 +5010,89 @@ cursor:pointer;
   window.updateClientCounter=updateClientCounter;
 })();
 </script>
+
+<style>
+#who.dashboard-identity{display:grid;gap:4px;margin-top:8px;line-height:1.35;color:#667085}
+#who.dashboard-identity .welcome-line{font-size:15px;color:#344054}
+#who.dashboard-identity .weather-line,#who.dashboard-identity .role-line{font-size:13px}
+#who.dashboard-identity strong{color:#101828;font-weight:900}
+</style>
+<script>
+(function(){
+  function userCenterName(){
+    return String(currentUser?.center||'').replace(/^\s*\d+\s*[·.\-:]?\s*/,'').trim();
+  }
+  function ownClientZone(client, centerValue){
+    const center=norm(centerValue||'');
+    const place=norm([client?.city,client?.county,client?.center,client?.createdByCenter].filter(Boolean).join(' '));
+    if(!center)return false;
+    if(center==='brasov')return place.includes('brasov')||place.includes('galati');
+    if(center==='botosani')return place.includes('botosani')||place.includes('suceava');
+    const aliases={
+      'cluj napoca':['cluj'],'cluj-napoca':['cluj'],'iasi':['iasi'],'ploiesti':['ploiesti','prahova'],
+      'piatra neamt':['piatra neamt','neamt'],'piatra-neamt':['piatra neamt','neamt'],
+      'targu mures':['targu mures','tg mures','mures'],'tg mures':['targu mures','tg mures','mures'],
+      'ramnicu valcea':['ramnicu valcea','rm valcea','valcea'],'constanta':['constanta','costanta'],
+      'bucuresti':['bucuresti','ilfov']
+    };
+    return (aliases[center]||[center]).some(x=>place.includes(norm(x)));
+  }
+  function hasGlobalClientAccess(){
+    const center=norm(userCenterName());
+    return currentUser?.role==='admin'||currentUser?.role==='iasi'||['ploiesti','cluj napoca','cluj-napoca','iasi'].includes(center);
+  }
+  window.clientAllowedForLoggedCenter=function(client){
+    if(!currentUser)return false;
+    if(hasGlobalClientAccess())return true;
+    return ownClientZone(client,userCenterName());
+  };
+  function visibleClientList(){
+    const center=userCenterName();
+    return CLIENTS.filter(client=>clientAllowedForLoggedCenter(client)).map((client,index)=>({client,index,own:ownClientZone(client,center)?0:1}));
+  }
+  window.clientSuggest=function(value){
+    const box=document.getElementById('clientSug');if(!box)return;
+    const q=norm(value);clientActive=-1;
+    if(!q){clientResults=[];box.innerHTML='<div class="sug muted">Începe să tastezi denumirea opticii sau codul clientului.</div>';return;}
+    clientResults=visibleClientList().filter(x=>norm(x.client.name).includes(q)||String(x.client.code).includes(q))
+      .sort((a,b)=>a.own-b.own||norm(a.client.name).localeCompare(norm(b.client.name),'ro')).slice(0,30).map(x=>x.client);
+    box.innerHTML=clientResults.map((c,i)=>`<div class="sug" data-i="${i}" onclick="selectClient('${c.code}', true)"><b>${highlightMatch(c.name,value)}</b><br><span class="muted">${highlightMatch(c.city,value)} · Cod ${highlightMatch(c.code,value)}</span></div>`).join('')||'<div class="sug muted">Nu am găsit client pentru centrul tău de procesare.</div>';
+  };
+  window.renderClients=function(){
+    const body=document.getElementById('clientRows');if(!body)return;
+    const q=norm(document.getElementById('clientFilter')?.value||'');
+    const filtered=visibleClientList().filter(x=>!q||norm((x.client.name||'')+' '+(x.client.city||'')+' '+(x.client.county||'')+' '+(x.client.code||'')).includes(q))
+      .sort((a,b)=>a.own-b.own||norm(a.client.name).localeCompare(norm(b.client.name),'ro')||a.index-b.index).map(x=>x.client);
+    const count=document.getElementById('clientFilterCount');if(count)count.textContent=String(filtered.length);
+    body.innerHTML=filtered.slice(0,10000).map(c=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
+  };
+  window.recentClients=function(){
+    return visibleClientList().map(x=>x.client).filter(c=>Number(c.createdAt||0)>0).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)).slice(0,10);
+  };
+  window.renderRecentClients=function(){
+    const body=document.getElementById('recentClientRows');if(!body)return;
+    const rows=recentClients();
+    body.innerHTML=rows.map(c=>`<tr><td>${esc(c.name)}</td><td>${esc(c.city)}</td><td><b>${esc(c.code)}</b></td></tr>`).join('')||'<tr><td colspan="3" class="muted">Nu există clienți adăugați manual.</td></tr>';
+  };
+  function updateDashboardIdentity(){
+    const who=document.getElementById('who');if(!who)return;
+    const active=document.querySelector('.page:not(.hide)')?.id||'dashboard';
+    if(active!=='dashboard'||!currentUser){who.classList.add('hide');return;}
+    const raw=String(currentUser.name||'').trim();
+    const first=raw?capWords(raw.split(/\s+/)[0]):firstNameFromUsername(currentUser.username||'');
+    const center=userCenterName()||'centrul tău';
+    who.className='muted dashboard-identity';
+    who.innerHTML=`<div class="welcome-line">Bun venit, <strong>${esc(first)}</strong></div><div class="weather-line">Cum e vremea în <strong>${esc(center)}</strong>?</div><div class="role-line">Tip cont: <strong>${esc(roleLabel(currentUser.role))}</strong></div>`;
+  }
+  const previousApply=window.applyPermissions;
+  window.applyPermissions=function(){const result=previousApply&&previousApply.apply(this,arguments);updateDashboardIdentity();return result;};
+  const previousShow=window.showPage;
+  window.showPage=function(){const result=previousShow&&previousShow.apply(this,arguments);setTimeout(updateDashboardIdentity,0);return result;};
+  const previousRender=window.render;
+  window.render=function(){const result=previousRender&&previousRender.apply(this,arguments);renderClients();renderRecentClients();updateDashboardIdentity();return result;};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{renderClients();renderRecentClients();updateDashboardIdentity();},250));
+})();
+</script>
+
 </body>
 </html>
