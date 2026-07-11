@@ -2617,12 +2617,24 @@ document.addEventListener('DOMContentLoaded',()=>{
   const user=document.getElementById('user');
   const pass=document.getElementById('pass');
   const btn=document.getElementById('loginBtn');
-  const remembered=localStorage.getItem('sphera_remembered_user')||sessionStorage.getItem('sphera_session_user')||'';
-  if(user) user.value=remembered;
-  const rememberedPass=localStorage.getItem('sphera_remembered_pass')||'';
-  if(pass) pass.value=rememberedPass;
   const rememberBox=document.getElementById('rememberMe');
-  if(rememberBox) rememberBox.checked=!!localStorage.getItem('sphera_remembered_user');
+
+  /* Curăță o singură dată valorile memorate de versiunile anterioare. */
+  const rememberResetKey='sphera_remember_reset_v44';
+  if(localStorage.getItem(rememberResetKey)!=='done'){
+    localStorage.removeItem('sphera_remembered_user');
+    localStorage.removeItem('sphera_remembered_pass');
+    sessionStorage.removeItem('sphera_session_user');
+    localStorage.setItem(rememberResetKey,'done');
+  }
+
+  /* Completează datele doar când utilizatorul a bifat explicit „Ține-mă minte”. */
+  const remembered=localStorage.getItem('sphera_remembered_user')||'';
+  const rememberedPass=localStorage.getItem('sphera_remembered_pass')||'';
+  if(user) user.value=remembered;
+  if(pass) pass.value=rememberedPass;
+  if(rememberBox) rememberBox.checked=Boolean(remembered);
+
   if(btn) btn.addEventListener('click', doLogin);
   [user,pass].filter(Boolean).forEach(el=>el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doLogin(); }}));
   if(remembered&&rememberedPass&&btn)btn.focus();else if(remembered&&pass)pass.focus();else if(user)user.focus();
