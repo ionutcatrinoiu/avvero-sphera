@@ -1225,28 +1225,100 @@ html,
 .local-admin-actions{display:flex;gap:10px;flex-wrap:wrap}
 .local-admin-actions .btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important}
 .firebase-user-row{
-  display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(150px,1fr) 92px 150px 180px 86px 126px;
-  gap:10px;align-items:center;padding:12px;border:1px solid #e4e7ec;border-radius:16px;background:#fff
+  display:grid;
+  grid-template-columns:minmax(290px,1.15fr) minmax(210px,1fr) minmax(210px,1fr) 72px minmax(210px,1.15fr) minmax(190px,1fr) 46px;
+  gap:10px;
+  align-items:center;
+  padding:10px 12px;
+  border:1px solid #e4e7ec;
+  border-radius:18px;
+  background:#fff;
 }
-.firebase-user-row .user-identity{min-width:0}
-.firebase-user-row .user-identity b,.firebase-user-row .user-identity span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.firebase-user-row .user-identity span{font-size:11px;color:#667085;margin-top:3px}
-.firebase-user-row input,.firebase-user-row select{min-width:0}
-.firebase-user-actions{display:flex;gap:7px;justify-content:flex-end}
-.firebase-user-actions button{width:36px!important;height:36px!important;min-width:36px!important;padding:0!important;border-radius:50%!important}
-.user-active-toggle{display:flex;align-items:center;justify-content:center;gap:7px;font-size:12px;font-weight:800;color:#344054}
-.user-active-toggle input{width:18px!important;height:18px!important}
+.firebase-user-summary{
+  min-width:0;
+  padding-right:8px;
+}
+.firebase-user-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  font-size:15px;
+  line-height:1.15;
+  color:#101828;
+}
+.firebase-user-code{
+  flex:0 0 auto;
+  color:#165dff;
+  font-weight:900;
+  min-width:24px;
+}
+.firebase-user-name{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-weight:900;
+}
+.firebase-user-meta{
+  margin-top:4px;
+  color:#667085;
+  font-size:11px;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.firebase-user-row input,
+.firebase-user-row select{
+  height:48px!important;
+  min-width:0;
+  border-radius:14px!important;
+  padding:0 14px!important;
+  font-size:13px!important;
+  font-weight:500!important;
+}
+.firebase-user-row .firebase-password{
+  letter-spacing:.02em;
+}
+.firebase-user-row .delete-user-btn{
+  width:42px!important;
+  height:42px!important;
+  min-width:42px!important;
+  border-radius:999px!important;
+  justify-self:end;
+}
+.firebase-save-state{
+  font-size:10px;
+  font-weight:800;
+  color:#12b76a;
+  margin-top:3px;
+  min-height:12px;
+}
 @media(max-width:1180px){
-  .firebase-user-row{grid-template-columns:1fr 1fr 80px 130px 150px}
-  .firebase-user-row .user-active-toggle,.firebase-user-row .firebase-user-actions{grid-column:auto}
+  .firebase-user-row{
+    grid-template-columns:minmax(240px,1.2fr) minmax(180px,1fr) minmax(180px,1fr) 70px minmax(180px,1fr) minmax(170px,1fr) 44px;
+  }
 }
-@media(max-width:760px){
-  .local-admin-toolbar{align-items:flex-start;flex-direction:column}
-  .local-admin-actions{width:100%}
-  .local-admin-actions .btn{flex:1}
-  .firebase-user-row{grid-template-columns:1fr}
-  .firebase-user-actions{justify-content:flex-start}
+@media(max-width:900px){
+  .firebase-user-row{
+    grid-template-columns:1fr 1fr;
+  }
+  .firebase-user-summary{
+    grid-column:1/-1;
+  }
+  .firebase-user-row .delete-user-btn{
+    justify-self:start;
+  }
 }
+@media(max-width:620px){
+  .firebase-user-row{
+    grid-template-columns:1fr;
+  }
+  .firebase-user-summary{
+    grid-column:auto;
+  }
+}
+
 
 </style>
 </head>
@@ -4408,28 +4480,31 @@ document.addEventListener('DOMContentLoaded',()=>{
     box.innerHTML=rows.map((u,index)=>{
       const uid=String(u.uid||'');
       const safe=uid.replace(/[^a-zA-Z0-9_-]/g,'');
+      const shownCode=String(u.operatorCode||'00').padStart(2,'0').slice(-2);
+      const shownRole=roleLabel(u.role)||'Operator';
+      const shownCenter=u.role==='admin'?'Fără centru':(u.center||'Fără centru');
       return `<div class="firebase-user-row">
-        <div class="user-identity">
-          <input id="fu_name_${safe}" value="${esc(u.name||'')}" aria-label="Nume complet">
-          <span>${esc(u.email||'')}</span>
+        <div class="firebase-user-summary">
+          <div class="firebase-user-title">
+            <span class="firebase-user-code">${esc(shownCode)}</span>
+            <span class="firebase-user-name" id="fu_name_text_${safe}">${esc(u.name||'')}</span>
+          </div>
+          <div class="firebase-user-meta" id="fu_meta_${safe}">${esc(shownRole)} · ${esc(shownCenter)}</div>
+          <div class="firebase-save-state" id="fu_state_${safe}"></div>
         </div>
-        <input id="fu_username_${safe}" value="${esc(u.username||'')}" aria-label="Utilizator">
-        <input id="fu_code_${safe}" maxlength="2" inputmode="numeric" value="${esc(u.operatorCode||'')}" aria-label="Cod operator">
-        <select id="fu_role_${safe}" onchange="syncIntegratedCenter('${safe}')">
+        <input id="fu_username_${safe}" value="${esc(u.username||'')}" aria-label="Utilizator" onblur="queueIntegratedUserSave('${uid}','${safe}')">
+        <input id="fu_password_${safe}" class="firebase-password" type="password" placeholder="Parolă nouă" aria-label="Parolă nouă" onblur="saveIntegratedPassword('${uid}','${safe}')" onkeydown="if(event.key==='Enter'){event.preventDefault();saveIntegratedPassword('${uid}','${safe}')}">
+        <input id="fu_code_${safe}" maxlength="2" inputmode="numeric" value="${esc(shownCode)}" aria-label="Cod operator" oninput="this.value=this.value.replace(/\\D/g,'').slice(0,2)" onblur="queueIntegratedUserSave('${uid}','${safe}')">
+        <select id="fu_role_${safe}" aria-label="Rol" onchange="syncIntegratedCenter('${safe}');queueIntegratedUserSave('${uid}','${safe}')">
           <option value="operator" ${u.role==='operator'?'selected':''}>Operator</option>
           <option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option>
           <option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option>
         </select>
-        <select id="fu_center_${safe}" ${u.role==='admin'?'disabled':''}>
+        <select id="fu_center_${safe}" aria-label="Centru" ${u.role==='admin'?'disabled':''} onchange="queueIntegratedUserSave('${uid}','${safe}')">
           <option value="">Fără centru</option>
           ${centers.map(c=>`<option value="${esc(c)}" ${norm(c)===norm(u.center)?'selected':''}>${esc(c)}</option>`).join('')}
         </select>
-        <label class="user-active-toggle"><input id="fu_active_${safe}" type="checkbox" ${u.active!==false?'checked':''}> Activ</label>
-        <div class="firebase-user-actions">
-          <button class="icon-btn primary" onclick="saveIntegratedUser('${uid}','${safe}')" title="Salvează">✓</button>
-          <button class="icon-btn" onclick="resetIntegratedPassword('${uid}','${esc(u.username||'')}')" title="Schimbă parola">⌨</button>
-          <button class="icon-btn red" onclick="deleteIntegratedUser('${uid}','${esc(u.name||u.username||'')}')" title="Șterge">${ICON_TRASH}</button>
-        </div>
+        <button class="icon-btn red delete-user-btn" onclick="deleteIntegratedUser('${uid}','${esc(u.name||u.username||'')}')" title="Șterge">${ICON_TRASH}</button>
       </div>`;
     }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>';
   };
@@ -4443,41 +4518,72 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   };
 
+  const integratedSaveTimers=new Map();
+
+  function setIntegratedState(safe,text,error=false){
+    const state=document.getElementById('fu_state_'+safe);
+    if(!state)return;
+    state.textContent=text||'';
+    state.style.color=error?'#f04438':'#12b76a';
+  }
+
+  window.queueIntegratedUserSave=function(uid,safe){
+    clearTimeout(integratedSaveTimers.get(uid));
+    setIntegratedState(safe,'Se salvează...');
+    integratedSaveTimers.set(uid,setTimeout(()=>saveIntegratedUser(uid,safe),350));
+  };
+
   window.saveIntegratedUser=async function(uid,safe){
+    const existing=localAdminUsers.find(u=>String(u.uid)===String(uid))||{};
     try{
       const role=rowValue('fu_role_'+safe);
+      const code=rowValue('fu_code_'+safe).replace(/\D/g,'').padStart(2,'0').slice(-2);
       await localRequest('/api/users/'+encodeURIComponent(uid),{
         method:'PATCH',
         body:JSON.stringify({
-          name:rowValue('fu_name_'+safe),
+          name:existing.name||'',
           username:rowValue('fu_username_'+safe),
-          operatorCode:rowValue('fu_code_'+safe),
+          operatorCode:code,
           role,
           center:role==='admin'?'':rowValue('fu_center_'+safe),
-          active:!!document.getElementById('fu_active_'+safe)?.checked
+          active:existing.active!==false
         })
       });
+      const title=document.querySelector('#fu_name_text_'+safe);
+      const meta=document.getElementById('fu_meta_'+safe);
+      const codeView=document.querySelector('.firebase-user-row:has(#fu_code_'+safe+') .firebase-user-code');
+      if(codeView)codeView.textContent=code;
+      if(meta)meta.textContent=(roleLabel(role)||'Operator')+' · '+(role==='admin'?'Fără centru':(rowValue('fu_center_'+safe)||'Fără centru'));
+      setIntegratedState(safe,'Salvat');
+      setTimeout(()=>setIntegratedState(safe,''),1200);
       await loadLocalAdminUsers();
-      adminMessage('Utilizator actualizat','Modificările au fost salvate în Firebase.');
     }catch(error){
-      adminMessage('Actualizarea a eșuat',error.message);
+      setIntegratedState(safe,'Eroare la salvare',true);
     }
   };
 
-  window.resetIntegratedPassword=async function(uid,username){
-    const password=prompt('Introdu parola nouă pentru '+username+'. Minimum 6 caractere.');
-    if(password===null)return;
-    if(password.length<6){adminMessage('Parolă invalidă','Parola trebuie să aibă minimum 6 caractere.');return}
+  window.saveIntegratedPassword=async function(uid,safe){
+    const input=document.getElementById('fu_password_'+safe);
+    const password=String(input?.value||'');
+    if(!password)return;
+    if(password.length<6){
+      setIntegratedState(safe,'Parola trebuie să aibă minimum 6 caractere',true);
+      return;
+    }
     try{
+      setIntegratedState(safe,'Se schimbă parola...');
       await localRequest('/api/users/'+encodeURIComponent(uid)+'/password',{
         method:'POST',
         body:JSON.stringify({password})
       });
-      adminMessage('Parolă schimbată','Noua parolă este activă imediat.');
+      input.value='';
+      setIntegratedState(safe,'Parolă schimbată');
+      setTimeout(()=>setIntegratedState(safe,''),1400);
     }catch(error){
-      adminMessage('Schimbarea parolei a eșuat',error.message);
+      setIntegratedState(safe,'Eroare la schimbarea parolei',true);
     }
   };
+
 
   window.deleteIntegratedUser=async function(uid,name){
     const confirmed=confirm('Ștergi definitiv utilizatorul '+name+' din Authentication și Firestore?');
