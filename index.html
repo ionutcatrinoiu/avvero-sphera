@@ -4083,10 +4083,21 @@ document.addEventListener('DOMContentLoaded',()=>{
     const username=cleanUsername(userEl?.value),password=String(passEl?.value||'');
     if(!username||!password){if(err)err.textContent='Completează utilizatorul și parola.';return false}
     if(btn){btn.disabled=true;btn.textContent='Se autentifică...'} if(err)err.textContent='';
-    const candidates=[username+'@avvero.ro'];
+    const candidates=[
+      username+'@avvero.ro',
+      username+'@avvero-sphera.ro'
+    ];
     if(username==='administrator')candidates.push('io.catrinoiu@gmail.com');
+    const uniqueCandidates=[...new Set(candidates.map(email=>email.toLowerCase()))];
     let credential=null,lastError=null;
-    for(const email of candidates){try{credential=await auth.signInWithEmailAndPassword(email,password);break}catch(e){lastError=e}}
+    for(const email of uniqueCandidates){
+      try{
+        credential=await auth.signInWithEmailAndPassword(email,password);
+        break;
+      }catch(e){
+        lastError=e;
+      }
+    }
     if(!credential){if(err)err.textContent='Utilizator sau parolă incorectă.';if(btn){btn.disabled=false;btn.textContent='Intră în aplicație'};return false}
     try{
       const profile=await findProfile(credential.user,username);
