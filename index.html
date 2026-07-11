@@ -4264,9 +4264,14 @@ cursor:pointer;
   if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const auth=firebase.auth();
   const db=firebase.firestore();
-  const authStartupReset=auth.setPersistence(firebase.auth.Auth.Persistence.NONE)
-    .then(()=>auth.signOut())
-    .catch(async()=>{try{await auth.signOut()}catch(_){}});
+  const rememberAuth=localStorage.getItem('sphera_auth_remember')==='1';
+  const authStartupReset=auth.setPersistence(
+    rememberAuth ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.NONE
+  ).then(async()=>{
+    if(!rememberAuth) await auth.signOut();
+  }).catch(async()=>{
+    if(!rememberAuth){try{await auth.signOut()}catch(_){}}
+  });
 
   const SHARED_REF=db.collection('appData').doc('shared');
   const ORDERS_COL=db.collection('orders');
@@ -4693,8 +4698,18 @@ cursor:pointer;
   window.doLogin=async function(){
     const userEl=document.getElementById('user'),passEl=document.getElementById('pass'),err=document.getElementById('loginErr'),btn=document.getElementById('loginBtn');
     const username=cleanUsername(userEl?.value),password=String(passEl?.value||'');
+    const remember=!!document.getElementById('rememberMe')?.checked;
     if(!username||!password){if(err)err.textContent='Completează utilizatorul și parola.';return false}
     if(btn){btn.disabled=true;btn.textContent='Se autentifică...'} if(err)err.textContent='';
+    await auth.setPersistence(remember ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.NONE);
+    if(remember){
+      localStorage.setItem('sphera_auth_remember','1');
+      localStorage.setItem('sphera_remembered_user',username);
+    }else{
+      localStorage.removeItem('sphera_auth_remember');
+      localStorage.removeItem('sphera_remembered_user');
+      localStorage.removeItem('sphera_remembered_pass');
+    }
     const candidates=[username+'@avvero.ro',username+'@avvero-sphera.ro'];
     if(username==='administrator')candidates.push('io.catrinoiu@gmail.com');
     let credential=null,lastError=null;
@@ -4718,6 +4733,7 @@ cursor:pointer;
     if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();
     if(unsubscribeUsers)unsubscribeUsers();
 
+    localStorage.removeItem('sphera_auth_remember');
     localStorage.removeItem('sphera_remembered_user');
     localStorage.removeItem('sphera_remembered_pass');
     sessionStorage.removeItem('sphera_session_user');
@@ -4821,7 +4837,13 @@ cursor:pointer;
 
   document.addEventListener('DOMContentLoaded',()=>{
     localStorage.removeItem('sphera_remembered_pass');
-    const pass=document.getElementById('pass');if(pass)pass.value='';
+    const remembered=localStorage.getItem('sphera_auth_remember')==='1';
+    const user=document.getElementById('user');
+    const pass=document.getElementById('pass');
+    const remember=document.getElementById('rememberMe');
+    if(user)user.value=remembered?(localStorage.getItem('sphera_remembered_user')||''):'';
+    if(pass)pass.value='';
+    if(remember)remember.checked=remembered;
     const btn=document.getElementById('loginBtn');if(btn){btn.onclick=()=>window.doLogin();}
   });
 })();
