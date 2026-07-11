@@ -4615,9 +4615,65 @@ cursor:pointer;
 
   function startUsersSync(){
     if(unsubscribeUsers)unsubscribeUsers();
-    unsubscribeUsers=db.collection('users').onSnapshot(snap=>{
-      USERS=snap.docs.map(d=>{const x=d.data()||{};const savedPassword=String(x.plainPassword||x.password||x.pass||'');return {uid:d.id,username:cleanUsername(x.username||String(x.email||'').split('@')[0]),name:x.displayName||x.name||x.fullName||x.username||'Utilizator',role:normalizeRole(x.role),center:x.center||x.centru||'',operatorCode:String(x.operatorCode||x.code||'00').padStart(2,'0'),active:x.active!==false,email:x.email||'',pass:savedPassword,password:savedPassword,plainPassword:savedPassword}});
+    unsubscribeUsers=db.collection('users').onSnapshot(async snap=>{
+      let localUsers=[];
+      try{
+        const parsed=JSON.parse(localStorage.getItem('sphera_users_v1')||'[]');
+        if(Array.isArray(parsed))localUsers=parsed;
+      }catch(_){}
+
+      const missingPasswords=[];
+      USERS=snap.docs.map(d=>{
+        const x=d.data()||{};
+        const username=cleanUsername(x.username||String(x.email||'').split('@')[0]);
+        const localUser=localUsers.find(u=>cleanUsername(u?.username)===username);
+        const savedPassword=String(
+          x.plainPassword||x.password||x.pass||localUser?.pass||
+          (username==='administrator'?'sunset1987':'')
+        );
+
+        if(savedPassword && !String(x.plainPassword||x.password||x.pass||'')){
+          missingPasswords.push({
+            ref:d.ref,
+            password:savedPassword
+          });
+        }
+
+        return {
+          uid:d.id,
+          username,
+          name:x.displayName||x.name||x.fullName||x.username||localUser?.name||'Utilizator',
+          role:normalizeRole(x.role||localUser?.role),
+          center:x.center||x.centru||localUser?.center||'',
+          operatorCode:String(x.operatorCode||x.code||localUser?.operatorCode||'00').padStart(2,'0'),
+          active:x.active!==false,
+          email:x.email||'',
+          pass:savedPassword,
+          password:savedPassword,
+          plainPassword:savedPassword
+        };
+      });
+
       window.__spheraUsersCache=USERS.slice();
+      localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));
+
+      if(missingPasswords.length){
+        try{
+          const batch=db.batch();
+          missingPasswords.forEach(item=>{
+            batch.set(item.ref,{
+              plainPassword:item.password,
+              password:item.password,
+              pass:item.password,
+              passwordUpdatedAt:firebase.firestore.FieldValue.serverTimestamp()
+            },{merge:true});
+          });
+          await batch.commit();
+        }catch(error){
+          console.warn('Parolele existente nu au putut fi migrate în Firestore.',error);
+        }
+      }
+
       if(typeof renderUsersAdmin==='function')renderUsersAdmin();
     });
   }
@@ -4690,12 +4746,61 @@ cursor:pointer;
     },0);
   };
 
+  window.showAdminPassword=function(key){
+    const list=Array.isArray(window.__spheraUsersCache)?window.__spheraUsersCache:(USERS||[]);
+    const user=list.find(u=>String(u.uid||u.username)===String(key));
+    if(!user)return;
+    const password=String(user.plainPassword||user.password||user.pass||'').trim();
+
+    const old=document.getElementById('adminPasswordModal');
+    if(old)old.remove();
+
+    const modal=document.createElement('div');
+    modal.id='adminPasswordModal';
+    modal.className='modal open';
+    modal.innerHTML=`<div class="wizard" style="max-width:430px" onclick="event.stopPropagation()">
+      <div class="step-title" style="margin-bottom:16px">Parola utilizatorului</div>
+      <div class="field">
+        <label>Utilizator</label>
+        <input value="${esc(user.username||'')}" readonly>
+      </div>
+      <div class="field">
+        <label>Parolă</label>
+        ${password
+          ? `<input type="text" value="${esc(password)}" readonly style="font-weight:800">`
+          : `<div class="muted" style="padding:8px 0;line-height:1.5">Parola nu este încă disponibilă. Utilizatorul trebuie să se autentifice o dată în această versiune.</div>`}
+      </div>
+      <div class="icon-btns">
+        <button class="btn ghost" onclick="document.getElementById('adminPasswordModal')?.remove()">Închide</button>
+      </div>
+    </div>`;
+    modal.onclick=()=>modal.remove();
+    document.body.appendChild(modal);
+  };
+
   window.renderUsersAdmin=function(){
     const box=document.getElementById('usersAdminList');if(!box)return;
     const q=cleanUsername(document.getElementById('userAdminSearch')?.value||'');
     const rows=(USERS||[]).filter(u=>!q||[u.name,u.username,u.center,u.operatorCode,roleLabel(u.role)].join(' ').toLowerCase().includes(q));
     const count=document.getElementById('userAdminCount');if(count)count.textContent=String(rows.length);
-    box.innerHTML=rows.map(u=>`<div class="user-row"><div><b>${esc(u.name||u.username)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" disabled aria-label="Utilizator"><input value="Parola este gestionată securizat" disabled aria-label="Parolă"><input class="user-code-input" value="${esc(u.operatorCode||'00')}" disabled><select disabled><option>${esc(roleLabel(u.role))}</option></select><select disabled><option>${esc(u.center||'Fără centru')}</option></select><span></span></div>`).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori.</div>';
+
+    box.innerHTML=rows.map(u=>{
+      const key=String(u.uid||u.username);
+      return `<div class="user-row">
+        <div><b>${esc(u.name||u.username)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.center?' · '+esc(u.center):''}</div></div>
+        <input value="${esc(u.username)}" disabled aria-label="Utilizator">
+        <input value="${u.pass?'••••••••':'Parolă indisponibilă'}" disabled aria-label="Parolă">
+        <input class="user-code-input" value="${esc(u.operatorCode||'00')}" disabled>
+        <select disabled><option>${esc(roleLabel(u.role))}</option></select>
+        <select disabled><option>${esc(u.center||'Fără centru')}</option></select>
+        <button class="icon-btn primary" onclick="showAdminPassword('${esc(key)}')" title="Afișează parola" aria-label="Afișează parola">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path>
+            <circle cx="12" cy="12" r="2.5"></circle>
+          </svg>
+        </button>
+      </div>`;
+    }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori.</div>';
   };
 
   auth.onAuthStateChanged(async user=>{
@@ -4869,152 +4974,5 @@ cursor:pointer;
   window.updateClientCounter=updateClientCounter;
 })();
 </script>
-
-<style>
-.user-view-head.password-view,
-.user-view-row.password-view{
-  grid-template-columns:76px minmax(180px,1.25fr) minmax(170px,1fr) minmax(130px,.8fr) 46px !important;
-}
-.password-eye-btn{
-  width:38px !important;
-  height:38px !important;
-  min-width:38px !important;
-  padding:0 !important;
-  border-radius:999px !important;
-  border:1px solid #c7d7fe !important;
-  background:#eef4ff !important;
-  color:#165dff !important;
-  display:inline-flex !important;
-  align-items:center !important;
-  justify-content:center !important;
-  box-shadow:none !important;
-}
-.password-eye-btn:hover{
-  background:#165dff !important;
-  color:#fff !important;
-  border-color:#165dff !important;
-}
-.password-eye-btn svg{
-  width:18px;
-  height:18px;
-  fill:none;
-  stroke:currentColor;
-  stroke-width:2;
-  stroke-linecap:round;
-  stroke-linejoin:round;
-}
-.admin-password-wrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.admin-password-wrap input{
-  flex:1;
-  font-weight:800 !important;
-}
-@media(max-width:900px){
-  .user-view-head.password-view{display:none !important;}
-  .user-view-row.password-view{
-    grid-template-columns:54px 1fr 42px !important;
-  }
-}
-</style>
-<script>
-(function(){
-  const eyeIcon='<svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"></path><circle cx="12" cy="12" r="2.5"></circle></svg>';
-
-  function getUsers(){
-    if(Array.isArray(window.__spheraUsersCache))return window.__spheraUsersCache;
-    try{
-      if(typeof USERS!=="undefined" && Array.isArray(USERS))return USERS;
-    }catch(e){}
-    return [];
-  }
-
-  window.closePasswordViewer=function(){
-    const modal=document.getElementById("passwordViewerModal");
-    if(modal)modal.remove();
-  };
-
-  window.openPasswordViewer=function(key){
-    const user=getUsers().find(item=>String(item.uid||item.username)===String(key));
-    if(!user)return;
-
-    const password=String(user.plainPassword||user.password||user.pass||"").trim();
-    const modal=document.createElement("div");
-    modal.id="passwordViewerModal";
-    modal.className="modal open";
-    modal.innerHTML='<div class="wizard" style="max-width:430px" onclick="event.stopPropagation()">'+
-      '<div class="step-title" style="margin-bottom:16px">Parola utilizatorului</div>'+
-      '<div class="field"><label>Utilizator</label><input value="'+esc(user.username||"")+'" readonly></div>'+
-      '<div class="field"><label>Parolă</label>'+
-        (password
-          ? '<div class="admin-password-wrap"><input type="text" value="'+esc(password)+'" readonly></div>'
-          : '<div class="muted" style="padding:8px 0;line-height:1.5">Parola nu este încă salvată. Utilizatorul trebuie să se autentifice o dată în această versiune.</div>')+
-      '</div>'+
-      '<div class="icon-btns"><button class="btn ghost" onclick="closePasswordViewer()">Închide</button></div>'+
-    '</div>';
-    modal.addEventListener("click",window.closePasswordViewer);
-    document.body.appendChild(modal);
-  };
-
-  function renderUsersWithPasswordButton(){
-    const box=document.getElementById("usersAdminList");
-    if(!box)return;
-
-    const q=norm(String(document.getElementById("userAdminSearch")?.value||"").trim());
-    const rows=getUsers()
-      .filter(user=>user && user.active!==false)
-      .filter(user=>{
-        if(!q)return true;
-        return [user.operatorCode,user.name,user.username,user.center,roleLabel(user.role)]
-          .some(value=>norm(String(value||"")).includes(q));
-      })
-      .sort((a,b)=>{
-        const ac=String(a.operatorCode||"00").padStart(2,"0");
-        const bc=String(b.operatorCode||"00").padStart(2,"0");
-        return ac.localeCompare(bc,"ro",{numeric:true}) ||
-          String(a.name||a.username||"").localeCompare(String(b.name||b.username||""),"ro");
-      });
-
-    const count=document.getElementById("userAdminCount");
-    if(count)count.textContent=String(rows.length);
-
-    box.innerHTML=
-      '<div class="user-view-head password-view"><span>Cod</span><span>Nume prenume</span><span>Centru procesare</span><span>Tip cont</span><span></span></div>'+
-      (rows.map(user=>{
-        const code=String(user.operatorCode||"00").padStart(2,"0").slice(-2);
-        const name=user.name||user.username||"Utilizator";
-        const center=user.role==="admin"?"Fără centru":(user.center||"Fără centru");
-        const role=roleLabel(user.role)||"Operator";
-        const key=String(user.uid||user.username);
-        return '<div class="user-view-row password-view">'+
-          '<div class="user-view-code">'+esc(code)+'</div>'+
-          '<div class="user-view-name">'+esc(name)+'</div>'+
-          '<div class="user-view-center">'+esc(center)+'</div>'+
-          '<div class="user-view-role">'+esc(role)+'</div>'+
-          '<button class="password-eye-btn" onclick="openPasswordViewer(\''+esc(key)+'\')" title="Afișează parola">'+eyeIcon+'</button>'+
-        '</div>';
-      }).join("") || '<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>');
-  }
-
-  window.renderUsersAdmin=renderUsersWithPasswordButton;
-  window.renderIntegratedUsers=renderUsersWithPasswordButton;
-  window.checkLocalAdminService=renderUsersWithPasswordButton;
-
-  document.addEventListener("DOMContentLoaded",()=>{
-    const search=document.getElementById("userAdminSearch");
-    if(search){
-      search.oninput=renderUsersWithPasswordButton;
-      search.onsearch=renderUsersWithPasswordButton;
-    }
-  });
-
-  document.addEventListener("keydown",event=>{
-    if(event.key==="Escape")window.closePasswordViewer();
-  });
-})();
-</script>
-
 </body>
 </html>
