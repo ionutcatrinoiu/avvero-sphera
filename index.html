@@ -5062,7 +5062,7 @@ cursor:pointer;
     const body=document.getElementById('clientRows');if(!body)return;
     const q=norm(document.getElementById('clientFilter')?.value||'');
     const filtered=visibleClientList().filter(x=>!q||norm((x.client.name||'')+' '+(x.client.city||'')+' '+(x.client.county||'')+' '+(x.client.code||'')).includes(q))
-      .sort((a,b)=>a.own-b.own||norm(a.client.name).localeCompare(norm(b.client.name),'ro')||a.index-b.index).map(x=>x.client);
+      .sort((a,b)=>(Number(b.client.createdAt||0)-Number(a.client.createdAt||0))||a.index-b.index).map(x=>x.client);
     const count=document.getElementById('clientFilterCount');if(count)count.textContent=String(filtered.length);
     body.innerHTML=filtered.slice(0,10000).map(c=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('')||'<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
   };
