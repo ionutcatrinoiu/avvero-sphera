@@ -4330,6 +4330,7 @@ cursor:pointer;
     const r=String(v||'').toLowerCase();
     if(r==='admin'||r==='administrator')return 'admin';
     if(r==='iasi'||r==='operator-master'||r==='operator master'||r==='master')return 'iasi';
+    if(r==='viewer'||r==='operator export'||r==='operator-export'||r==='export')return 'viewer';
     return 'operator';
   }
   async function findProfile(user,username){
@@ -4350,6 +4351,7 @@ cursor:pointer;
       name:profile?.displayName||profile?.name||profile?.fullName||cleanUsername(username),
       role:normalizeRole(profile?.role),
       center:profile?.center||profile?.centru||'',
+      warehouses:Array.isArray(profile?.warehouses)?profile.warehouses:[],
       operatorCode:String(profile?.operatorCode||profile?.code||'00').padStart(2,'0'),
       active:profile?.active!==false
     };
@@ -4679,6 +4681,7 @@ cursor:pointer;
           name:x.displayName||x.name||x.fullName||x.username||localUser?.name||'Utilizator',
           role:normalizeRole(x.role||localUser?.role),
           center:x.center||x.centru||localUser?.center||'',
+          warehouses:Array.isArray(x.warehouses)?x.warehouses:(Array.isArray(localUser?.warehouses)?localUser.warehouses:[]),
           operatorCode:String(x.operatorCode||x.code||localUser?.operatorCode||'00').padStart(2,'0'),
           active:x.active!==false,
           email:x.email||'',
@@ -5232,6 +5235,271 @@ function run(){
 }
 new MutationObserver(run).observe(document.body,{childList:true,subtree:true});
 window.addEventListener('load',run);
+})();
+</script>
+<style>
+/* SPHERA, cont depozit central cu acces exclusiv de vizualizare */
+body.viewer-account #newOrderBtn,
+body.viewer-account #newClientBtn,
+body.viewer-account #menuClients,
+body.viewer-account #ordersListBox .status-cell,
+body.viewer-account #ordersListBox .delete-cell,
+body.viewer-account #ordersListBox th:nth-child(9),
+body.viewer-account #ordersListBox th:nth-child(10),
+body.viewer-account #ordersListBox .status-toggle,
+body.viewer-account #ordersListBox .delete-order,
+body.viewer-account .processing-actions,
+body.viewer-account .workflow-action,
+body.viewer-account .order-code-copy,
+body.viewer-account [data-viewer-write]{display:none!important}
+.viewer-warehouses{grid-column:1/-1;display:grid;gap:8px}
+.viewer-warehouses select{min-height:126px}
+.viewer-warehouses .muted{font-size:12px;line-height:1.4}
+.viewer-assignment{display:grid;gap:6px;min-width:210px}
+.viewer-assignment select{min-height:88px;padding:8px 10px}
+.user-row.viewer-user-row{grid-template-columns:1.15fr 1fr 1fr .55fr .9fr 1.35fr auto}
+@media(max-width:1000px){.user-row.viewer-user-row{grid-template-columns:1fr}.viewer-assignment{min-width:0}}
+</style>
+<script>
+(function(){
+  const VIEWER_ROLE='viewer';
+  const VIEWER_MIGRATION_KEY='sphera_viewer_accounts_v1';
+  const PRESET_VIEWERS=[
+    {name:'Simona Luca',username:'simona.luca',pass:'optic4821',operatorCode:'20',warehouses:['Cluj Napoca','Piatra-Neamț']},
+    {name:'Oana Bentu',username:'oana.bentu',pass:'vision5934',operatorCode:'21',warehouses:['Craiova','Brașov']},
+    {name:'Raluca Vieru',username:'raluca.vieru',pass:'lunar7146',operatorCode:'22',warehouses:['Oradea']}
+  ];
+
+  function centerKey(value){return norm(value).replace(/[^a-z0-9]+/g,'');}
+  function allWarehouseNames(){
+    const assigned=PRESET_VIEWERS.flatMap(user=>user.warehouses||[]);
+    return [...new Set([...orderedProcessingCenters(),...assigned])].sort((a,b)=>a.localeCompare(b,'ro'));
+  }
+  function canonicalWarehouse(value){
+    const key=centerKey(value);
+    return allWarehouseNames().find(center=>centerKey(center)===key)||String(value||'').trim();
+  }
+  function viewerWarehouses(user=currentUser){
+    const username=slug(user?.username||'');
+    const synced=(USERS||[]).find(item=>slug(item?.username||'')===username);
+    const preset=PRESET_VIEWERS.find(item=>slug(item.username)===username);
+    const assigned=Array.isArray(user?.warehouses)&&user.warehouses.length
+      ? user.warehouses
+      : Array.isArray(synced?.warehouses)&&synced.warehouses.length
+        ? synced.warehouses
+        : preset?.warehouses||[];
+    return [...new Set(assigned.map(canonicalWarehouse).filter(Boolean))];
+  }
+  function isViewer(){return currentUser?.role===VIEWER_ROLE;}
+  window.isViewer=isViewer;
+
+  function migrateViewerAccounts(){
+    if(localStorage.getItem(VIEWER_MIGRATION_KEY)==='done')return;
+    PRESET_VIEWERS.forEach(preset=>{
+      let user=USERS.find(u=>norm(u.name)===norm(preset.name)||slug(u.username)===slug(preset.username));
+      if(!user){user={...preset,role:VIEWER_ROLE,center:'Iasi',createdAt:Date.now()};USERS.push(user);}
+      user.role=VIEWER_ROLE;
+      user.center='Iasi';
+      user.warehouses=preset.warehouses.map(canonicalWarehouse);
+      user.operatorCode=user.operatorCode||preset.operatorCode;
+      user.pass=user.pass||preset.pass;
+    });
+    localStorage.setItem(VIEWER_MIGRATION_KEY,'done');
+    saveUsers();
+  }
+  migrateViewerAccounts();
+
+  const baseRoleLabel=window.roleLabel||roleLabel;
+  window.roleLabel=function(role){return role===VIEWER_ROLE?'Operator Export':baseRoleLabel(role);};
+
+  window.visibleOrders=function(){
+    if(isAdmin())return orders;
+    if(isViewer()){
+      const allowed=new Set(viewerWarehouses().map(centerKey));
+      return orders.filter(order=>{
+        const values=[order?.center,order?.processingCenter,order?.processing_center,order?.warehouse,order?.depot];
+        const code=String(order?.centerCode||'').trim();
+        if(code){
+          const centerByCode=(CENTERS||[]).find(item=>String(item?.centerCode||'').padStart(2,'0')===code.padStart(2,'0'));
+          if(centerByCode?.center)values.push(centerByCode.center);
+        }
+        return values.filter(Boolean).some(value=>{
+          const raw=String(value).replace(/^\s*\d+\s*[·.\-:]\s*/,'');
+          return allowed.has(centerKey(value))||allowed.has(centerKey(raw));
+        });
+      });
+    }
+    return orders.filter(order=>norm(order.center)===norm(currentUser?.center));
+  };
+  window.processingVisibleOrders=function(){
+    if(isAdmin()||isOperatorMaster())return orders;
+    if(isViewer())return visibleOrders();
+    return orders.filter(order=>norm(order.center)===norm(currentUser?.center));
+  };
+
+  window.canCreateOrders=function(){return !!currentUser&&['admin','operator','iasi'].includes(currentUser.role);};
+  window.canManageClients=function(){return !!currentUser&&['admin','operator'].includes(currentUser.role);};
+
+  const baseApplyPermissions=window.applyPermissions;
+  function enforceViewerUI(){
+    const viewer=isViewer();
+    document.body.classList.toggle('viewer-account',viewer);
+    const clients=document.getElementById('menuClients');
+    if(clients)clients.style.setProperty('display',viewer?'none':'','important');
+    const recent=document.getElementById('recentClientsBox')?.closest('.card');
+    if(recent)recent.style.setProperty('display',viewer?'none':'','important');
+    if(viewer){
+      const table=document.querySelector('#ordersListBox table');
+      const header=table?.tHead?.rows?.[0];
+      while(header&&header.cells.length>8)header.deleteCell(8);
+      table?.tBodies?.[0]?.querySelectorAll('tr').forEach(row=>{
+        while(row.cells.length>8)row.deleteCell(8);
+      });
+    }
+  }
+  window.applyPermissions=function(){
+    const result=baseApplyPermissions&&baseApplyPermissions.apply(this,arguments);
+    enforceViewerUI();
+    const badge=document.getElementById('accountBadge');
+    if(badge&&isViewer()){badge.textContent='Operator Export';badge.classList.remove('hide');}
+    return result;
+  };
+
+  const baseRender=window.render;
+  window.render=function(){
+    const result=baseRender&&baseRender.apply(this,arguments);
+    enforceViewerUI();
+    return result;
+  };
+
+  const baseCanSetWorkflowStep=window.canSetWorkflowStep;
+  window.canSetWorkflowStep=function(status,order){
+    if(isViewer())return false;
+    return baseCanSetWorkflowStep?baseCanSetWorkflowStep(status,order):false;
+  };
+  const baseToggleOrderStatus=window.toggleOrderStatus;
+  window.toggleOrderStatus=function(id){if(isViewer())return;return baseToggleOrderStatus&&baseToggleOrderStatus(id);};
+  const baseDeleteOrder=window.deleteOrder;
+  window.deleteOrder=function(id){if(isViewer())return;return baseDeleteOrder&&baseDeleteOrder(id);};
+  ['openOrderEdit','openOrderEditor','saveOrderEdit','editOrder','clearOrders'].forEach(name=>{
+    const original=window[name];
+    if(typeof original==='function')window[name]=function(){if(isViewer())return;return original.apply(this,arguments);};
+  });
+
+  function ensureViewerFields(){
+    const role=document.getElementById('newUserRole');
+    if(role&&!role.querySelector('option[value="viewer"]'))role.insertAdjacentHTML('beforeend','<option value="viewer">Operator export</option>');
+    const centerField=document.getElementById('newUserCenterField');
+    if(centerField&&!document.getElementById('newUserWarehousesField')){
+      centerField.insertAdjacentHTML('afterend','<div class="field viewer-warehouses hide" id="newUserWarehousesField"><label>Depozite repartizate</label><select id="newUserWarehouses" multiple></select><div class="muted">Ține apăsat Ctrl pentru a selecta mai multe depozite.</div></div>');
+    }
+    const select=document.getElementById('newUserWarehouses');
+    if(select)select.innerHTML=allWarehouseNames().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  }
+  ensureViewerFields();
+
+  const baseSyncUserCenterField=window.syncUserCenterField;
+  window.syncUserCenterField=function(){
+    ensureViewerFields();
+    const role=document.getElementById('newUserRole')?.value;
+    if(role!==VIEWER_ROLE)return baseSyncUserCenterField&&baseSyncUserCenterField();
+    const center=document.getElementById('newUserCenter');
+    if(center){center.disabled=false;center.value=allWarehouseNames().find(c=>centerKey(c)==='iasi')||'Iasi';}
+    document.getElementById('newUserCenterField')?.classList.add('hide');
+    document.getElementById('newUserWarehousesField')?.classList.remove('hide');
+  };
+
+  const baseOpenUserDialog=window.openUserDialog;
+  window.openUserDialog=function(){
+    const result=baseOpenUserDialog&&baseOpenUserDialog.apply(this,arguments);
+    ensureViewerFields();
+    syncUserCenterField();
+    return result;
+  };
+
+  const baseAddUserAccount=window.addUserAccount;
+  window.addUserAccount=function(){
+    const role=document.getElementById('newUserRole')?.value;
+    const name=capWords(cleanVal('newUserFullName'));
+    const selected=[...document.getElementById('newUserWarehouses')?.selectedOptions||[]].map(o=>o.value);
+    if(role===VIEWER_ROLE&&!selected.length){showAppConfirm({title:'Depozite nealocate',text:'Selectează cel puțin un depozit.',confirmText:'OK'});return;}
+    const result=baseAddUserAccount&&baseAddUserAccount.apply(this,arguments);
+    if(role===VIEWER_ROLE){
+      const user=USERS.find(u=>norm(u.name)===norm(name));
+      if(user){user.center='Iasi';user.warehouses=selected.map(canonicalWarehouse);saveUsers();renderUsersAdmin();}
+    }
+    return result;
+  };
+
+  const baseUpdateUserAccount=window.updateUserAccount;
+  window.updateUserAccount=function(index,field,value){
+    if(field==='warehouses'){
+      if(!guardAdmin()||!USERS[index])return;
+      USERS[index].warehouses=(Array.isArray(value)?value:[]).map(canonicalWarehouse);
+      saveUsers();renderUsersAdmin();return;
+    }
+    const result=baseUpdateUserAccount&&baseUpdateUserAccount(index,field,value);
+    const user=USERS[index];
+    if(user&&field==='role'&&value===VIEWER_ROLE){user.center='Iasi';user.warehouses=viewerWarehouses(user);saveUsers();renderUsersAdmin();}
+    return result;
+  };
+
+  window.updateViewerWarehouses=function(index,select){
+    updateUserAccount(index,'warehouses',[...select.selectedOptions].map(option=>option.value));
+  };
+
+  window.renderUsersAdmin=function(){
+    const box=document.getElementById('usersAdminList');if(!box||!isAdmin())return;
+    ensureViewerFields();
+    const centers=allWarehouseNames();
+    const q=norm(String(document.getElementById('userAdminSearch')?.value||'').trim());
+    const rows=(USERS||[]).map((u,i)=>({u,i})).sort((a,b)=>(Number(b.u.createdAt||b.i)-Number(a.u.createdAt||a.i))).filter(({u})=>{
+      const values=[u.name,u.username,u.center,u.operatorCode,roleLabel(u.role),...(u.warehouses||[])];
+      return !q||values.some(value=>norm(String(value||'')).includes(q));
+    });
+    const count=document.getElementById('userAdminCount');if(count)count.textContent=String(rows.length);
+    box.innerHTML=rows.map(({u,i})=>{
+      const code=String(u.operatorCode||u.code||'00').replace(/\D/g,'').padStart(2,'0').slice(-2);
+      const assignment=u.role===VIEWER_ROLE
+        ? `<div class="viewer-assignment"><span class="user-meta">Depozite repartizate</span><select multiple onchange="updateViewerWarehouses(${i},this)">${centers.map(c=>`<option value="${esc(c)}" ${viewerWarehouses(u).some(v=>centerKey(v)===centerKey(c))?'selected':''}>${esc(c)}</option>`).join('')}</select></div>`
+        : `<select onchange="updateUserAccount(${i},'center',this.value)" ${u.role==='admin'?'disabled':''}><option value="">Fără centru</option>${centers.map(c=>`<option value="${esc(c)}" ${centerKey(c)===centerKey(u.center)?'selected':''}>${esc(c)}</option>`).join('')}</select>`;
+      return `<div class="user-row ${u.role===VIEWER_ROLE?'viewer-user-row':''}"><div><b>${esc(u.name)}</b><div class="user-meta">${esc(roleLabel(u.role))}${u.role===VIEWER_ROLE&&u.warehouses?.length?' · '+esc(u.warehouses.join(', ')):u.center?' · '+esc(u.center):''}</div></div><input value="${esc(u.username)}" onchange="updateUserAccount(${i},'username',this.value)" aria-label="Utilizator"><input type="text" value="${esc(u.pass)}" pattern="[a-z]+[0-9]{4}" onchange="updateUserAccount(${i},'pass',this.value)" aria-label="Parolă"><input class="user-code-input" maxlength="2" inputmode="numeric" value="${esc(code)}" onchange="updateUserAccount(${i},'operatorCode',this.value)" aria-label="Cod utilizator"><select onchange="updateUserAccount(${i},'role',this.value)"><option value="operator" ${u.role==='operator'?'selected':''}>Operator</option><option value="iasi" ${u.role==='iasi'?'selected':''}>Operator Master</option><option value="viewer" ${u.role===VIEWER_ROLE?'selected':''}>Operator export</option><option value="admin" ${u.role==='admin'?'selected':''}>Administrator</option></select>${assignment}<button class="icon-btn red" onclick="deleteUserAccount(${i})" title="Șterge utilizator">${ICON_TRASH}</button></div>`;
+    }).join('')||'<div class="muted" style="padding:18px 4px">Nu există utilizatori care corespund căutării.</div>';
+  };
+
+  const baseShowOrderDetails=window.showOrderDetails;
+  window.showOrderDetails=function(id){
+    if(!isViewer())return baseShowOrderDetails&&baseShowOrderDetails(id);
+    const o=processingVisibleOrders().find(x=>x.id===id)||visibleOrders().find(x=>x.id===id);
+    if(!o)return;
+    const lines=[
+      ['Data',formatDateRO(o.date)],
+      ['Client',(o.client?.name||'')+' · '+(o.client?.city||'')+' · cod '+(o.client?.code||'')],
+      ['Produs',productSummary(o)],
+      ['Design filtrare',o.product],
+      ['OD',odText(o)+(o.rx?.odAdd?' add '+o.rx.odAdd:'')],
+      ['OS',osText(o)+(o.rx?.osAdd?' add '+o.rx.osAdd:'')],
+      ['Nume pacient',o.patient],
+      ['Montaj',o.hasMount===false?'Fără montaj':(o.mount||'Fără montaj')],
+      ['Livrare',o.deliveryDestination==='client'?(o.client?.name||'Client'):(o.center||'')],
+      ['Centru procesare',o.center],
+      ['Operator',o.operator],
+      ['Status comandă',WORKFLOW_STEPS[workflowIndex(o)]||o.status],
+      ['Mențiuni',o.notes||'']
+    ];
+    const html=lines.map(([key,value])=>`<div class="muted">${esc(key)}</div><div><b>${esc(value)}</b></div>`).join('');
+    const wrap=document.createElement('div');
+    wrap.className='modal open';
+    wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="step-title">${esc(o.code)}</div></div></div><div class="detail-grid">${html}</div></div>`;
+    wrap.addEventListener('click',event=>{if(event.target===wrap)wrap.remove();});
+    document.body.appendChild(wrap);
+  };
+
+  const userSearch=document.getElementById('userAdminSearch');
+  if(userSearch)userSearch.oninput=renderUsersAdmin;
+  new MutationObserver(()=>enforceViewerUI()).observe(document.getElementById('appScreen')||document.body,{childList:true,subtree:true});
+  applyPermissions();
+  render();
 })();
 </script>
 </body>
