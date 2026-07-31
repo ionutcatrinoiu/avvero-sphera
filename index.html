@@ -2474,6 +2474,10 @@ function render(){
  const kdelay=document.getElementById('kDelayed'); if(kdelay) kdelay.textContent=scoped.filter(isDelayedOrder).length; const ktransit=document.getElementById('kTransit'); if(ktransit) ktransit.textContent=scoped.filter(o=>workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out')).length;
  const rawQuery=String(document.getElementById('q')?.value||'').trim();
  const queryVariants=rxQueryVariants(rawQuery);
+ const rawCodeQuery=rawQuery.replace(/\D/g,'');
+ const codeQueryVariants=rawCodeQuery.length>=6
+   ? [...new Set([rawCodeQuery, ...(/^[12]/.test(rawCodeQuery)&&rawCodeQuery.length>=15?[rawCodeQuery.slice(1)]:[])])]
+   : [];
  const queryTokenGroups=rawQuery.split(/\s+/).filter(Boolean).map(t=>[...new Set(rxQueryVariants(t).concat([norm(t)]).filter(Boolean))]);
  let rows=scoped.filter(o=>{
    let ok=true;
@@ -2484,12 +2488,14 @@ function render(){
    const values=[processingCenterLabel(o),o.code,o.client.name,o.patient,productSummary(o),odText(o),osText(o),addText(o),o?.rx?.odSph,o?.rx?.odCyl,o?.rx?.odAx,o?.rx?.odAdd,o?.rx?.osSph,o?.rx?.osCyl,o?.rx?.osAx,o?.rx?.osAdd];
    const haystack=norm(values.join(' '));
    const rxAliases=values.flatMap(v=>rxQueryVariants(v)).join(' ');
+   const orderCode=String(o.code||'').replace(/\D/g,'');
+   const codeMatch=codeQueryVariants.some(code=>orderCode.includes(code));
    const rxOnly=isRxOnlyQuery(rawQuery);
    const fullRxMatch=rxOnly
      ? (rxQuerySequenceMatches(odText(o),rawQuery)||rxQuerySequenceMatches(osText(o),rawQuery)||rxQuerySequenceMatches(rxText(o),rawQuery))
      : (rxPhraseMatches(odText(o),rawQuery)||rxPhraseMatches(osText(o),rawQuery)||rxPhraseMatches(rxText(o),rawQuery));
    const tokenMatch=!rxOnly && queryTokenGroups.length && queryTokenGroups.every(group=>group.some(q=>haystack.includes(q)||rxAliases.includes(q)));
-   return ok && (!rawQuery || fullRxMatch || tokenMatch || (!rxOnly && queryVariants.some(q=>haystack.includes(q)||rxAliases.includes(q))));
+   return ok && (!rawQuery || codeMatch || fullRxMatch || tokenMatch || (!rxOnly && queryVariants.some(q=>haystack.includes(q)||rxAliases.includes(q))));
  });
  if(rawQuery){
    const nq=norm(rawQuery);
