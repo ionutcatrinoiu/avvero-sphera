@@ -2474,9 +2474,10 @@ function render(){
  const kdelay=document.getElementById('kDelayed'); if(kdelay) kdelay.textContent=scoped.filter(isDelayedOrder).length; const ktransit=document.getElementById('kTransit'); if(ktransit) ktransit.textContent=scoped.filter(o=>workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out')).length;
  const rawQuery=String(document.getElementById('q')?.value||'').trim();
  const queryVariants=rxQueryVariants(rawQuery);
- const rawCodeQuery=rawQuery.replace(/\D/g,'');
- const codeQueryVariants=rawCodeQuery.length>=6
-   ? [...new Set([rawCodeQuery, ...(/^[12]/.test(rawCodeQuery)&&rawCodeQuery.length>=15?[rawCodeQuery.slice(1)]:[])])]
+ const isPlainCodeQuery=/^\d+$/.test(rawQuery);
+ const rawCodeQuery=isPlainCodeQuery?rawQuery:'';
+ const codeQueryVariants=rawCodeQuery
+   ? [...new Set([rawCodeQuery, ...(/^[12]/.test(rawCodeQuery)&&rawCodeQuery.length>1?[rawCodeQuery.slice(1)]:[])])]
    : [];
  const queryTokenGroups=rawQuery.split(/\s+/).filter(Boolean).map(t=>[...new Set(rxQueryVariants(t).concat([norm(t)]).filter(Boolean))]);
  let rows=scoped.filter(o=>{
