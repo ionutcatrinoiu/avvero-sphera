@@ -2560,7 +2560,7 @@ function render(){
  const rxCell=value=>{const text=String(value||'');const marker=text.toLowerCase().lastIndexOf(' ax ');if(marker<0)return `<div class="rx-diopters">${hi(text)}</div>`;return `<div class="rx-diopters">${hi(text.slice(0,marker))}</div><div class="rx-axis">${hi(text.slice(marker+1))}</div>`};
  const addCell=value=>String(value||'').split(/\s*\/\s*/).filter(Boolean).map(v=>`<div class="add-value">${hi(v)}</div>`).join('');
  const productCell=o=>{const text=productSummary(o);const indexMatch=text.match(/\b\d\.\d{2}\b/);if(!indexMatch||indexMatch.index===undefined)return `<div class="product-line product-name">${hi(text)}</div>`;const name=text.slice(0,indexMatch.index).trim();const details=text.slice(indexMatch.index).trim();return `<div class="product-line product-name">${hi(name)}</div><div class="product-line product-details">${hi(details)}</div>`};
- const html=rows.map(o=>`<tr class="clickable ${isDelayedOrder(o)?'delayed-order':''}" onclick="showOrderDetails('${o.id}')"><td><b>${hi(o.code)}</b></td><td><b>${hi(processingCenterLabel(o))}</b></td><td>${hi(o.client.name)}</td><td>${productCell(o)}</td><td>${rxCell(odText(o))}</td><td>${rxCell(osText(o))}</td><td>${addCell(addText(o))}</td><td>${hi(o.patient)}</td><td class="status-cell" onclick="event.stopPropagation()"><button class="icon-btn table-action status-toggle ${o.status==='Livrată'?'delivered':'primary'}" tabindex="-1" onclick="toggleOrderStatus('${o.id}')" title="Schimbă livrarea">${ICON_STATUS}</button></td><td class="delete-cell" onclick="event.stopPropagation()"><button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder('${o.id}')" title="Șterge comanda">${ICON_TRASH}</button></td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nu există comenzi.</td></tr>';
+ const html=rows.map(o=>`<tr class="clickable ${isDelayedOrder(o)?'delayed-order':''}" onclick="showOrderDetails('${o.id}')"><td><b>${hi(o.code)}</b></td><td><b>${hi(processingCenterLabel(o))}</b></td><td>${hi(o.client.name)}</td><td>${productCell(o)}</td><td>${rxCell(odText(o))}</td><td>${rxCell(osText(o))}</td><td>${addCell(addText(o))}</td><td>${hi(o.patient)}</td><td class="status-cell" onclick="event.stopPropagation()"><button class="icon-btn table-action status-toggle ${o.status==='Livrată'?'delivered':'primary'}" tabindex="-1" onclick="toggleOrderStatus('${o.id}')" title="Schimbă livrarea">${ICON_STATUS}</button></td><td class="delete-cell" onclick="event.stopPropagation()">${(typeof canDeleteOrder==='function'&&canDeleteOrder(o))?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder('${o.id}')" title="Șterge comanda">${ICON_TRASH}</button>`:''}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nu există comenzi.</td></tr>';
  const orderBody=document.getElementById('orderRows'); if(orderBody) orderBody.innerHTML=html;
  if(typeof prodList!=='undefined' && prodList){
  prodList.innerHTML=designKeys().map(p=>[p,PRODUCTS[p]]).map(([p,ds])=>{let id=btoa(unescape(encodeURIComponent(p))).replace(/=/g,'');return `<div class="item"><div class="item-row"><div><b>${p}</b><div class="chips">${(ds||[]).map(d=>`<span class="chip">${d}<button class="mini red" tabindex="-1" onclick="deleteDesign('${p.replace(/'/g,"\'")}','${d.replace(/'/g,"\'")}')">×</button></span>`).join('')||'<span class="muted">Fără produse</span>'}</div></div><button class="icon-btn red" tabindex="-1" title="Șterge design" onclick="deleteProduct('${p.replace(/'/g,"\'")}')">${ICON_TRASH}</button></div><div class="design-editor"><input id="design_${id}" placeholder="Produs nou pentru ${p}"><button class="mini" onclick="addDesign('${p.replace(/'/g,"\'")}')">Adaugă produs</button></div></div>`}).join('');
@@ -7244,7 +7244,22 @@ Modification history
     if(currentIsAdmin())return true;
     return isOwnOrder(o)&&orderIsLaunched(o);
   }
+  function canDeleteOrder(o){
+    if(!o||currentIsViewer())return false;
+    if(currentIsAdmin())return true;
+    return isOwnOrder(o);
+  }
   window.canEditOrder=canEditOrder;
+  window.canDeleteOrder=canDeleteOrder;
+
+  const originalDeleteOrder=window.deleteOrder;
+  if(typeof originalDeleteOrder==='function'){
+    window.deleteOrder=function(id){
+      const o=(orders||[]).find(x=>String(x.id)===String(id));
+      if(!o||!canDeleteOrder(o))return;
+      return originalDeleteOrder.apply(this,arguments);
+    };
+  }
 
   if(typeof originalCreateOrder==='function'){
     window.createOrder=function(){
@@ -7356,6 +7371,7 @@ Modification history
 
   (orders||[]).forEach(ensureAudit);
   save();
+  if(typeof render==='function')render();
 })();
 </script>
 </body>
