@@ -7696,6 +7696,19 @@ Modification history
   }
 
   const openEdit=window.openOrderEdit;
+  function enforceEditPopupLayout(modal){
+    if(!modal)return;
+    const design=norm(modal.querySelector('#editProduct')?.value||'');
+    const isMonofocal=design.includes('monofocal');
+    const rxGrid=modal.querySelector('.order-edit-rx');
+    modal.querySelectorAll('.edit-add-col').forEach(el=>el.classList.toggle('hide-field',isMonofocal));
+    rxGrid?.classList.toggle('no-add',isMonofocal);
+    if(isMonofocal){
+      const odAdd=modal.querySelector('#eOdAdd'),osAdd=modal.querySelector('#eOsAdd');
+      if(odAdd)odAdd.value='';
+      if(osAdd)osAdd.value='';
+    }
+  }
   window.openOrderEdit=function(){
     const result=openEdit&&openEdit.apply(this,arguments);
     const modal=[...document.querySelectorAll('.modal.open')].reverse().find(item=>item.querySelector('.order-edit-grid'));
@@ -7703,6 +7716,9 @@ Modification history
       const notes=modal.querySelector('#editNotes');
       if(notes)notes.placeholder='Scrie fiecare mențiune pe un rând separat';
       addScrollArrows(modal,'edit');
+      enforceEditPopupLayout(modal);
+      modal.querySelector('#editProduct')?.addEventListener('change',()=>enforceEditPopupLayout(modal));
+      modal.querySelector('#editDesign')?.addEventListener('change',()=>enforceEditPopupLayout(modal));
     }
     return result;
   };
@@ -7746,5 +7762,43 @@ Modification history
   },true);
 })();
 </script>
+<style id="sphera-edit-popup-hard-fix">
+.sphera-edit-popup.modal.open{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:28px!important;
+  overflow:hidden!important;
+  box-sizing:border-box!important;
+}
+.sphera-edit-popup.modal.open>.wizard{
+  position:relative!important;
+  top:auto!important;
+  left:auto!important;
+  width:min(900px,calc(100vw - 56px))!important;
+  max-height:calc(100vh - 56px)!important;
+  margin:auto!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-width:none!important;
+  transform:none!important;
+}
+.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+.sphera-edit-popup .edit-add-col.hide-field{display:none!important;}
+.sphera-edit-popup .order-edit-rx.no-add{grid-template-columns:54px repeat(3,minmax(0,1fr))!important;}
+@media(max-width:700px){
+  .sphera-edit-popup.modal.open{padding:10px!important;}
+  .sphera-edit-popup.modal.open>.wizard{width:calc(100vw - 20px)!important;max-height:calc(100vh - 20px)!important;}
+  .sphera-edit-popup .order-edit-rx.no-add{grid-template-columns:42px repeat(3,minmax(82px,1fr))!important;}
+}
+</style>
 </body>
 </html>
