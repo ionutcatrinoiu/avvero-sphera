@@ -2640,6 +2640,8 @@ function showAppConfirm({title='Confirmare', text='', confirmText='Confirmă', c
  };
 
  const keyHandler=(event)=>{
+   const topModal=[...document.querySelectorAll('.modal.open')].pop();
+   if(topModal!==wrap||!wrap.contains(event.target))return;
    if(event.key==='Enter'){
      event.preventDefault();
      event.stopPropagation();
@@ -2909,6 +2911,7 @@ cursor:pointer;
 .order-edit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .order-edit-grid .full{grid-column:1/-1}
 .order-edit-rx{display:grid;grid-template-columns:54px repeat(4,minmax(0,1fr));gap:8px;align-items:end}
+.order-edit-rx.no-add{grid-template-columns:54px repeat(3,minmax(0,1fr))}
 .order-edit-rx .rx-label{font-weight:900;padding-bottom:13px}
 .order-edit-rx .head{font-size:12px;font-weight:700;color:#667085;text-transform:uppercase}
 .edit-code-readonly{font-size:22px!important;font-weight:700!important;letter-spacing:.4px!important;background:#f8fafc!important}
@@ -3263,6 +3266,7 @@ cursor:pointer;
   function colorAllowed(o){const m=norm(o.material);return !(m.includes('incolor')||m.includes('uv pro')||m.includes('led pro'))}
   function addAllowed(o){
     const p=norm(o.product),d=norm(o.design);
+    if(d.includes('senso id')||d.includes('attraction'))return false;
     if(p.includes('gestionarea miopiei')||p.includes('monofocal clinic'))return false;
     if(p.includes('monofocal specializat'))return d.includes('drive');
     if(p==='monofocal'||(p.includes('monofocal')&&!p.includes('progresiv')))return false;
@@ -3270,9 +3274,11 @@ cursor:pointer;
   }
   window.updateEditVisibility=function(){
     const o={product:document.getElementById('editProduct')?.value||'',design:document.getElementById('editDesign')?.value||'',material:document.getElementById('editMaterial')?.value||''};
+    const showAdd=addAllowed(o);
     document.getElementById('editGeometryWrap')?.classList.toggle('hide-field',!isAttractionMonofocal(o));
     document.getElementById('editColorWrap')?.classList.toggle('hide-field',!colorAllowed(o));
-    document.querySelectorAll('.edit-add-col').forEach(el=>el.classList.toggle('hide-field',!addAllowed(o)));
+    document.querySelectorAll('.edit-add-col').forEach(el=>el.classList.toggle('hide-field',!showAdd));
+    document.querySelector('.order-edit-rx')?.classList.toggle('no-add',!showAdd);
   };
   const originalSync=window.syncEditProductOptions;
   window.syncEditProductOptions=function(){if(originalSync)originalSync();setTimeout(updateEditVisibility,0)};
@@ -7366,9 +7372,13 @@ Modification history
         prompt.remove();
         window.saveOrderEdit(id,btn);
       };
-      input?.addEventListener('keydown',event=>{
-        if(event.key==='Enter'&&(event.ctrlKey||event.metaKey))prompt.querySelector('.ok')?.click();
-      });
+      prompt.addEventListener('keydown',event=>{
+        if(event.key!=='Enter'||event.shiftKey)return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        prompt.querySelector('.ok')?.click();
+      },true);
       setTimeout(()=>input?.focus(),30);
     }
     window.saveOrderEdit=function(id,btn){
