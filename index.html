@@ -7628,6 +7628,7 @@ Modification history
 .sphera-centered-popup>.wizard::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
 .sphera-details-popup>.wizard{width:min(760px,calc(100vw - 56px))!important;}
 .sphera-popup-scroll-controls{
+  display:none!important;
   position:absolute;
   top:40px;
   bottom:40px;
@@ -7682,23 +7683,7 @@ Modification history
   function addScrollArrows(modal,type){
     if(!modal)return;
     modal.classList.add('sphera-centered-popup',type==='details'?'sphera-details-popup':'sphera-edit-popup');
-    const panel=modal.querySelector(':scope>.wizard');
-    if(!panel||modal.querySelector(':scope>.sphera-popup-scroll-controls'))return;
-    const controls=document.createElement('div');
-    controls.className='sphera-popup-scroll-controls';
-    controls.innerHTML='<button type="button" class="sphera-popup-scroll-button up" title="Sus" aria-label="Derulează în sus">⌃</button><button type="button" class="sphera-popup-scroll-button down" title="Jos" aria-label="Derulează în jos">⌄</button>';
-    modal.appendChild(controls);
-    const up=controls.querySelector('.up'),down=controls.querySelector('.down');
-    const update=()=>{
-      const scrollable=panel.scrollHeight>panel.clientHeight+2;
-      up.disabled=!scrollable||panel.scrollTop<=2;
-      down.disabled=!scrollable||panel.scrollTop+panel.clientHeight>=panel.scrollHeight-2;
-    };
-    up.onclick=()=>panel.scrollBy({top:-Math.max(240,panel.clientHeight*.72),behavior:'smooth'});
-    down.onclick=()=>panel.scrollBy({top:Math.max(240,panel.clientHeight*.72),behavior:'smooth'});
-    panel.addEventListener('scroll',update,{passive:true});
-    new ResizeObserver(update).observe(panel);
-    setTimeout(update,30);
+    modal.querySelector(':scope>.sphera-popup-scroll-controls')?.remove();
   }
 
   const openEdit=window.openOrderEdit;
@@ -7780,27 +7765,28 @@ Modification history
   padding:28px!important;
   overflow:hidden!important;
   box-sizing:border-box!important;
+  z-index:2147483000!important;
 }
 .sphera-edit-popup.modal.open>.wizard{
-  position:relative!important;
-  top:auto!important;
-  left:auto!important;
+  position:absolute!important;
+  top:50%!important;
+  left:50%!important;
   width:min(900px,calc(100vw - 56px))!important;
+  max-width:calc(100vw - 56px)!important;
   max-height:calc(100vh - 56px)!important;
-  margin:auto!important;
+  margin:0!important;
   overflow-y:auto!important;
   overflow-x:hidden!important;
-  scrollbar-width:none!important;
-  transform:none!important;
+  scrollbar-width:auto!important;
+  transform:translate(-50%,-50%)!important;
 }
 .sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{
-  display:none!important;
-  width:0!important;
-  height:0!important;
+  display:block!important;
 }
+.sphera-edit-popup>.sphera-popup-scroll-controls,.sphera-details-popup>.sphera-popup-scroll-controls{display:none!important;}
 .sphera-edit-popup .edit-add-col.hide-field{display:none!important;}
 .sphera-edit-popup .order-edit-rx.no-add{grid-template-columns:54px repeat(3,minmax(0,1fr))!important;}
-.edit-reason-modal.modal.open{z-index:30000!important;}
+.edit-reason-modal.modal.open{z-index:2147483647!important;}
 @media(max-width:700px){
   .sphera-edit-popup.modal.open{padding:10px!important;}
   .sphera-edit-popup.modal.open>.wizard{width:calc(100vw - 20px)!important;max-height:calc(100vh - 20px)!important;}
@@ -7812,21 +7798,7 @@ Modification history
   'use strict';
 
   function makeArrowControls(modal,panel){
-    if(modal.querySelector(':scope>.sphera-popup-scroll-controls'))return;
-    const controls=document.createElement('div');
-    controls.className='sphera-popup-scroll-controls';
-    controls.innerHTML='<button type="button" class="sphera-popup-scroll-button up" title="Sus" aria-label="Derulează în sus">⌃</button><button type="button" class="sphera-popup-scroll-button down" title="Jos" aria-label="Derulează în jos">⌄</button>';
-    modal.appendChild(controls);
-    const up=controls.querySelector('.up'),down=controls.querySelector('.down');
-    const update=()=>{
-      const scrollable=panel.scrollHeight>panel.clientHeight+2;
-      up.disabled=!scrollable||panel.scrollTop<=2;
-      down.disabled=!scrollable||panel.scrollTop+panel.clientHeight>=panel.scrollHeight-2;
-    };
-    up.onclick=()=>panel.scrollBy({top:-Math.max(240,panel.clientHeight*.72),behavior:'smooth'});
-    down.onclick=()=>panel.scrollBy({top:Math.max(240,panel.clientHeight*.72),behavior:'smooth'});
-    panel.addEventListener('scroll',update,{passive:true});
-    setTimeout(update,30);
+    modal?.querySelector(':scope>.sphera-popup-scroll-controls')?.remove();
   }
 
   function fixEditPopup(modal){
@@ -7843,11 +7815,17 @@ Modification history
     modal.style.setProperty('align-items','center','important');
     modal.style.setProperty('justify-content','center','important');
     modal.style.setProperty('overflow','hidden','important');
-    panel.style.setProperty('margin','auto','important');
+    panel.style.setProperty('position','absolute','important');
+    panel.style.setProperty('top','50%','important');
+    panel.style.setProperty('left','50%','important');
+    panel.style.setProperty('width','min(900px, calc(100vw - 56px))','important');
+    panel.style.setProperty('max-width','calc(100vw - 56px)','important');
+    panel.style.setProperty('margin','0','important');
     panel.style.setProperty('max-height','calc(100vh - 56px)','important');
     panel.style.setProperty('overflow-y','auto','important');
     panel.style.setProperty('overflow-x','hidden','important');
-    panel.style.setProperty('scrollbar-width','none','important');
+    panel.style.setProperty('scrollbar-width','auto','important');
+    panel.style.setProperty('transform','translate(-50%, -50%)','important');
 
     const design=norm(modal.querySelector('#editProduct')?.value||'');
     if(design.includes('monofocal')){
