@@ -5509,5 +5509,185 @@ body.viewer-account [data-viewer-write]{display:none!important}
   render();
 })();
 </script>
+
+<style>
+/* SPHERA, optimizare compactă exclusiv pentru mobil */
+@media (max-width:760px){
+  html,body,#appScreen,.shell{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+
+  .side{
+    width:100%!important;
+    min-width:0!important;
+    height:auto!important;
+    position:relative!important;
+    padding:10px 12px 8px!important;
+    border-right:0!important;
+    border-bottom:1px solid #e4e7ec!important;
+  }
+  .brand-menu{
+    margin:0 0 8px!important;
+    padding:0 0 8px!important;
+  }
+  .logo-wrap{
+    width:92px!important;
+    height:58px!important;
+    margin:0 auto -2px!important;
+  }
+  .logo-wrap .avvero-logo{
+    width:92px!important;
+    height:58px!important;
+    transform:scale(1.42)!important;
+  }
+  .brand-text h1{font-size:21px!important;letter-spacing:-.7px!important}
+  .brand-text span{font-size:10px!important;margin-top:3px!important}
+
+  .menu{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:6px!important;
+    margin:0!important;
+  }
+  .menu button{
+    min-height:40px!important;
+    margin:0!important;
+    padding:9px 11px!important;
+    border-radius:12px!important;
+    font-size:12px!important;
+    line-height:1.1!important;
+  }
+  .menu button:last-child:nth-child(odd){grid-column:1/-1!important}
+
+  .main{
+    width:100%!important;
+    max-width:100%!important;
+    padding:12px!important;
+    overflow:hidden!important;
+  }
+  .main>.top{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin-bottom:12px!important;
+  }
+  #pageTitle{font-size:25px!important;line-height:1.05!important}
+  #who.dashboard-identity{margin-top:5px!important;gap:2px!important}
+  #who.dashboard-identity .welcome-line{font-size:14px!important}
+  #who.dashboard-identity .weather-line{font-size:12px!important}
+
+  .top-actions{
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+    align-items:end!important;
+  }
+  .top-actions>.btn{
+    min-height:42px!important;
+    width:100%!important;
+    padding:9px 10px!important;
+    border-radius:13px!important;
+    font-size:13px!important;
+  }
+  .logout-account-wrap{
+    grid-column:1/-1!important;
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    align-items:center!important;
+    gap:8px!important;
+  }
+  .logout-account-wrap #accountBadge{
+    text-align:left!important;
+    font-size:12px!important;
+    line-height:1.1!important;
+  }
+  .logout-icon{
+    min-height:38px!important;
+    height:38px!important;
+    padding:0 12px!important;
+    border-radius:12px!important;
+  }
+  #logoutFirstName{font-size:12px!important}
+
+  #dashboard .dashboard-stats,
+  #dashboardPage .dashboard-stats,
+  #dashboard .grid.dashboard-five-cards,
+  #dashboardPage .grid.dashboard-five-cards{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  #dashboard .dashboard-stats .card,
+  #dashboardPage .dashboard-stats .card{
+    min-height:94px!important;
+    padding:13px!important;
+    border-radius:17px!important;
+  }
+  #dashboard .dashboard-stats .muted,
+  #dashboardPage .dashboard-stats .muted{
+    min-height:30px!important;
+    font-size:12px!important;
+    line-height:1.2!important;
+  }
+  #dashboard .dashboard-stats .kpi,
+  #dashboardPage .dashboard-stats .kpi{
+    margin-top:4px!important;
+    font-size:28px!important;
+    line-height:1!important;
+  }
+
+  .card{padding:14px!important;border-radius:18px!important}
+  #dashboardOrdersCard,#dashboardClientsCard{margin-top:10px!important}
+  #dashboardOrdersCard>.top,#dashboardClientsCard>.top{
+    display:grid!important;
+    grid-template-columns:1fr auto!important;
+    align-items:start!important;
+    gap:8px!important;
+    margin-bottom:9px!important;
+  }
+  #dashboardOrdersCard h2,#dashboardClientsCard h2{font-size:20px!important;line-height:1.08!important}
+  #dashboardOrdersCard .top .muted,#dashboardClientsCard .top .muted{
+    margin-top:4px!important;
+    font-size:12px!important;
+    line-height:1.3!important;
+  }
+  .list-toggle{width:38px!important;height:38px!important;min-width:38px!important}
+
+  .orders-tools,.clients-filter-row{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    gap:7px!important;
+    margin-bottom:8px!important;
+  }
+  .orders-tools input,.clients-filter-row input{
+    min-width:0!important;
+    height:40px!important;
+    padding:9px 11px!important;
+    font-size:13px!important;
+  }
+  .count-dot{min-width:40px!important;height:40px!important;justify-content:center!important;padding:0 10px!important}
+
+  #ordersListBox .table-wrap,#recentClientsBox{overflow-x:auto!important;-webkit-overflow-scrolling:touch!important}
+  #ordersListBox table{min-width:930px!important}
+  #recentClientsBox table{min-width:520px!important}
+  #ordersListBox th,#ordersListBox td,#recentClientsBox th,#recentClientsBox td{
+    padding:9px 8px!important;
+    font-size:11px!important;
+  }
+
+  .page>.card+.card{margin-top:10px!important}
+  .modal{padding:10px!important}
+  .wizard{width:100%!important;max-height:94vh!important;padding:16px!important;border-radius:20px!important}
+  .step-title{font-size:20px!important}
+}
+
+@media (max-width:390px){
+  .side{padding-left:9px!important;padding-right:9px!important}
+  .main{padding:10px!important}
+  .menu button{padding:8px 9px!important;font-size:11px!important}
+  .top-actions>.btn{font-size:12px!important}
+  #dashboard .dashboard-stats .card,#dashboardPage .dashboard-stats .card{min-height:88px!important;padding:11px!important}
+  #dashboard .dashboard-stats .muted,#dashboardPage .dashboard-stats .muted{font-size:11px!important}
+}
+</style>
 </body>
 </html>
