@@ -7230,10 +7230,43 @@ Modification history
   function currentIsAdmin(){return String(currentUser?.role||'').toLowerCase()==='admin';}
   function currentIsViewer(){return ['viewer','export'].includes(String(currentUser?.role||'').toLowerCase());}
   function isOwnOrder(o){
+    if(!o)return false;
     const u=userIdentity();
-    if(o.createdById&&u.id&&String(o.createdById)===u.id)return true;
-    if(o.createdByUsername&&u.username&&String(o.createdByUsername).toLowerCase()===u.username.toLowerCase())return true;
-    return !o.createdById && !o.createdByUsername && norm(o.operator)===norm(u.name);
+
+    const orderIds=[
+      o.createdById,
+      o.createdByUid,
+      o.creatorUid,
+      o.userId
+    ].filter(Boolean).map(v=>String(v).trim());
+
+    const userIds=[
+      u.id,
+      currentUser?.uid
+    ].filter(Boolean).map(v=>String(v).trim());
+
+    if(orderIds.length && userIds.length && orderIds.some(id=>userIds.includes(id))){
+      return true;
+    }
+
+    const orderUsernames=[
+      o.createdByUsername,
+      o.creatorUsername
+    ].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+
+    const userUsernames=[
+      u.username,
+      currentUser?.username
+    ].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+
+    if(orderUsernames.length && userUsernames.length &&
+       orderUsernames.some(name=>userUsernames.includes(name))){
+      return true;
+    }
+
+    // Comenzile fără identificator explicit de creator sunt considerate
+    // comenzi vechi. Din motive de siguranță, doar administratorul le poate șterge.
+    return false;
   }
   function orderIsLaunched(o){
     const status=String(o.status||'Lansată');
@@ -7374,5 +7407,89 @@ Modification history
   if(typeof render==='function')render();
 })();
 </script>
+
+<script>
+(function(){
+  'use strict';
+
+  function strictOrderOwner(order){
+    if(!order || !window.currentUser) return false;
+
+    const role=String(window.currentUser.role||'').trim().toLowerCase();
+    if(role==='admin' || role==='administrator') return true;
+    if(role==='viewer' || role==='export' || role==='operator export') return false;
+
+    const orderIds=[
+      order.createdById,
+      order.createdByUid,
+      order.creatorUid,
+      order.userId
+    ].filter(Boolean).map(v=>String(v).trim());
+
+    const userIds=[
+      window.currentUser.uid,
+      window.currentUser.id
+    ].filter(Boolean).map(v=>String(v).trim());
+
+    if(orderIds.length && userIds.length && orderIds.some(id=>userIds.includes(id))){
+      return true;
+    }
+
+    const orderNames=[
+      order.createdByUsername,
+      order.creatorUsername
+    ].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+
+    const userNames=[
+      window.currentUser.username
+    ].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+
+    return orderNames.length && userNames.length &&
+           orderNames.some(name=>userNames.includes(name));
+  }
+
+  window.canDeleteOrder=function(order){
+    return strictOrderOwner(order);
+  };
+
+  const protectedDelete=window.deleteOrder;
+  window.deleteOrder=function(id){
+    const order=(window.orders||[]).find(item=>String(item.id)===String(id));
+    if(!strictOrderOwner(order)) return false;
+    return protectedDelete ? protectedDelete.apply(this,arguments) : false;
+  };
+
+  function removeUnauthorizedDeleteButtons(){
+    const rows=document.querySelectorAll('#ordersListBox tbody tr');
+    rows.forEach(row=>{
+      const codeCell=row.querySelector('td:first-child');
+      const deleteCell=row.querySelector('.delete-cell');
+      if(!codeCell || !deleteCell) return;
+
+      const code=String(codeCell.textContent||'').trim();
+      const order=(window.orders||[]).find(item=>String(item.code||'').trim()===code);
+      if(!strictOrderOwner(order)){
+        deleteCell.innerHTML='';
+      }
+    });
+  }
+
+  const observer=new MutationObserver(removeUnauthorizedDeleteButtons);
+  const start=()=>{
+    const box=document.getElementById('ordersListBox');
+    if(box){
+      observer.observe(box,{childList:true,subtree:true});
+      removeUnauthorizedDeleteButtons();
+    }
+  };
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',start,{once:true});
+  }else{
+    start();
+  }
+})();
+</script>
+
 </body>
 </html>
