@@ -7844,5 +7844,93 @@ Modification history
   };
 })();
 </script>
+<style id="sphera-edit-popup-definitive-fix">
+html>.sphera-edit-popup.modal.open{
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  padding:0!important;
+  display:block!important;
+  overflow:hidden!important;
+  z-index:2147483000!important;
+}
+html>.sphera-edit-popup.modal.open>.wizard{
+  position:fixed!important;
+  top:50vh!important;
+  left:50vw!important;
+  width:min(900px,calc(100vw - 48px))!important;
+  max-width:calc(100vw - 48px)!important;
+  max-height:calc(100vh - 48px)!important;
+  margin:0!important;
+  transform:translate(-50%,-50%)!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-width:none!important;
+  -ms-overflow-style:none!important;
+}
+html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!important;width:0!important;height:0!important;}
+.sphera-edit-popup[data-edit-monofocal="true"] .edit-add-col{display:none!important;}
+.sphera-edit-popup[data-edit-monofocal="true"] .order-edit-rx{grid-template-columns:54px repeat(3,minmax(0,1fr))!important;}
+.modal:has(#editProduct option:checked[value="Monofocal"]) .edit-add-col{display:none!important;}
+.modal:has(#editProduct option:checked[value="Monofocal"]) .order-edit-rx{grid-template-columns:54px repeat(3,minmax(0,1fr))!important;}
+.sphera-popup-scroll-controls{display:none!important;}
+@media(max-width:700px){
+  html>.sphera-edit-popup.modal.open>.wizard{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;max-height:calc(100vh - 20px)!important;}
+  .sphera-edit-popup[data-edit-monofocal="true"] .order-edit-rx{grid-template-columns:42px repeat(3,minmax(82px,1fr))!important;}
+}
+</style>
+<script id="sphera-edit-popup-definitive-runtime">
+(function(){
+  'use strict';
+
+  function syncGeometrySelector(modal,isMonofocal){
+    const product=norm(modal.querySelector('#editDesign')?.value||'');
+    const wrap=modal.querySelector('#editGeometryWrap');
+    let field=modal.querySelector('#editGeometry');
+    if(!wrap||!isMonofocal||!product.includes('attraction'))return;
+    if(field?.tagName==='SELECT')return;
+    const current=norm(field?.value||'');
+    const select=document.createElement('select');
+    select.id='editGeometry';
+    select.innerHTML=`<option value="S" ${current==='s'||current==='sferic'?'selected':''}>S</option><option value="AS" ${current==='as'||current==='asferic'?'selected':''}>AS</option>`;
+    field?.replaceWith(select);
+  }
+
+  function finalizeEditPopup(){
+    const modal=[...document.querySelectorAll('.modal.open')].reverse().find(item=>item.querySelector('.order-edit-grid'));
+    if(!modal)return;
+    modal.classList.add('order-edit-modal','sphera-centered-popup','sphera-edit-popup');
+    if(modal.parentElement!==document.documentElement)document.documentElement.appendChild(modal);
+    modal.querySelectorAll(':scope>.sphera-popup-scroll-controls').forEach(el=>el.remove());
+    const design=norm(modal.querySelector('#editProduct')?.value||'');
+    const isMonofocal=design.includes('monofocal');
+    modal.dataset.editMonofocal=String(isMonofocal);
+    const rxGrid=modal.querySelector('.order-edit-rx');
+    rxGrid?.classList.toggle('no-add',isMonofocal);
+    if(isMonofocal){
+      modal.querySelectorAll('.edit-add-col').forEach(el=>el.remove());
+      const odAdd=modal.querySelector('#eOdAdd'),osAdd=modal.querySelector('#eOsAdd');
+      if(odAdd)odAdd.value='';
+      if(osAdd)osAdd.value='';
+    }
+    syncGeometrySelector(modal,isMonofocal);
+  }
+
+  const definitiveOpenEdit=window.openOrderEdit;
+  window.openOrderEdit=function(){
+    const result=definitiveOpenEdit&&definitiveOpenEdit.apply(this,arguments);
+    finalizeEditPopup();
+    return result;
+  };
+
+  document.addEventListener('click',event=>{
+    if(event.target.closest?.('[title="Editează comanda"]'))setTimeout(finalizeEditPopup,0);
+  },true);
+  document.addEventListener('change',event=>{
+    if(event.target?.id==='editProduct'||event.target?.id==='editDesign')setTimeout(finalizeEditPopup,0);
+  },true);
+})();
+</script>
 </body>
 </html>
