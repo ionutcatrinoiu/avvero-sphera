@@ -2962,9 +2962,8 @@ cursor:pointer;
     const type=(el.type||'text').toLowerCase();
     if(['password','email','number','date','time','hidden'].includes(type))return false;
     if(el.readOnly||el.disabled)return false;
-    const id=(el.id||'').toLowerCase(), cls=String(el.className||'').toLowerCase();
-    if(/code|user|pass|search|filter|query|sph|cyl|axis|ax|add|rx/.test(id+' '+cls))return false;
-    return true;
+    const id=(el.id||'').toLowerCase();
+    return id==='newclientname'||id==='editpatient'||id==='patientinput'||id==='patient';
   }
   document.addEventListener('blur',function(e){
     const el=e.target;if(!shouldCapitalize(el))return;
@@ -3179,12 +3178,17 @@ cursor:pointer;
     const modalEl=document.createElement('div');modalEl.className='modal open';
     modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="order-edit-grid"><div class="field full"><label>Cod RX</label><input class="edit-code-readonly" value="${esc(o.code)}" readonly></div><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div>${selectHtml('editProduct','Design',designVals,o.product).replace('<select id="editProduct">','<select id="editProduct" onchange="syncEditProductOptions()">')}${selectHtml('editDesign','Produs',productVals,o.design)}${selectHtml('editIndex','Indice',INDICES,o.index)}<div class="field"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div>${selectHtml('editMaterial','Material',MATERIALS,o.material)}<div class="field"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div>${selectHtml('editTreatment','Tratament',TREATMENTS,o.treatment)}${selectHtml('editCenter','Centru procesare',centers,o.center)}${selectHtml('editOperator','Operator',operators,o.operator)}<div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div>${selectHtml('editMount','Centru montaj',centers.filter(c=>!['craiova','oradea'].includes(norm(c))),o.mount)}<div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>${esc(o.center||'Centru')}</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>${esc(o.client?.name||'Client')}</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
     document.body.appendChild(modalEl);
+    const notesField=modalEl.querySelector('#editNotes');
+    if(notesField)notesField.placeholder='Scrie fiecare mențiune pe un rând separat';
     ['Od','Os'].forEach(p=>{const sph=document.getElementById('e'+p+'Sph'),cyl=document.getElementById('e'+p+'Cyl'),ax=document.getElementById('e'+p+'Ax'),add=document.getElementById('e'+p+'Add');sph?.addEventListener('blur',()=>sph.value=parseSignedEdit(sph.value));cyl?.addEventListener('blur',()=>{cyl.value=parseSignedEdit(cyl.value);syncEditAxis(p)});ax?.addEventListener('blur',()=>{let n=Number(String(ax.value||'').replace(/\D/g,''));ax.value=Number.isFinite(n)&&n>=0&&n<=180?String(n).padStart(3,'0'):''});add?.addEventListener('blur',()=>add.value=parseAddEdit(add.value));syncEditAxis(p)});
   };
   window.saveOrderEdit=function(id,btn){
     const o=orders.find(x=>String(x.id)===String(id));if(!o)return;const client=CLIENTS.find(c=>String(c.code)===String(document.getElementById('editClient')?.value));if(client)o.client=client;
-    const val=id=>capWords(roFixText(String(document.getElementById(id)?.value||'').trim()));
-    o.patient=val('editPatient');o.product=val('editProduct');o.design=val('editDesign');o.index=val('editIndex');o.geometry=val('editGeometry');o.material=val('editMaterial');o.materialColor=val('editColor');o.treatment=val('editTreatment');o.center=val('editCenter');o.operator=val('editOperator');o.hasMount=document.getElementById('editHasMount')?.value==='1';o.mount=o.hasMount?val('editMount'):'';o.deliveryDestination=document.getElementById('editDelivery')?.value||'center';o.notes=capWords(roFixText(String(document.getElementById('editNotes')?.value||'').trim()));
+    const val=id=>roFixText(String(document.getElementById(id)?.value||'').trim());
+    o.patient=capWords(val('editPatient'));o.product=val('editProduct');o.design=val('editDesign');o.index=val('editIndex');o.geometry=val('editGeometry');o.material=val('editMaterial');o.materialColor=val('editColor');o.treatment=val('editTreatment');o.center=val('editCenter');o.operator=val('editOperator');o.hasMount=document.getElementById('editHasMount')?.value==='1';o.mount=o.hasMount?val('editMount'):'';o.deliveryDestination=document.getElementById('editDelivery')?.value||'center';
+    const previousNotes=String(o.notes||'').trim(),enteredNotes=val('editNotes');
+    const appendedNote=previousNotes&&enteredNotes.startsWith(previousNotes)?enteredNotes.slice(previousNotes.length).trim():'';
+    o.notes=appendedNote?previousNotes+'\n'+appendedNote:enteredNotes;
     o.rx=o.rx||{};['Od','Os'].forEach(p=>{o.rx[p.toLowerCase()+'Sph']=parseSignedEdit(document.getElementById('e'+p+'Sph')?.value);o.rx[p.toLowerCase()+'Cyl']=parseSignedEdit(document.getElementById('e'+p+'Cyl')?.value);const cyl=Number(o.rx[p.toLowerCase()+'Cyl']||0);o.rx[p.toLowerCase()+'Ax']=Math.abs(cyl)>0?String(document.getElementById('e'+p+'Ax')?.value||'').replace(/\D/g,'').padStart(3,'0').slice(-3):'';o.rx[p.toLowerCase()+'Add']=parseAddEdit(document.getElementById('e'+p+'Add')?.value)});
     save();render();renderProcessingOrders();btn.closest('.modal')?.remove();showOrderDetails(id);
   };
@@ -3284,7 +3288,7 @@ cursor:pointer;
     const centers=orderedProcessingCenters(), mountCenters=centers.filter(c=>!['craiova','oradea'].includes(norm(c)));
     const operators=[...new Set(CENTERS.map(x=>x.operator).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ro'));
     const designVals=designKeys(),productVals=PRODUCTS[Object.keys(PRODUCTS).find(k=>norm(k)===norm(o.product))]||designKeys().flatMap(k=>PRODUCTS[k]||[]);
-    const modalEl=document.createElement('div');modalEl.className='modal open';
+    const modalEl=document.createElement('div');modalEl.className='modal open order-edit-modal centered-order-modal';
     modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div></div><div class="order-edit-grid"><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div>${selectField('editProduct','Design',designVals,o.product,'onchange="syncEditProductOptions();updateEditVisibility()"')}${selectField('editDesign','Produs',productVals,o.design,'onchange="updateEditVisibility()"')}${selectField('editIndex','Indice',INDICES,o.index)}<div class="field order-edit-conditional" id="editGeometryWrap"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div>${selectField('editMaterial','Material',MATERIALS,o.material,'onchange="updateEditVisibility()"')}<div class="field order-edit-conditional" id="editColorWrap"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div>${selectField('editTreatment','Tratament',TREATMENTS,o.treatment)}${selectField('editCenter','Centru procesare',centers,o.center)}${selectField('editOperator','Operator',operators,o.operator)}<div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div>${selectField('editMount','Centru montaj',mountCenters,o.mount)}<div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>${esc(o.center||'Centru')}</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>${esc(o.client?.name||'Client')}</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head edit-add-col">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input class="edit-add-col" id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input class="edit-add-col" id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
     document.body.appendChild(modalEl);
     ['Od','Os'].forEach(p=>{const sph=document.getElementById('e'+p+'Sph'),cyl=document.getElementById('e'+p+'Cyl'),ax=document.getElementById('e'+p+'Ax'),add=document.getElementById('e'+p+'Add');sph?.addEventListener('blur',()=>sph.value=parseSignedEdit(sph.value));cyl?.addEventListener('blur',()=>{cyl.value=parseSignedEdit(cyl.value);syncEditAxis(p)});ax?.addEventListener('blur',()=>{let n=Number(String(ax.value||'').replace(/\D/g,''));ax.value=Number.isFinite(n)&&n>=0&&n<=180?String(n).padStart(3,'0'):''});add?.addEventListener('blur',()=>add.value=parseAddEdit(add.value));syncEditAxis(p)});
@@ -5533,7 +5537,7 @@ body.viewer-account [data-viewer-write]{display:none!important}
     ];
     const html=lines.map(([key,value])=>`<div class="muted">${esc(key)}</div><div><b>${esc(value)}</b></div>`).join('');
     const wrap=document.createElement('div');
-    wrap.className='modal open';
+    wrap.className='modal open order-details-modal centered-order-modal';
     wrap.innerHTML=`<div class="wizard" style="max-width:720px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="step-title">${esc(o.code)}</div></div></div><div class="detail-grid">${html}</div></div>`;
     wrap.addEventListener('click',event=>{if(event.target===wrap)wrap.remove();});
     document.body.appendChild(wrap);
@@ -7430,7 +7434,7 @@ Modification history
     const historyHtml=history.length?history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).map(h=>`<div class="order-audit-item"><div class="order-audit-meta">${esc(h.date||'')} ${esc(h.time||'')} · ${esc(h.user||h.username||'Utilizator')}</div><div class="order-audit-reason">${esc(h.reason||'Fără motiv')}</div></div>`).join(''):'<div class="muted">Nicio modificare efectuată.</div>';
     const editButton=canEditOrder(o)?`<button class="icon-btn primary" onclick="this.closest('.modal').remove();openOrderEdit('${esc(o.id)}')" title="Editează comanda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg></button>`:'';
     const wrap=document.createElement('div');
-    wrap.className='modal open';
+    wrap.className='modal open order-details-modal centered-order-modal';
     wrap.innerHTML=`<div class="wizard" style="max-width:760px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="order-code-head"><div class="step-title">${esc(o.code)}</div><button class="icon-btn primary order-code-copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}')" title="Copiază codul">${ICON_COPY}</button></div></div></div><div class="detail-grid">${details}</div><div class="order-audit-section"><div class="order-audit-title">Istoric modificări</div><div class="order-audit-list">${historyHtml}</div></div><div class="icon-btns">${editButton}</div></div>`;
     document.body.appendChild(wrap);
   };
@@ -7554,21 +7558,40 @@ Modification history
 </script>
 
 <style id="sphera-edit-and-actions-fix">
-.order-edit-modal{
+.centered-order-modal{
   position:fixed!important;
   inset:0!important;
-  z-index:10000!important;
+  z-index:20000!important;
   display:flex!important;
   align-items:center!important;
   justify-content:center!important;
   padding:32px!important;
+  box-sizing:border-box!important;
 }
-.order-edit-modal>.wizard{
+.centered-order-modal>.wizard{
   width:min(900px,calc(100vw - 64px))!important;
   max-height:calc(100vh - 64px)!important;
   margin:auto!important;
   overflow-y:auto!important;
   overscroll-behavior:contain;
+  transform:none!important;
+  scrollbar-width:thin;
+  scrollbar-color:#9bb8ff transparent;
+}
+.order-details-modal>.wizard{
+  width:min(760px,calc(100vw - 64px))!important;
+}
+.centered-order-modal>.wizard::-webkit-scrollbar,
+.modal>.wizard::-webkit-scrollbar{width:8px;height:8px;}
+.centered-order-modal>.wizard::-webkit-scrollbar-track,
+.modal>.wizard::-webkit-scrollbar-track{background:transparent;margin:18px 0;}
+.centered-order-modal>.wizard::-webkit-scrollbar-thumb,
+.modal>.wizard::-webkit-scrollbar-thumb{background:#b7ccff;border-radius:999px;border:2px solid #fff;}
+.centered-order-modal>.wizard::-webkit-scrollbar-thumb:hover,
+.modal>.wizard::-webkit-scrollbar-thumb:hover{background:#165dff;}
+.order-details-modal .detail-grid b{
+  white-space:pre-line!important;
+  overflow-wrap:anywhere;
 }
 .order-edit-modal .order-edit-grid>.edit-reason-required{display:none!important;}
 .edit-reason-modal{z-index:10001!important;}
@@ -7589,8 +7612,8 @@ Modification history
   margin-right:0!important;
 }
 @media(max-width:700px){
-  .order-edit-modal{padding:12px!important;}
-  .order-edit-modal>.wizard{width:calc(100vw - 24px)!important;max-height:calc(100vh - 24px)!important;}
+  .centered-order-modal{padding:12px!important;}
+  .centered-order-modal>.wizard{width:calc(100vw - 24px)!important;max-height:calc(100vh - 24px)!important;}
 }
 </style>
 
