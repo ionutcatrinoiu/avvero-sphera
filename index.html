@@ -7958,22 +7958,13 @@ html>.modal.open>.wizard{
   width:min(760px,calc(100vw - 48px))!important;
   max-width:calc(100vw - 48px)!important;
 }
-.order-edit-grid>.field:has(#editClient){display:block!important;}
-#editClient{display:none!important;}
-.edit-client-readonly{
-  width:100%;
-  min-height:46px;
-  display:flex;
-  align-items:center;
-  padding:12px 13px;
-  border:1px solid var(--line);
-  border-radius:13px;
-  background:#f8fafc;
-  color:#101828;
-  font-size:14px;
-  font-weight:700;
-  box-sizing:border-box;
+html>.sphera-edit-popup.modal.open>.wizard{
+  width:min(760px,calc(100vw - 48px))!important;
+  max-width:calc(100vw - 48px)!important;
 }
+.order-edit-grid>.field:has(#editClient){display:none!important;}
+#editClient{display:none!important;}
+.edit-title-client{font-size:.72em;font-weight:800;color:#475467;}
 @media(max-width:700px){
   .modal.open>.wizard,html>.modal.open>.wizard{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;}
 }
@@ -7984,15 +7975,17 @@ html>.modal.open>.wizard{
   function showReadonlyClient(){
     const modal=[...document.querySelectorAll('.modal.open')].reverse().find(item=>item.querySelector('.order-edit-grid'));
     const select=modal?.querySelector('#editClient');
-    const field=select?.closest('.field');
-    if(!select||!field)return;
-    let display=field.querySelector('.edit-client-readonly');
+    const title=modal?.querySelector('.step-title');
+    if(!select||!title)return;
+    const clientName=String(select.selectedOptions?.[0]?.textContent||'').split('·')[0].trim();
+    let display=title.querySelector('.edit-title-client');
     if(!display){
-      display=document.createElement('div');
-      display.className='edit-client-readonly';
-      field.appendChild(display);
+      title.appendChild(document.createTextNode(' - '));
+      display=document.createElement('span');
+      display.className='edit-title-client';
+      title.appendChild(display);
     }
-    display.textContent=String(select.selectedOptions?.[0]?.textContent||'').split('·')[0].trim();
+    display.textContent=clientName;
   }
   const openEditWithReadonlyClient=window.openOrderEdit;
   window.openOrderEdit=function(){
