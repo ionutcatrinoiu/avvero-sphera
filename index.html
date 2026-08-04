@@ -6938,5 +6938,35 @@ function toggleMobileMenu(button){
   .desktop-header-logout{width:36px!important;min-width:36px!important;height:36px!important;}
 }
 </style>
+
+
+<script id="sphera-mobile-menu-close-on-scroll">
+(function(){
+  const MOBILE_MAX_WIDTH = 760;
+  let closing = false;
+
+  function closeMobileMenu(){
+    if(window.innerWidth > MOBILE_MAX_WIDTH || closing) return;
+    const side = document.querySelector('.side');
+    if(!side || !side.classList.contains('mobile-menu-open')) return;
+
+    closing = true;
+    side.classList.remove('mobile-menu-open');
+
+    const toggle = side.querySelector('.mobile-menu-toggle');
+    if(toggle){
+      toggle.setAttribute('aria-expanded','false');
+      toggle.setAttribute('aria-label','Deschide meniul');
+    }
+
+    window.requestAnimationFrame(function(){ closing = false; });
+  }
+
+  window.addEventListener('scroll', closeMobileMenu, {passive:true});
+  window.addEventListener('wheel', closeMobileMenu, {passive:true});
+  window.addEventListener('touchmove', closeMobileMenu, {passive:true});
+})();
+</script>
+
 </body>
 </html>
