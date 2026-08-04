@@ -7932,5 +7932,25 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
   },true);
 })();
 </script>
+<style id="sphera-edit-hidden-fixed-fields">
+.order-edit-grid>.field:has(#editClient),
+.order-edit-grid>.field:has(#editCenter),
+.order-edit-grid>.field:has(#editOperator){display:none!important;}
+</style>
+<script id="sphera-popup-keyboard-scroll">
+(function(){
+  'use strict';
+  document.addEventListener('keydown',event=>{
+    if(event.key!=='ArrowUp'&&event.key!=='ArrowDown')return;
+    const tag=String(event.target?.tagName||'').toUpperCase();
+    if(['INPUT','TEXTAREA','SELECT'].includes(tag))return;
+    const modal=[...document.querySelectorAll('.modal.open')].pop();
+    const panel=modal?.querySelector(':scope>.wizard');
+    if(!panel||panel.scrollHeight<=panel.clientHeight)return;
+    event.preventDefault();
+    panel.scrollBy({top:event.key==='ArrowDown'?90:-90,behavior:'smooth'});
+  },true);
+})();
+</script>
 </body>
 </html>
