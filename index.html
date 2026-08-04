@@ -7629,13 +7629,19 @@ Modification history
 .sphera-details-popup>.wizard{width:min(760px,calc(100vw - 56px))!important;}
 .sphera-popup-scroll-controls{
   position:absolute;
-  inset:12px 8px;
+  top:40px;
+  bottom:40px;
+  left:50%;
+  right:auto;
+  width:min(900px,calc(100vw - 56px));
+  transform:translateX(-50%);
   z-index:4;
   pointer-events:none;
 }
+.sphera-details-popup>.sphera-popup-scroll-controls{width:min(760px,calc(100vw - 56px));}
 .sphera-popup-scroll-button{
   position:absolute;
-  right:0;
+  right:8px;
   width:36px;
   height:36px;
   min-width:36px;
@@ -7662,7 +7668,7 @@ Modification history
 @media(max-width:700px){
   .sphera-centered-popup{padding:10px!important;}
   .sphera-centered-popup>.wizard{width:calc(100vw - 20px)!important;max-height:calc(100vh - 20px)!important;}
-  .sphera-popup-scroll-controls{inset:8px 4px;}
+  .sphera-popup-scroll-controls,.sphera-details-popup>.sphera-popup-scroll-controls{top:22px;bottom:22px;width:calc(100vw - 20px);}
 }
 </style>
 <script>
@@ -7794,6 +7800,7 @@ Modification history
 }
 .sphera-edit-popup .edit-add-col.hide-field{display:none!important;}
 .sphera-edit-popup .order-edit-rx.no-add{grid-template-columns:54px repeat(3,minmax(0,1fr))!important;}
+.edit-reason-modal.modal.open{z-index:30000!important;}
 @media(max-width:700px){
   .sphera-edit-popup.modal.open{padding:10px!important;}
   .sphera-edit-popup.modal.open>.wizard{width:calc(100vw - 20px)!important;max-height:calc(100vh - 20px)!important;}
@@ -7850,15 +7857,13 @@ Modification history
     makeArrowControls(modal,panel);
   }
 
-  const observer=new MutationObserver(records=>{
-    records.forEach(record=>record.addedNodes.forEach(node=>{
-      if(!(node instanceof HTMLElement))return;
-      if(node.matches('.modal.open'))fixEditPopup(node);
-      node.querySelectorAll?.('.modal.open').forEach(fixEditPopup);
-    }));
-  });
-  observer.observe(document.body,{childList:true,subtree:true});
-  document.querySelectorAll('.modal.open').forEach(fixEditPopup);
+  const runtimeOpenEdit=window.openOrderEdit;
+  window.openOrderEdit=function(){
+    const result=runtimeOpenEdit&&runtimeOpenEdit.apply(this,arguments);
+    const modal=[...document.querySelectorAll('.modal.open')].reverse().find(item=>item.querySelector('.order-edit-grid'));
+    fixEditPopup(modal);
+    return result;
+  };
 })();
 </script>
 </body>
