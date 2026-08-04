@@ -1593,9 +1593,9 @@ function saveUsers(){
 function slug(v){return norm(v).replace(/[^a-z0-9]+/g,'.').replace(/^\.+|\.+$/g,'');}
 function roleLabel(role){return role==='admin'?'Administrator':role==='iasi'?'Operator Master':'Operator';}
 function canCreateOrders(){return currentUser && (currentUser.role==='admin'||currentUser.role==='operator'||currentUser.role==='iasi');}
-function canManageClients(){return currentUser && (currentUser.role==='admin'||currentUser.role==='operator');}
+function canManageClients(){return currentUser && (currentUser.role==='admin'||currentUser.role==='operator'||currentUser.role==='iasi');}
 function isAdmin(){return currentUser?.role==='admin';}
-function visibleOrders(){return isAdmin()?orders:orders.filter(o=>norm(o.center)===norm(currentUser?.center));}
+function visibleOrders(){return (isAdmin()||currentUser?.role==='iasi')?orders:orders.filter(o=>norm(o.center)===norm(currentUser?.center));}
 function processingCenterLabel(o){
  const center=String(o?.center||'').trim();
  const match=CENTERS.find(x=>norm(x.center)===norm(center));
@@ -5357,7 +5357,7 @@ body.viewer-account [data-viewer-write]{display:none!important}
   window.roleLabel=function(role){return role===VIEWER_ROLE?'Operator Export':baseRoleLabel(role);};
 
   window.visibleOrders=function(){
-    if(isAdmin())return orders;
+    if(isAdmin()||isOperatorMaster())return orders;
     if(isViewer()){
       const allowed=new Set(viewerWarehouses().map(centerKey));
       return orders.filter(order=>{
@@ -5382,7 +5382,7 @@ body.viewer-account [data-viewer-write]{display:none!important}
   };
 
   window.canCreateOrders=function(){return !!currentUser&&['admin','operator','iasi'].includes(currentUser.role);};
-  window.canManageClients=function(){return !!currentUser&&['admin','operator'].includes(currentUser.role);};
+  window.canManageClients=function(){return !!currentUser&&['admin','operator','iasi'].includes(currentUser.role);};
 
   const baseApplyPermissions=window.applyPermissions;
   function enforceViewerUI(){
@@ -7131,8 +7131,7 @@ function closeMenu(){
 window.addEventListener('scroll',()=>{if(window.innerWidth<=900)closeMenu();},{passive:true});
 document.addEventListener('click',(e)=>{
  if(window.innerWidth>900)return;
- if(menu.classList.contains('open') && !menu.contains(e.target) && !(btn and False)):
-  pass
+ if(menu.classList.contains('open') && !menu.contains(e.target) && !btn?.contains(e.target))closeMenu();
 });
 });
 </script>
