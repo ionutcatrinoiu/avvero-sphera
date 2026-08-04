@@ -7137,5 +7137,39 @@ document.addEventListener('click',(e)=>{
 });
 </script>
 
+
+
+<!-- SPHERA AUDIT SPEC -->
+<!--
+IMPLEMENTATION TODO
+1. Save on order creation:
+createdById, createdByName, createdByRole, createdCenter,
+createdDate, createdTime, createdTimestamp.
+
+2. Save on update:
+lastModifiedBy, lastModifiedDate, lastModifiedTime,
+lastModifiedTimestamp.
+
+3. Maintain history array:
+[{user,date,time,reason}]
+
+4. Hide Edit button when:
+currentUser.role!='Administrator' &&
+(currentUser.id!==order.createdById || order.status==='Check Out')
+
+5. Operator Export: never show Edit.
+
+6. Before saving an edited order require:
+reasonForModification (mandatory).
+
+7. Show in Details:
+Created by
+Created date
+Created time
+Last modified by
+Last modified date/time
+Modification history
+-->
+
 </body>
 </html>
