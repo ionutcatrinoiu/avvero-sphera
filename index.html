@@ -7171,5 +7171,192 @@ Last modified date/time
 Modification history
 -->
 
+
+<style>
+.order-audit-section{margin-top:18px;padding-top:16px;border-top:1px solid #e4e7ec}
+.order-audit-title{font-size:14px;font-weight:900;color:#101828;margin-bottom:10px}
+.order-audit-list{display:grid;gap:10px}
+.order-audit-item{padding:11px 12px;border:1px solid #e4e7ec;border-radius:14px;background:#f8fafc}
+.order-audit-meta{font-size:12px;font-weight:800;color:#475467;margin-bottom:4px}
+.order-audit-reason{font-size:13px;color:#101828;line-height:1.4}
+.edit-reason-required textarea{min-height:78px!important}
+</style>
+<script>
+(function(){
+  'use strict';
+  const AUDIT_VERSION='sphera-order-audit-v1';
+  const originalCreateOrder=window.createOrder;
+  const originalOpenOrderEdit=window.openOrderEdit;
+  const originalSaveOrderEdit=window.saveOrderEdit;
+
+  function userIdentity(){
+    return {
+      id:String(currentUser?.uid||currentUser?.username||''),
+      username:String(currentUser?.username||''),
+      name:String(currentUser?.name||currentUser?.displayName||currentUser?.username||'Utilizator'),
+      role:String(currentUser?.role||''),
+      center:String(currentUser?.center||'')
+    };
+  }
+  function nowInfo(){
+    const d=new Date();
+    return {
+      timestamp:d.getTime(),
+      date:d.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'}),
+      time:d.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    };
+  }
+  function inferredCreatedAt(o){
+    const fromId=Number(String(o?.id||'').replace(/^RX/,''));
+    if(Number.isFinite(fromId)&&fromId>1000000000000){
+      const d=new Date(fromId);
+      return {timestamp:fromId,date:d.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'}),time:d.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',second:'2-digit'})};
+    }
+    return {timestamp:null,date:formatDateRO(o?.date||''),time:'Ora nu este disponibilă'};
+  }
+  function ensureAudit(o){
+    if(!o)return o;
+    const inferred=inferredCreatedAt(o);
+    if(!o.createdTimestamp)o.createdTimestamp=inferred.timestamp;
+    if(!o.createdDate)o.createdDate=inferred.date;
+    if(!o.createdTime)o.createdTime=inferred.time;
+    if(!o.createdByName)o.createdByName=o.operator||'Necunoscut';
+    if(!o.createdById)o.createdById='';
+    if(!o.createdByUsername)o.createdByUsername='';
+    if(!Array.isArray(o.modificationHistory))o.modificationHistory=[];
+    o.auditVersion=AUDIT_VERSION;
+    return o;
+  }
+  function currentIsAdmin(){return String(currentUser?.role||'').toLowerCase()==='admin';}
+  function currentIsViewer(){return ['viewer','export'].includes(String(currentUser?.role||'').toLowerCase());}
+  function isOwnOrder(o){
+    const u=userIdentity();
+    if(o.createdById&&u.id&&String(o.createdById)===u.id)return true;
+    if(o.createdByUsername&&u.username&&String(o.createdByUsername).toLowerCase()===u.username.toLowerCase())return true;
+    return !o.createdById && !o.createdByUsername && norm(o.operator)===norm(u.name);
+  }
+  function orderIsLaunched(o){
+    const status=String(o.status||'Lansată');
+    try{return workflowIndex(o)===0 || norm(status)==='lansata';}catch(_){return norm(status)==='lansata';}
+  }
+  function canEditOrder(o){
+    if(!o||currentIsViewer())return false;
+    if(currentIsAdmin())return true;
+    return isOwnOrder(o)&&orderIsLaunched(o);
+  }
+  window.canEditOrder=canEditOrder;
+
+  if(typeof originalCreateOrder==='function'){
+    window.createOrder=function(){
+      const before=new Set((orders||[]).map(o=>String(o.id)));
+      const result=originalCreateOrder.apply(this,arguments);
+      const created=(orders||[]).find(o=>!before.has(String(o.id)));
+      if(created){
+        const u=userIdentity(),t=nowInfo();
+        Object.assign(created,{
+          createdById:u.id,
+          createdByUsername:u.username,
+          createdByName:u.name,
+          createdByRole:u.role,
+          createdByCenter:u.center,
+          createdTimestamp:t.timestamp,
+          createdDate:t.date,
+          createdTime:t.time,
+          modificationHistory:[],
+          auditVersion:AUDIT_VERSION
+        });
+        save();
+      }
+      return result;
+    };
+  }
+
+  if(typeof originalOpenOrderEdit==='function'){
+    window.openOrderEdit=function(id){
+      const o=(orders||[]).find(x=>String(x.id)===String(id));
+      if(!o||!canEditOrder(o))return;
+      const result=originalOpenOrderEdit.apply(this,arguments);
+      const modal=[...document.querySelectorAll('.modal.open')].pop();
+      const grid=modal?.querySelector('.order-edit-grid');
+      if(grid&&!modal.querySelector('#editReason')){
+        const field=document.createElement('div');
+        field.className='field full edit-reason-required';
+        field.innerHTML='<label>Motivul modificării <span style="color:#f04438">*</span></label><textarea id="editReason" placeholder="Descrie clar motivul modificării"></textarea>';
+        grid.appendChild(field);
+      }
+      return result;
+    };
+  }
+
+  if(typeof originalSaveOrderEdit==='function'){
+    window.saveOrderEdit=function(id,btn){
+      const o=(orders||[]).find(x=>String(x.id)===String(id));
+      if(!o||!canEditOrder(o))return;
+      const reason=String(document.getElementById('editReason')?.value||'').trim();
+      if(!reason){
+        const el=document.getElementById('editReason');
+        if(el){el.focus();el.style.borderColor='#f04438';el.style.boxShadow='0 0 0 3px rgba(240,68,56,.12)';}
+        if(typeof showAppConfirm==='function')showAppConfirm({title:'Motiv obligatoriu',text:'Completează motivul modificării înainte de salvare.',confirmText:'OK',cancelText:'Închide'});
+        return;
+      }
+      ensureAudit(o);
+      const result=originalSaveOrderEdit.apply(this,arguments);
+      const updated=(orders||[]).find(x=>String(x.id)===String(id));
+      if(updated){
+        const u=userIdentity(),t=nowInfo();
+        ensureAudit(updated);
+        const entry={userId:u.id,username:u.username,user:u.name,role:u.role,center:u.center,date:t.date,time:t.time,timestamp:t.timestamp,reason};
+        updated.modificationHistory.push(entry);
+        updated.lastModifiedById=u.id;
+        updated.lastModifiedBy=u.name;
+        updated.lastModifiedDate=t.date;
+        updated.lastModifiedTime=t.time;
+        updated.lastModifiedTimestamp=t.timestamp;
+        save();
+        render();
+      }
+      return result;
+    };
+  }
+
+  window.showOrderDetails=function(id){
+    let o;
+    try{o=processingVisibleOrders().find(x=>String(x.id)===String(id));}catch(_){}
+    o=o||visibleOrders().find(x=>String(x.id)===String(id))||(orders||[]).find(x=>String(x.id)===String(id));
+    if(!o)return;
+    ensureAudit(o);
+    const history=Array.isArray(o.modificationHistory)?o.modificationHistory:[];
+    const lines=[
+      ['Data',formatDateRO(o.date)],
+      ['Ora lansării',o.createdTime||'Ora nu este disponibilă'],
+      ['Creată de',o.createdByName||o.operator||'Necunoscut'],
+      ['Client',(o.client?.name||'')+' · '+(o.client?.city||'')+' · cod '+(o.client?.code||'')],
+      ['Produs',productSummary(o)],
+      ['Design filtrare',o.product],
+      ['OD',odText(o)+(o.rx?.odAdd?' add '+o.rx.odAdd:'')],
+      ['OS',osText(o)+(o.rx?.osAdd?' add '+o.rx.osAdd:'')],
+      ['Nume pacient',o.patient],
+      ['Montaj',o.hasMount===false?'Fără montaj':(o.mount||'Fără montaj')],
+      ['Livrare',o.deliveryDestination==='client'?(o.client?.name||'Client'):(o.center||'')],
+      ['Centru procesare',o.center],
+      ['Operator',o.operator],
+      ['Status comandă',WORKFLOW_STEPS[workflowIndex(o)]||o.status],
+      ['Mențiuni',o.notes||''],
+      ['Ultima modificare',o.lastModifiedDate?`${o.lastModifiedDate}, ${o.lastModifiedTime||''}`:'Nicio modificare'],
+      ['Modificată de',o.lastModifiedBy||'Nicio modificare']
+    ];
+    const details=lines.map(([k,v])=>`<div class="muted">${esc(k)}</div><div><b>${esc(v||'')}</b></div>`).join('');
+    const historyHtml=history.length?history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).map(h=>`<div class="order-audit-item"><div class="order-audit-meta">${esc(h.date||'')} ${esc(h.time||'')} · ${esc(h.user||h.username||'Utilizator')}</div><div class="order-audit-reason">${esc(h.reason||'Fără motiv')}</div></div>`).join(''):'<div class="muted">Nicio modificare efectuată.</div>';
+    const editButton=canEditOrder(o)?`<button class="icon-btn primary" onclick="this.closest('.modal').remove();openOrderEdit('${esc(o.id)}')" title="Editează comanda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg></button>`:'';
+    const wrap=document.createElement('div');
+    wrap.className='modal open';
+    wrap.innerHTML=`<div class="wizard" style="max-width:760px"><div class="top"><div><div class="muted">Detalii comandă</div><div class="order-code-head"><div class="step-title">${esc(o.code)}</div><button class="icon-btn primary order-code-copy" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(o.code)}')" title="Copiază codul">${ICON_COPY}</button></div></div></div><div class="detail-grid">${details}</div><div class="order-audit-section"><div class="order-audit-title">Istoric modificări</div><div class="order-audit-list">${historyHtml}</div></div><div class="icon-btns">${editButton}</div></div>`;
+    document.body.appendChild(wrap);
+  };
+
+  (orders||[]).forEach(ensureAudit);
+  save();
+})();
+</script>
 </body>
 </html>
