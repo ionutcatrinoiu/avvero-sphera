@@ -2559,7 +2559,7 @@ function render(){
  const hi=value=>rawQuery?highlightMatch(value,rawQuery):esc(value);
  const rxCell=value=>{const text=String(value||'');const marker=text.toLowerCase().lastIndexOf(' ax ');if(marker<0)return `<div class="rx-diopters">${hi(text)}</div>`;return `<div class="rx-diopters">${hi(text.slice(0,marker))}</div><div class="rx-axis">${hi(text.slice(marker+1))}</div>`};
  const addCell=value=>String(value||'').split(/\s*\/\s*/).filter(Boolean).map(v=>`<div class="add-value">${hi(v)}</div>`).join('');
- const productCell=o=>{const text=productSummary(o);const indexMatch=text.match(/\b\d\.\d{2}\b/);if(!indexMatch||indexMatch.index===undefined)return `<div class="product-line product-name">${hi(text)}</div>`;const name=text.slice(0,indexMatch.index).trim();const details=text.slice(indexMatch.index).trim();return `<div class="product-line product-name">${hi(name)}</div><div class="product-line product-details">${hi(details)}</div>`};
+ const productCell=o=>{const text=productSummary(o);const design=String(o.product||'').trim();const designPrefix=['monofocal','bifocal'].includes(norm(design))?design+' ':'';const indexMatch=text.match(/\b\d\.\d{2}\b/);if(!indexMatch||indexMatch.index===undefined)return `<div class="product-line product-name">${hi(designPrefix+text)}</div>`;const name=designPrefix+text.slice(0,indexMatch.index).trim();const details=text.slice(indexMatch.index).trim();return `<div class="product-line product-name">${hi(name)}</div><div class="product-line product-details">${hi(details)}</div>`};
  const html=rows.map(o=>`<tr class="clickable ${isDelayedOrder(o)?'delayed-order':''}" onclick="showOrderDetails('${o.id}')"><td><b>${hi(o.code)}</b></td><td><b>${hi(processingCenterLabel(o))}</b></td><td>${hi(o.client.name)}</td><td>${productCell(o)}</td><td>${rxCell(odText(o))}</td><td>${rxCell(osText(o))}</td><td>${addCell(addText(o))}</td><td>${hi(o.patient)}</td><td class="status-cell" onclick="event.stopPropagation()"><button class="icon-btn table-action status-toggle ${o.status==='Livrată'?'delivered':'primary'}" tabindex="-1" onclick="toggleOrderStatus('${o.id}')" title="Schimbă livrarea">${ICON_STATUS}</button></td><td class="delete-cell" onclick="event.stopPropagation()">${(typeof canDeleteOrder==='function'&&canDeleteOrder(o))?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder('${o.id}')" title="Șterge comanda">${ICON_TRASH}</button>`:''}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nu există comenzi.</td></tr>';
  const orderBody=document.getElementById('orderRows'); if(orderBody) orderBody.innerHTML=html;
  if(typeof prodList!=='undefined' && prodList){
@@ -7995,6 +7995,19 @@ html>.sphera-edit-popup.modal.open>.wizard{
   document.addEventListener('click',event=>{
     if(event.target.closest?.('[title="Editează comanda"]'))setTimeout(showReadonlyClient,0);
   },true);
+})();
+</script>
+<style id="sphera-logo-dashboard-link-style">
+.brand-menu,.mobile-secondary-lockup{cursor:pointer;}
+</style>
+<script id="sphera-logo-dashboard-link">
+(function(){
+  'use strict';
+  function openDashboardFromLogo(){
+    if(typeof showPage==='function')showPage('dashboard',document.getElementById('menuDashboard'));
+  }
+  document.querySelector('.brand-menu')?.addEventListener('click',openDashboardFromLogo);
+  document.querySelector('.mobile-secondary-lockup')?.addEventListener('click',openDashboardFromLogo);
 })();
 </script>
 </body>
