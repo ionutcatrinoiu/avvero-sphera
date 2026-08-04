@@ -7952,5 +7952,58 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
   },true);
 })();
 </script>
+<style id="sphera-uniform-popup-width-client-readonly">
+.modal.open>.wizard,
+html>.modal.open>.wizard{
+  width:min(760px,calc(100vw - 48px))!important;
+  max-width:calc(100vw - 48px)!important;
+}
+.order-edit-grid>.field:has(#editClient){display:block!important;}
+#editClient{display:none!important;}
+.edit-client-readonly{
+  width:100%;
+  min-height:46px;
+  display:flex;
+  align-items:center;
+  padding:12px 13px;
+  border:1px solid var(--line);
+  border-radius:13px;
+  background:#f8fafc;
+  color:#101828;
+  font-size:14px;
+  font-weight:700;
+  box-sizing:border-box;
+}
+@media(max-width:700px){
+  .modal.open>.wizard,html>.modal.open>.wizard{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;}
+}
+</style>
+<script id="sphera-edit-client-readonly">
+(function(){
+  'use strict';
+  function showReadonlyClient(){
+    const modal=[...document.querySelectorAll('.modal.open')].reverse().find(item=>item.querySelector('.order-edit-grid'));
+    const select=modal?.querySelector('#editClient');
+    const field=select?.closest('.field');
+    if(!select||!field)return;
+    let display=field.querySelector('.edit-client-readonly');
+    if(!display){
+      display=document.createElement('div');
+      display.className='edit-client-readonly';
+      field.appendChild(display);
+    }
+    display.textContent=String(select.selectedOptions?.[0]?.textContent||'').split('·')[0].trim();
+  }
+  const openEditWithReadonlyClient=window.openOrderEdit;
+  window.openOrderEdit=function(){
+    const result=openEditWithReadonlyClient&&openEditWithReadonlyClient.apply(this,arguments);
+    showReadonlyClient();
+    return result;
+  };
+  document.addEventListener('click',event=>{
+    if(event.target.closest?.('[title="Editează comanda"]'))setTimeout(showReadonlyClient,0);
+  },true);
+})();
+</script>
 </body>
 </html>
