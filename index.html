@@ -3024,7 +3024,7 @@ cursor:pointer;
     const centers=orderedProcessingCenters();
     const operators=[...new Set(CENTERS.map(x=>x.operator).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ro'));
     const modalEl=document.createElement('div');modalEl.className='modal open';
-    modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="order-edit-grid"><div class="field full"><label>Cod RX</label><input class="edit-code-readonly" value="${esc(o.code)}" readonly></div><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div><div class="field"><label>Design</label><input id="editProduct" value="${esc(o.product||'')}"></div><div class="field"><label>Produs</label><input id="editDesign" value="${esc(o.design||'')}"></div><div class="field"><label>Indice</label><input id="editIndex" value="${esc(o.index||'')}"></div><div class="field"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div><div class="field"><label>Material</label><input id="editMaterial" value="${esc(o.material||'')}"></div><div class="field"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div><div class="field"><label>Tratament</label><input id="editTreatment" value="${esc(o.treatment||'')}"></div><div class="field"><label>Centru procesare</label><select id="editCenter">${optionList(centers,o.center)}</select></div><div class="field"><label>Operator</label><select id="editOperator">${optionList(operators,o.operator)}</select></div><div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div><div class="field"><label>Centru montaj</label><select id="editMount">${optionList(centers.filter(c=>!['craiova','oradea'].includes(norm(c))),o.mount)}</select></div><div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>În centru</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>La client</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
+    modalEl.innerHTML=`<div class="wizard" style="max-width:900px"><div class="top"><div><div class="muted">Editare comandă</div><div class="step-title">${esc(o.code)}</div></div><button class="btn ghost" onclick="this.closest('.modal').remove()">Închide</button></div><div class="order-edit-grid"><div class="field full"><label>Cod RX</label><input class="edit-code-readonly" value="${esc(o.code)}" readonly></div><div class="field"><label>Client</label><select id="editClient">${clients.map(c=>`<option value="${esc(c.code)}" ${String(c.code)===String(o.client?.code)?'selected':''}>${esc(c.name)} · ${esc(c.city)} · ${esc(c.code)}</option>`).join('')}</select></div><div class="field"><label>Nume pacient</label><input id="editPatient" value="${esc(o.patient||'')}"></div><div class="field"><label>Design</label><input id="editProduct" value="${esc(o.product||'')}"></div><div class="field"><label>Produs</label><input id="editDesign" value="${esc(o.design||'')}"></div><div class="field"><label>Indice</label><input id="editIndex" value="${esc(o.index||'')}"></div><div class="field"><label>Geometrie</label><input id="editGeometry" value="${esc(o.geometry||'')}"></div><div class="field"><label>Material</label><input id="editMaterial" value="${esc(o.material||'')}"></div><div class="field"><label>Culoare</label><input id="editColor" value="${esc(o.materialColor||'')}"></div><div class="field"><label>Tratament</label><input id="editTreatment" value="${esc(o.treatment||'')}"></div><div class="field"><label>Centru procesare</label><select id="editCenter">${optionList(centers,o.center)}</select></div><div class="field"><label>Operator</label><select id="editOperator">${optionList(operators,o.operator)}</select></div><div class="field"><label>Montaj</label><select id="editHasMount"><option value="1" ${o.hasMount!==false?'selected':''}>Da</option><option value="0" ${o.hasMount===false?'selected':''}>Nu</option></select></div><div class="field"><label>Centru montaj</label><select id="editMount">${optionList(centers.filter(c=>!['craiova','oradea'].includes(norm(c))),o.mount)}</select></div><div class="field"><label>Livrare</label><select id="editDelivery"><option value="center" ${o.deliveryDestination!=='client'?'selected':''}>În centru</option><option value="client" ${o.deliveryDestination==='client'?'selected':''}>La client</option></select></div><div class="field full"><label>Dioptrii</label><div class="order-edit-rx"><div></div><div class="head">SPH</div><div class="head">CYL</div><div class="head">AX</div><div class="head">ADD</div><div class="rx-label">OD</div><input id="eOdSph" value="${esc(o.rx?.odSph||'')}"><input id="eOdCyl" value="${esc(o.rx?.odCyl||'')}"><input id="eOdAx" value="${esc(o.rx?.odAx||'')}"><input id="eOdAdd" value="${esc(o.rx?.odAdd||'')}"><div class="rx-label">OS</div><input id="eOsSph" value="${esc(o.rx?.osSph||'')}"><input id="eOsCyl" value="${esc(o.rx?.osCyl||'')}"><input id="eOsAx" value="${esc(o.rx?.osAx||'')}"><input id="eOsAdd" value="${esc(o.rx?.osAdd||'')}"></div></div><div class="field full"><label>Mențiuni</label><textarea id="editNotes">${esc(o.notes||'')}</textarea></div><div class="field full edit-reason-required"><label>Motivul modificării <span style="color:#f04438">*</span></label><textarea id="editReason" placeholder="Descrie clar motivul modificării" required></textarea></div></div><div class="icon-btns"><button class="btn ghost" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn primary" onclick="saveOrderEdit('${esc(o.id)}',this)">Salvează</button></div></div>`;
     document.body.appendChild(modalEl);
   };
   window.saveOrderEdit=function(id,btn){
@@ -7313,6 +7313,7 @@ Modification history
           auditVersion:AUDIT_VERSION
         });
         save();
+        render();
       }
       return result;
     };
@@ -7412,9 +7413,9 @@ Modification history
   'use strict';
 
   function strictOrderOwner(order){
-    if(!order || !window.currentUser) return false;
+    if(!order || !currentUser) return false;
 
-    const role=String(window.currentUser.role||'').trim().toLowerCase();
+    const role=String(currentUser.role||'').trim().toLowerCase();
     if(role==='admin' || role==='administrator') return true;
     if(role==='viewer' || role==='export' || role==='operator export') return false;
 
@@ -7426,8 +7427,8 @@ Modification history
     ].filter(Boolean).map(v=>String(v).trim());
 
     const userIds=[
-      window.currentUser.uid,
-      window.currentUser.id
+      currentUser.uid,
+      currentUser.id
     ].filter(Boolean).map(v=>String(v).trim());
 
     if(orderIds.length && userIds.length && orderIds.some(id=>userIds.includes(id))){
@@ -7440,11 +7441,16 @@ Modification history
     ].filter(Boolean).map(v=>String(v).trim().toLowerCase());
 
     const userNames=[
-      window.currentUser.username
+      currentUser.username
     ].filter(Boolean).map(v=>String(v).trim().toLowerCase());
 
-    return orderNames.length && userNames.length &&
-           orderNames.some(name=>userNames.includes(name));
+    if(orderNames.length && userNames.length && orderNames.some(name=>userNames.includes(name))){
+      return true;
+    }
+
+    const creatorNames=[order.createdByName,order.operator].filter(Boolean).map(v=>norm(v));
+    const loggedNames=[currentUser.name,currentUser.displayName].filter(Boolean).map(v=>norm(v));
+    return creatorNames.length>0 && loggedNames.length>0 && creatorNames.some(name=>loggedNames.includes(name));
   }
 
   window.canDeleteOrder=function(order){
@@ -7453,7 +7459,7 @@ Modification history
 
   const protectedDelete=window.deleteOrder;
   window.deleteOrder=function(id){
-    const order=(window.orders||[]).find(item=>String(item.id)===String(id));
+    const order=(orders||[]).find(item=>String(item.id)===String(id));
     if(!strictOrderOwner(order)) return false;
     return protectedDelete ? protectedDelete.apply(this,arguments) : false;
   };
@@ -7466,7 +7472,7 @@ Modification history
       if(!codeCell || !deleteCell) return;
 
       const code=String(codeCell.textContent||'').trim();
-      const order=(window.orders||[]).find(item=>String(item.code||'').trim()===code);
+      const order=(orders||[]).find(item=>String(item.code||'').trim()===code);
       if(!strictOrderOwner(order)){
         deleteCell.innerHTML='';
       }
