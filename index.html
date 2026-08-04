@@ -6940,6 +6940,58 @@ function toggleMobileMenu(button){
 </style>
 
 
+
+<style id="sphera-mobile-menu-fade-transition">
+@media(max-width:760px){
+  .side>.menu{
+    display:grid!important;
+    max-height:0!important;
+    opacity:0!important;
+    visibility:hidden!important;
+    overflow:hidden!important;
+    padding-top:0!important;
+    padding-bottom:0!important;
+    border-bottom-color:transparent!important;
+    transform:translateY(-8px)!important;
+    pointer-events:none!important;
+    transition:max-height .28s ease, opacity .22s ease, transform .28s ease, padding .28s ease, border-color .28s ease, visibility 0s linear .28s!important;
+  }
+  .side.mobile-menu-open>.menu{
+    max-height:320px!important;
+    opacity:1!important;
+    visibility:visible!important;
+    padding-top:12px!important;
+    padding-bottom:14px!important;
+    border-bottom-color:#e4e7ec!important;
+    transform:translateY(0)!important;
+    pointer-events:auto!important;
+    transition:max-height .30s ease, opacity .24s ease, transform .30s ease, padding .30s ease, border-color .30s ease, visibility 0s!important;
+  }
+  .mobile-account-panel{
+    display:flex!important;
+    max-height:0!important;
+    opacity:0!important;
+    visibility:hidden!important;
+    overflow:hidden!important;
+    padding-top:0!important;
+    padding-bottom:0!important;
+    transform:translateY(-8px)!important;
+    pointer-events:none!important;
+    transition:max-height .24s ease, opacity .18s ease, transform .24s ease, padding .24s ease, visibility 0s linear .24s!important;
+  }
+  .side.mobile-menu-open .mobile-account-panel{
+    max-height:90px!important;
+    opacity:1!important;
+    visibility:visible!important;
+    padding-top:10px!important;
+    padding-bottom:14px!important;
+    transform:translateY(0)!important;
+    pointer-events:auto!important;
+    transition:max-height .28s ease, opacity .22s ease, transform .28s ease, padding .28s ease, visibility 0s!important;
+  }
+}
+</style>
+
 <script id="sphera-mobile-menu-close-on-scroll">
 (function(){
   const MOBILE_MAX_WIDTH = 760;
