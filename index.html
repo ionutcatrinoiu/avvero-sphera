@@ -7228,8 +7228,16 @@ Modification history
   }
   function currentIsAdmin(){return String(currentUser?.role||'').toLowerCase()==='admin';}
   function currentIsViewer(){return ['viewer','export'].includes(String(currentUser?.role||'').toLowerCase());}
+  function isIasiTeamOrder(o){
+    if(norm(currentUser?.center||'')!=='iasi'||!o)return false;
+    const centers=[o.createdByCenter,o.creatorCenter,o.center].filter(Boolean).map(v=>norm(v));
+    if(centers.includes('iasi'))return true;
+    const creator=norm(o.createdByName||o.operator||'');
+    return !!creator&&(CENTERS||[]).some(item=>norm(item?.operator||'')===creator&&norm(item?.center||'')==='iasi');
+  }
   function isOwnOrder(o){
     if(!o)return false;
+    if(isIasiTeamOrder(o))return true;
     const u=userIdentity();
 
     const orderIds=[
@@ -7444,6 +7452,13 @@ Modification history
     if(role==='admin' || role==='administrator') return true;
     if(role==='viewer' || role==='export' || role==='operator export') return false;
 
+    if(norm(currentUser.center||'')==='iasi'){
+      const orderCenters=[order.createdByCenter,order.creatorCenter,order.center].filter(Boolean).map(v=>norm(v));
+      const creator=norm(order.createdByName||order.operator||'');
+      const creatorFromIasi=!!creator&&(CENTERS||[]).some(item=>norm(item?.operator||'')===creator&&norm(item?.center||'')==='iasi');
+      if(orderCenters.includes('iasi')||creatorFromIasi)return true;
+    }
+
     const orderIds=[
       order.createdById,
       order.createdByUid,
@@ -7486,6 +7501,8 @@ Modification history
   window.canSetWorkflowStep=function(status,order){
     const delivered=norm(status)==='livrata';
     const admin=['admin','administrator'].includes(String(currentUser?.role||'').trim().toLowerCase());
+    const iasiTeam=norm(currentUser?.center||'')==='iasi'&&strictOrderOwner(order);
+    if(iasiTeam)return true;
     if(delivered&&!admin&&!strictOrderOwner(order))return false;
     return protectedCanSetWorkflowStep?protectedCanSetWorkflowStep.apply(this,arguments):false;
   };
