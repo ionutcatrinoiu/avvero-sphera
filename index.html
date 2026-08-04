@@ -7828,10 +7828,9 @@ Modification history
     panel.style.setProperty('transform','translate(-50%, -50%)','important');
 
     const design=norm(modal.querySelector('#editProduct')?.value||'');
-    if(design.includes('monofocal')){
-      modal.querySelectorAll('.edit-add-col').forEach(el=>el.remove());
-      modal.querySelector('.order-edit-rx')?.classList.add('no-add');
-    }
+    const isMonofocal=design.includes('monofocal');
+    modal.querySelectorAll('.edit-add-col').forEach(el=>el.classList.toggle('hide-field',isMonofocal));
+    modal.querySelector('.order-edit-rx')?.classList.toggle('no-add',isMonofocal);
     makeArrowControls(modal,panel);
   }
 
@@ -7908,8 +7907,8 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
     modal.dataset.editMonofocal=String(isMonofocal);
     const rxGrid=modal.querySelector('.order-edit-rx');
     rxGrid?.classList.toggle('no-add',isMonofocal);
+    modal.querySelectorAll('.edit-add-col').forEach(el=>el.classList.toggle('hide-field',isMonofocal));
     if(isMonofocal){
-      modal.querySelectorAll('.edit-add-col').forEach(el=>el.remove());
       const odAdd=modal.querySelector('#eOdAdd'),osAdd=modal.querySelector('#eOsAdd');
       if(odAdd)odAdd.value='';
       if(osAdd)osAdd.value='';
@@ -7964,7 +7963,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
 }
 .order-edit-grid>.field:has(#editClient){display:none!important;}
 #editClient{display:none!important;}
-.edit-title-client{font-size:.72em;font-weight:800;color:#475467;}
+.edit-title-client{font:inherit;color:inherit;letter-spacing:inherit;}
 @media(max-width:700px){
   .modal.open>.wizard,html>.modal.open>.wizard{width:calc(100vw - 20px)!important;max-width:calc(100vw - 20px)!important;}
 }
