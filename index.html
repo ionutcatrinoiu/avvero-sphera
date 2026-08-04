@@ -1397,7 +1397,7 @@ pointer-events:none;
 </section>
 <section class="page hide" id="clientsPage">
 <div class="card">
-<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Clienți</h2><div class="muted">Filtrează după nume, localitate sau cod.</div></div><div class="clients-head-actions"><button class="btn ghost" onclick="showPage('dashboard',document.querySelector('.menu button'))">Dashboard</button></div></div>
+<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Clienți</h2><div class="muted">Filtrează după nume, localitate sau cod.</div></div></div>
 <div class="clients-filter-row">
 <input id="clientFilter" oninput="renderClients()" placeholder="Caută nume, localitate sau cod"/>
 <span class="pill count-dot" id="clientFilterCount">0</span>
@@ -8008,6 +8008,30 @@ html>.sphera-edit-popup.modal.open>.wizard{
   }
   document.querySelector('.brand-menu')?.addEventListener('click',openDashboardFromLogo);
   document.querySelector('.mobile-secondary-lockup')?.addEventListener('click',openDashboardFromLogo);
+})();
+</script>
+<script id="sphera-client-delete-permissions">
+(function(){
+  'use strict';
+  function canDeleteClientByRole(){
+    return !!currentUser&&['admin','iasi'].includes(String(currentUser.role||''));
+  }
+  function enforceClientDeletePermissions(){
+    if(canDeleteClientByRole())return;
+    document.querySelectorAll('#clientRows button[onclick^="deleteClient"],#clientRows button[title="Șterge client"]').forEach(button=>button.remove());
+  }
+  const originalDeleteClient=window.deleteClient;
+  window.deleteClient=function(){
+    if(!canDeleteClientByRole())return;
+    return originalDeleteClient&&originalDeleteClient.apply(this,arguments);
+  };
+  const originalRenderClients=window.renderClients;
+  window.renderClients=function(){
+    const result=originalRenderClients&&originalRenderClients.apply(this,arguments);
+    enforceClientDeletePermissions();
+    return result;
+  };
+  setTimeout(enforceClientDeletePermissions,0);
 })();
 </script>
 </body>
