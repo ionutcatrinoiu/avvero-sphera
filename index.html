@@ -6151,5 +6151,703 @@ function toggleMobileMenu(button){
 })();
 </script>
 
+
+<style id="sphera-desktop-same-layout">
+/* Aceeași structură vizuală și pe desktop: header fix, meniu ascuns, KPI în două coloane. */
+@media screen and (min-width:761px){
+  html,body{overflow-x:hidden!important}
+  .shell{display:block!important;overflow:visible!important}
+  .side{
+    position:fixed!important;
+    top:0!important;
+    left:0!important;
+    right:0!important;
+    width:100%!important;
+    min-width:0!important;
+    height:auto!important;
+    z-index:9999!important;
+    padding:0!important;
+    overflow:visible!important;
+    background:#fff!important;
+    border-right:0!important;
+    border-bottom:1px solid #e4e7ec!important;
+    box-shadow:0 8px 24px rgba(16,24,40,.08)!important;
+  }
+  .mobile-appbar{
+    display:flex!important;
+    width:100%!important;
+    min-height:88px!important;
+    padding:14px 30px!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:18px!important;
+    background:rgba(255,255,255,.96)!important;
+    border-bottom:1px solid #e4e7ec!important;
+  }
+  .mobile-secondary-lockup{display:flex!important;align-items:center!important;gap:16px!important}
+  .mobile-avvero-crop{width:178px!important;height:54px!important;flex:0 0 178px!important;overflow:hidden!important;position:relative!important}
+  .mobile-avvero-crop img{position:absolute!important;width:178px!important;height:54px!important;max-width:none!important;left:0!important;top:50%!important;transform:translateY(-50%)!important;object-fit:contain!important}
+  .mobile-logo-divider{height:44px!important}
+  .mobile-product-name strong{font-size:24px!important}
+  .mobile-product-name span{font-size:11px!important}
+  .mobile-menu-toggle{width:46px!important;height:46px!important;min-width:46px!important}
+  .side>.brand-menu,.side>.sub{display:none!important}
+  .side>.menu{
+    display:none!important;
+    grid-template-columns:repeat(5,minmax(140px,1fr))!important;
+    gap:8px!important;
+    width:100%!important;
+    margin:0!important;
+    padding:12px 30px 14px!important;
+    background:#f4f7fb!important;
+    border-bottom:1px solid #e4e7ec!important;
+  }
+  .side.mobile-menu-open>.menu{display:grid!important}
+  .side>.menu button{margin:0!important;min-height:44px!important;padding:11px 14px!important}
+  .mobile-account-panel{
+    display:none!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:18px!important;
+    padding:10px 30px 14px!important;
+    background:#f4f7fb!important;
+  }
+  .side.mobile-menu-open .mobile-account-panel{display:flex!important}
+  .top-actions .logout-account-wrap{display:none!important}
+  .main{
+    width:100%!important;
+    max-width:1440px!important;
+    margin:0 auto!important;
+    padding:118px 30px 34px!important;
+    overflow:visible!important;
+  }
+  #dashboard .grid.dashboard-stats{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-flow:row!important;
+    gap:16px!important;
+    width:100%!important;
+    max-width:100%!important;
+  }
+  #dashboard .grid.dashboard-stats>.card,
+  #dashboard .grid.dashboard-stats>.stat-btn{
+    grid-column:auto!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:150px!important;
+    margin:0!important;
+    padding:22px!important;
+  }
+  #dashboard .grid.dashboard-stats>.stat-btn .muted{font-size:15px!important;line-height:1.3!important}
+  #dashboard .grid.dashboard-stats>.stat-btn .kpi{margin-top:18px!important;font-size:38px!important;line-height:1!important}
+}
+@media screen and (min-width:1200px){
+  .main{padding-left:42px!important;padding-right:42px!important}
+  .mobile-appbar{padding-left:42px!important;padding-right:42px!important}
+  .side>.menu,.mobile-account-panel{padding-left:42px!important;padding-right:42px!important}
+}
+</style>
+<script id="sphera-menu-close-all-sizes">
+(function(){
+  document.querySelectorAll('.side>.menu button').forEach(function(item){
+    item.addEventListener('click',function(){
+      const side=item.closest('.side');
+      const toggle=side&&side.querySelector('.mobile-menu-toggle');
+      if(side) side.classList.remove('mobile-menu-open');
+      if(toggle){
+        toggle.setAttribute('aria-expanded','false');
+        toggle.setAttribute('aria-label','Deschide meniul');
+      }
+    });
+  });
+})();
+</script>
+
+
+
+<style id="sphera-desktop-metrics-header-final">
+/* Desktop, header inspirat din Metrics Live. Mobilul rămâne neschimbat. */
+@media screen and (min-width:761px){
+  html,body{
+    overflow-x:hidden!important;
+    font-family:"Montserrat",Arial,sans-serif!important;
+  }
+  .shell{
+    display:block!important;
+    width:100%!important;
+    max-width:none!important;
+    overflow:visible!important;
+  }
+  .side{
+    position:fixed!important;
+    inset:0 0 auto 0!important;
+    width:100%!important;
+    min-width:0!important;
+    height:72px!important;
+    padding:0!important;
+    z-index:9999!important;
+    overflow:visible!important;
+    background:#fff!important;
+    border:0!important;
+    border-bottom:1px solid #dfe5ec!important;
+    box-shadow:0 2px 10px rgba(16,24,40,.04)!important;
+  }
+  .mobile-appbar{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    width:min(1180px,calc(100% - 32px))!important;
+    height:72px!important;
+    min-height:72px!important;
+    margin:0 auto!important;
+    padding:0!important;
+    gap:13px!important;
+    border:0!important;
+    background:#fff!important;
+    box-shadow:none!important;
+  }
+  .mobile-secondary-lockup{
+    display:flex!important;
+    align-items:center!important;
+    gap:13px!important;
+    min-width:355px!important;
+    height:72px!important;
+    flex:0 0 auto!important;
+  }
+  .mobile-avvero-crop{
+    position:relative!important;
+    width:171px!important;
+    height:52px!important;
+    flex:0 0 171px!important;
+    overflow:visible!important;
+  }
+  .mobile-avvero-crop img{
+    position:static!important;
+    display:block!important;
+    width:171px!important;
+    height:52px!important;
+    max-width:171px!important;
+    object-fit:contain!important;
+    object-position:left center!important;
+    transform:none!important;
+  }
+  .mobile-logo-divider{
+    display:block!important;
+    width:1px!important;
+    height:38px!important;
+    flex:0 0 1px!important;
+    background:#d9e0e8!important;
+  }
+  .mobile-product-name{
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
+    min-width:155px!important;
+    line-height:1!important;
+  }
+  .mobile-product-name strong{
+    margin:0!important;
+    color:#0b2230!important;
+    font-family:"Montserrat",Arial,sans-serif!important;
+    font-size:19px!important;
+    line-height:1!important;
+    letter-spacing:-.45px!important;
+    font-weight:900!important;
+    text-transform:none!important;
+  }
+  .mobile-product-name span{
+    margin-top:5px!important;
+    color:#117a9d!important;
+    font-family:"Montserrat",Arial,sans-serif!important;
+    font-size:9px!important;
+    line-height:1!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+  }
+  .mobile-menu-toggle{
+    display:none!important;
+  }
+  .side>.brand-menu,
+  .side>.sub,
+  .mobile-account-panel{
+    display:none!important;
+  }
+  .side>.menu{
+    position:absolute!important;
+    top:0!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    width:min(1180px,calc(100% - 32px))!important;
+    height:72px!important;
+    margin:0!important;
+    padding:0 0 0 380px!important;
+    gap:8px!important;
+    background:transparent!important;
+    border:0!important;
+    pointer-events:none!important;
+  }
+  .side>.menu button{
+    width:auto!important;
+    min-width:0!important;
+    min-height:40px!important;
+    height:40px!important;
+    margin:0!important;
+    padding:0 15px!important;
+    display:inline-flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:8px!important;
+    border:0!important;
+    border-radius:13px!important;
+    background:#edf1f6!important;
+    color:#475467!important;
+    box-shadow:none!important;
+    font-family:"Montserrat",Arial,sans-serif!important;
+    font-size:12px!important;
+    line-height:1!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+    pointer-events:auto!important;
+    transform:none!important;
+  }
+  .side>.menu button:hover{
+    background:#e8f0ff!important;
+    color:#165dff!important;
+  }
+  .side>.menu button.active{
+    background:#117a9d!important;
+    color:#fff!important;
+    box-shadow:0 8px 18px rgba(17,122,157,.18)!important;
+  }
+  .side>.menu button span:last-child{
+    font-weight:inherit!important;
+    opacity:1!important;
+  }
+  .main{
+    width:min(1180px,calc(100% - 32px))!important;
+    max-width:1180px!important;
+    min-width:0!important;
+    margin:0 auto!important;
+    padding:102px 0 36px!important;
+    overflow:visible!important;
+  }
+  .top-actions .logout-account-wrap{
+    display:flex!important;
+  }
+  #dashboard .grid.dashboard-stats,
+  section#dashboard>div.grid.dashboard-stats{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-auto-flow:row!important;
+    gap:16px!important;
+    width:100%!important;
+  }
+  #dashboard .grid.dashboard-stats>.card,
+  #dashboard .grid.dashboard-stats>.stat-btn,
+  section#dashboard>div.grid.dashboard-stats>.card,
+  section#dashboard>div.grid.dashboard-stats>.stat-btn{
+    width:100%!important;
+    min-width:0!important;
+    max-width:none!important;
+    min-height:128px!important;
+    margin:0!important;
+    padding:20px!important;
+    border-radius:20px!important;
+  }
+  #dashboard .grid.dashboard-stats>:last-child:nth-child(odd){
+    grid-column:1/-1!important;
+  }
+}
+@media screen and (min-width:761px) and (max-width:1080px){
+  .mobile-secondary-lockup{min-width:305px!important}
+  .mobile-avvero-crop{width:145px!important;flex-basis:145px!important}
+  .mobile-avvero-crop img{width:145px!important;max-width:145px!important}
+  .mobile-product-name{min-width:130px!important}
+  .mobile-product-name strong{font-size:17px!important}
+  .mobile-product-name span{font-size:8px!important}
+  .side>.menu{padding-left:320px!important;gap:5px!important}
+  .side>.menu button{padding:0 10px!important;font-size:10px!important}
+}
+</style>
+
+
+<style id="sphera-desktop-header-user-final">
+@media screen and (min-width:761px){
+  .side{
+    height:78px!important;
+  }
+  .mobile-appbar{
+    width:min(1540px,calc(100% - 36px))!important;
+    height:78px!important;
+    min-height:78px!important;
+    margin:0 auto!important;
+  }
+  .mobile-secondary-lockup{
+    min-width:360px!important;
+    height:78px!important;
+  }
+  .mobile-avvero-crop{
+    width:168px!important;
+    height:50px!important;
+    flex-basis:168px!important;
+  }
+  .mobile-avvero-crop img{
+    width:168px!important;
+    height:50px!important;
+    max-width:168px!important;
+  }
+  .mobile-product-name{min-width:150px!important}
+  .mobile-product-name strong{
+    font-size:19px!important;
+    letter-spacing:-.55px!important;
+  }
+  .mobile-product-name span{
+    margin-top:4px!important;
+    font-size:9px!important;
+    color:#00a0b5!important;
+  }
+  .side>.menu{
+    position:absolute!important;
+    top:0!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    width:min(1540px,calc(100% - 36px))!important;
+    height:78px!important;
+    padding:0 300px 0 372px!important;
+    gap:6px!important;
+    justify-content:flex-end!important;
+  }
+  .side>.menu button{
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 12px!important;
+    border-radius:12px!important;
+    font-size:11px!important;
+    font-weight:800!important;
+  }
+  .desktop-header-account{
+    position:absolute;
+    top:0;
+    right:max(18px,calc((100vw - 1540px)/2));
+    height:78px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    z-index:5;
+  }
+  .desktop-user-card{
+    height:52px;
+    min-width:176px;
+    max-width:220px;
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr);
+    grid-template-rows:auto auto;
+    column-gap:9px;
+    align-items:center;
+    padding:7px 12px;
+    border:1px solid #e4e7ec;
+    border-radius:14px;
+    background:#fff;
+    box-shadow:0 6px 16px rgba(16,24,40,.05);
+  }
+  .desktop-user-icon{
+    grid-row:1/3;
+    width:34px;
+    height:34px;
+    display:grid;
+    place-items:center;
+    border-radius:10px;
+    background:#e9f7fa;
+    color:#117a9d;
+  }
+  .desktop-user-icon svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:2}
+  .desktop-user-name{
+    min-width:0;
+    color:#101828;
+    font-size:12px;
+    line-height:1.15;
+    font-weight:900;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .desktop-user-meta{
+    min-width:0;
+    color:#667085;
+    font-size:9px;
+    line-height:1.2;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .desktop-header-logout{
+    height:42px;
+    display:inline-flex;
+    align-items:center;
+    gap:7px;
+    padding:0 13px;
+    border:1px solid #ffd2ce;
+    border-radius:12px;
+    background:#fff7f6;
+    color:#d92d20;
+    font-family:"Montserrat",Arial,sans-serif;
+    font-size:10px;
+    font-weight:900;
+    cursor:pointer;
+  }
+  .desktop-header-logout svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2}
+  .desktop-header-logout:hover{background:#f04438;color:#fff;border-color:#f04438}
+  .top-actions .logout-account-wrap{display:none!important}
+  #dashboard #who{display:none!important}
+  .main{
+    width:min(1180px,calc(100% - 36px))!important;
+    padding-top:104px!important;
+  }
+}
+@media screen and (min-width:761px) and (max-width:1280px){
+  .mobile-appbar,.side>.menu{width:calc(100% - 24px)!important}
+  .mobile-secondary-lockup{min-width:300px!important}
+  .mobile-avvero-crop{width:138px!important;flex-basis:138px!important}
+  .mobile-avvero-crop img{width:138px!important;max-width:138px!important}
+  .mobile-product-name{min-width:126px!important}
+  .mobile-product-name strong{font-size:16px!important}
+  .mobile-product-name span{font-size:7.5px!important}
+  .side>.menu{padding-left:306px!important;padding-right:270px!important;gap:4px!important}
+  .side>.menu button{padding:0 8px!important;font-size:9px!important}
+  .desktop-header-account{right:12px!important;gap:7px!important}
+  .desktop-user-card{min-width:150px!important;max-width:165px!important;padding-left:9px!important;padding-right:9px!important}
+  .desktop-header-logout{padding:0 10px!important;font-size:0!important}
+}
+</style>
+<script id="sphera-desktop-header-user-script">
+(function(){
+  const side=document.querySelector('.side');
+  if(!side || side.querySelector('.desktop-header-account')) return;
+  const wrap=document.createElement('div');
+  wrap.className='desktop-header-account';
+  wrap.innerHTML=`
+    <div class="desktop-user-card" title="Cont utilizator">
+      <span class="desktop-user-icon"><svg viewBox="0 0 24 24"><path d="M20 21a8 8 0 0 0-16 0"></path><circle cx="12" cy="7" r="4"></circle></svg></span>
+      <strong class="desktop-user-name" id="desktopHeaderUserName">Utilizator</strong>
+      <span class="desktop-user-meta" id="desktopHeaderUserMeta">Cont</span>
+    </div>
+    <button type="button" class="desktop-header-logout" onclick="logout()" title="Deconectare">
+      <span>Deconectare</span>
+      <svg viewBox="0 0 24 24"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M14 3h4a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3h-4"></path></svg>
+    </button>`;
+  side.appendChild(wrap);
+
+  function roleText(){
+    const badge=document.getElementById('accountBadge');
+    const text=badge && badge.textContent.trim();
+    if(text) return text;
+    try{return currentUser && typeof roleLabel==='function' ? roleLabel(currentUser.role) : 'Cont';}catch(e){return 'Cont';}
+  }
+  function centerText(){
+    try{
+      if(currentUser){
+        const c=(typeof userCenterName==='function' && userCenterName()) || currentUser.center || currentUser.location;
+        if(c) return c;
+      }
+    }catch(e){}
+    return '';
+  }
+  function nameText(){
+    try{
+      if(currentUser && currentUser.name) return String(currentUser.name).trim();
+    }catch(e){}
+    const old=document.getElementById('logoutFirstName');
+    return old && old.textContent.trim() ? old.textContent.trim() : 'Utilizator';
+  }
+  function sync(){
+    const name=document.getElementById('desktopHeaderUserName');
+    const meta=document.getElementById('desktopHeaderUserMeta');
+    if(name) name.textContent=nameText();
+    const role=roleText();
+    const center=centerText();
+    if(meta) meta.textContent=center ? role+' · '+center : role;
+  }
+  sync();
+  const observeTargets=[document.getElementById('accountBadge'),document.getElementById('logoutFirstName'),document.getElementById('who')].filter(Boolean);
+  observeTargets.forEach(el=>new MutationObserver(sync).observe(el,{subtree:true,childList:true,characterData:true,attributes:true}));
+  document.addEventListener('click',()=>setTimeout(sync,0));
+  window.addEventListener('load',()=>setTimeout(sync,250));
+  setInterval(sync,1200);
+})();
+</script>
+
+<style id="sphera-desktop-alignment-fix-v2">
+@media screen and (min-width:761px){
+  .side{
+    display:flex!important;
+    align-items:center!important;
+    gap:12px!important;
+    width:100%!important;
+    min-width:0!important;
+    height:78px!important;
+    padding:0 max(18px,calc((100vw - 1540px)/2))!important;
+    overflow:visible!important;
+  }
+  .mobile-appbar{
+    position:static!important;
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:78px!important;
+    margin:0!important;
+    padding:0!important;
+  }
+  .mobile-secondary-lockup{
+    min-width:335px!important;
+    width:335px!important;
+    height:78px!important;
+  }
+  .mobile-avvero-crop{
+    width:154px!important;
+    flex-basis:154px!important;
+  }
+  .mobile-avvero-crop img{
+    width:154px!important;
+    max-width:154px!important;
+  }
+  .mobile-product-name{min-width:142px!important}
+  .side>.menu{
+    position:static!important;
+    transform:none!important;
+    flex:1 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    height:78px!important;
+    padding:0!important;
+    margin:0!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-end!important;
+    gap:6px!important;
+    overflow:visible!important;
+  }
+  .side>.menu button{
+    flex:0 1 auto!important;
+    min-width:0!important;
+    height:40px!important;
+    padding:0 11px!important;
+    font-size:10px!important;
+    white-space:nowrap!important;
+  }
+  .desktop-header-account{
+    position:static!important;
+    flex:0 0 auto!important;
+    height:78px!important;
+    gap:8px!important;
+  }
+  .desktop-user-card{
+    min-width:170px!important;
+    max-width:190px!important;
+  }
+  .desktop-header-logout{
+    flex:0 0 auto!important;
+    padding:0 12px!important;
+    font-size:10px!important;
+  }
+  .main{
+    width:min(1540px,calc(100% - 36px))!important;
+    max-width:none!important;
+    padding:104px 0 30px!important;
+    margin:0 auto!important;
+  }
+  #dashboardOrdersCard{overflow:hidden!important}
+  #dashboardOrdersCard .table-wrap,
+  #ordersListBox .table-wrap{
+    overflow-x:hidden!important;
+    width:100%!important;
+  }
+  #dashboardOrdersCard table,
+  #ordersListBox table{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    table-layout:fixed!important;
+    font-size:11px!important;
+  }
+  #dashboardOrdersCard th,#dashboardOrdersCard td,
+  #ordersListBox th,#ordersListBox td{
+    padding:9px 6px!important;
+    white-space:normal!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    line-height:1.25!important;
+  }
+  #dashboardOrdersCard th:nth-child(1),#dashboardOrdersCard td:nth-child(1),
+  #ordersListBox th:nth-child(1),#ordersListBox td:nth-child(1){width:11%!important}
+  #dashboardOrdersCard th:nth-child(2),#dashboardOrdersCard td:nth-child(2),
+  #ordersListBox th:nth-child(2),#ordersListBox td:nth-child(2){width:10%!important}
+  #dashboardOrdersCard th:nth-child(3),#dashboardOrdersCard td:nth-child(3),
+  #ordersListBox th:nth-child(3),#ordersListBox td:nth-child(3){width:13%!important}
+  #dashboardOrdersCard th:nth-child(4),#dashboardOrdersCard td:nth-child(4),
+  #ordersListBox th:nth-child(4),#ordersListBox td:nth-child(4){width:24%!important}
+  #dashboardOrdersCard th:nth-child(5),#dashboardOrdersCard td:nth-child(5),
+  #ordersListBox th:nth-child(5),#ordersListBox td:nth-child(5){width:10%!important;text-align:center!important}
+  #dashboardOrdersCard th:nth-child(6),#dashboardOrdersCard td:nth-child(6),
+  #ordersListBox th:nth-child(6),#ordersListBox td:nth-child(6){width:10%!important;text-align:center!important}
+  #dashboardOrdersCard th:nth-child(7),#dashboardOrdersCard td:nth-child(7),
+  #ordersListBox th:nth-child(7),#ordersListBox td:nth-child(7){width:6%!important;text-align:center!important}
+  #dashboardOrdersCard th:nth-child(8),#dashboardOrdersCard td:nth-child(8),
+  #ordersListBox th:nth-child(8),#ordersListBox td:nth-child(8){width:11%!important}
+  #dashboardOrdersCard th:nth-child(9),#dashboardOrdersCard td:nth-child(9),
+  #ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:3%!important;text-align:center!important}
+  #dashboardOrdersCard th:nth-child(10),#dashboardOrdersCard td:nth-child(10),
+  #ordersListBox th:nth-child(10),#ordersListBox td:nth-child(10){width:2%!important;text-align:center!important;padding-left:1px!important;padding-right:1px!important}
+}
+@media screen and (min-width:761px) and (max-width:1280px){
+  .side{gap:7px!important;padding-left:12px!important;padding-right:12px!important}
+  .mobile-secondary-lockup{width:286px!important;min-width:286px!important}
+  .mobile-avvero-crop{width:130px!important;flex-basis:130px!important}
+  .mobile-avvero-crop img{width:130px!important;max-width:130px!important}
+  .mobile-product-name{min-width:118px!important}
+  .mobile-product-name strong{font-size:15px!important}
+  .mobile-product-name span{font-size:7px!important}
+  .side>.menu{gap:3px!important}
+  .side>.menu button{padding:0 7px!important;font-size:8.5px!important}
+  .desktop-user-card{min-width:145px!important;max-width:155px!important}
+  .desktop-header-logout{width:42px!important;padding:0!important;font-size:0!important;justify-content:center!important}
+  .main{width:calc(100% - 24px)!important}
+}
+</style>
+
+<style id="sphera-delete-button-edge-fix">
+@media screen and (min-width:761px){
+  #dashboardOrdersCard,
+  #ordersListBox{overflow:visible!important;}
+  #dashboardOrdersCard .table-wrap,
+  #ordersListBox .table-wrap{overflow:visible!important;}
+  #dashboardOrdersCard th:nth-child(4),#dashboardOrdersCard td:nth-child(4),
+  #ordersListBox th:nth-child(4),#ordersListBox td:nth-child(4){width:22.5%!important;}
+  #dashboardOrdersCard th:nth-child(9),#dashboardOrdersCard td:nth-child(9),
+  #ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:3.25%!important;overflow:visible!important;}
+  #dashboardOrdersCard th:nth-child(10),#dashboardOrdersCard td:nth-child(10),
+  #ordersListBox th:nth-child(10),#ordersListBox td:nth-child(10){
+    width:3.25%!important;
+    min-width:42px!important;
+    padding-left:4px!important;
+    padding-right:6px!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+  }
+  #dashboardOrdersCard td:last-child .table-action,
+  #ordersListBox td:last-child .table-action{
+    width:32px!important;
+    height:32px!important;
+    min-width:32px!important;
+    margin:0 auto!important;
+    position:relative!important;
+    right:0!important;
+  }
+}
+</style>
 </body>
 </html>
