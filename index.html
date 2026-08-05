@@ -1978,6 +1978,15 @@ function inList(v,arr){return (arr||[]).some(x=>norm(x)===norm(v))}
 function silentStepComplete(){let old=stepErr.textContent; let ok=validateStep(true); stepErr.textContent=old; return ok}
 let autoTimer=null; function autoAdvanceSoon(){clearTimeout(autoTimer); autoTimer=setTimeout(()=>{if(!modal.classList.contains('open'))return; if(step<steps.length-1 && silentStepComplete()) nextStep(true);},450)}
 function addRequired(product){return ['Progresiv','Progresiv specializat','Degresiv','Bifocal'].includes(product) || norm(draft.design)==='boostreader add+'}
+function redrawStepKeepingFocus(controlId){
+ drawStep(false);
+ const restore=()=>{
+  const control=document.getElementById(controlId);
+  if(control&&control.getClientRects().length)control.focus({preventScroll:true});
+ };
+ restore();
+ requestAnimationFrame(restore);
+}
 function drawStep(resetErr=true){
  if(resetErr) stepErr.textContent='';
  stepNo.textContent='Pas '+(step+1)+' din '+steps.length;
@@ -1993,9 +2002,9 @@ function drawStep(resetErr=true){
    sanitizeSelections();
    const designTypes = designKeys();
    const productList = productOptionsForDesign();
-   const colorField = needsColorField(draft.material)?`<div class="field"><label>Culoare</label><input value="${esc(draft.materialColor||'')}" oninput="draft.materialColor=capWords(this.value)" onblur="this.value=setCap('materialColor',this.value)" placeholder="Ex: Gri, Maro, Verde, Emerald, Ruby, Amber"></div>`:'';
-   const treatmentField = `<div class="field"><label>Tratament</label><select onchange="draft.treatment=this.value">${selectOptions(filteredTreatments(), draft.treatment)}</select></div>`;
-   h=`<div class="two"><div class="field"><label>Design</label><select id="productSelect" onchange="draft.product=this.value; resetAfterDesign(); drawStep(false)" autofocus>${selectOptions(designTypes, draft.product)}</select></div><div class="field"><label>Produs</label><select id="designSelect" onchange="draft.design=this.value; if(!draft.product){draft.product=designForProduct(this.value)}; resetAfterProduct(); drawStep(false)">${selectOptions(productList, draft.design)}</select></div></div><div class="two"><div class="field"><label>Indice</label><select onchange="draft.index=this.value">${selectOptions(filteredIndices(), draft.index)}</select></div>${showGeometryField()?`<div class="field"><label>Geometrie</label><select onchange="draft.geometry=this.value">${selectOptions(GEOMETRIES, draft.geometry)}</select></div>`:'<div></div>'}</div><div class="two"><div class="field"><label>Material</label><select onchange="draft.material=this.value; if(!needsColorField(draft.material))draft.materialColor=''; drawStep(false)">${selectOptions(filteredMaterials(), draft.material)}</select></div>${colorField||treatmentField}</div>${colorField?`<div class="field">${treatmentField}</div>`:''}`;
+   const colorField = needsColorField(draft.material)?`<div class="field"><label>Culoare</label><input id="materialColorInput" value="${esc(draft.materialColor||'')}" oninput="draft.materialColor=capWords(this.value)" onblur="this.value=setCap('materialColor',this.value)" placeholder="Ex: Gri, Maro, Verde, Emerald, Ruby, Amber"></div>`:'';
+   const treatmentField = `<div class="field"><label>Tratament</label><select id="treatmentSelect" onchange="draft.treatment=this.value">${selectOptions(filteredTreatments(), draft.treatment)}</select></div>`;
+   h=`<div class="two"><div class="field"><label>Design</label><select id="productSelect" onchange="draft.product=this.value; resetAfterDesign(); redrawStepKeepingFocus('productSelect')" autofocus>${selectOptions(designTypes, draft.product)}</select></div><div class="field"><label>Produs</label><select id="designSelect" onchange="draft.design=this.value; if(!draft.product){draft.product=designForProduct(this.value)}; resetAfterProduct(); redrawStepKeepingFocus('designSelect')">${selectOptions(productList, draft.design)}</select></div></div><div class="two"><div class="field"><label>Indice</label><select id="indexSelect" onchange="draft.index=this.value">${selectOptions(filteredIndices(), draft.index)}</select></div>${showGeometryField()?`<div class="field"><label>Geometrie</label><select id="geometrySelect" onchange="draft.geometry=this.value">${selectOptions(GEOMETRIES, draft.geometry)}</select></div>`:'<div></div>'}</div><div class="two"><div class="field"><label>Material</label><select id="materialSelect" onchange="draft.material=this.value; if(!needsColorField(draft.material))draft.materialColor=''; redrawStepKeepingFocus('materialSelect')">${selectOptions(filteredMaterials(), draft.material)}</select></div>${colorField||treatmentField}</div>${colorField?`<div class="field">${treatmentField}</div>`:''}`;
    break;
   case 2:
    const showAdd=addRequired(draft.product);
