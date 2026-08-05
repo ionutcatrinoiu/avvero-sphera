@@ -8396,8 +8396,21 @@ html>.sphera-edit-popup.modal.open>.wizard{
 #deletedOrdersListBox th:nth-child(7),#deletedOrdersListBox td:nth-child(7){width:12%;}
 #deletedOrdersListBox th:nth-child(8),#deletedOrdersListBox td:nth-child(8){width:5%;text-align:center;}
 #deletedOrdersCard:not(.admin-history) .deleted-history-row-action{display:none;}
-.deleted-history-row-delete{width:32px!important;height:32px!important;min-width:32px!important;margin:0 auto!important;position:relative!important;right:0!important;}
-.deleted-history-row-delete svg{width:15px!important;height:15px!important;stroke:currentColor;stroke-width:2.2!important;stroke-linecap:round;stroke-linejoin:round;}
+#deletedOrdersCard #deletedOrdersListBox button.deleted-history-row-delete{
+  width:32px!important;
+  min-width:32px!important;
+  max-width:32px!important;
+  height:32px!important;
+  min-height:32px!important;
+  max-height:32px!important;
+  flex:0 0 32px!important;
+  padding:0!important;
+  margin:0 auto!important;
+  position:relative!important;
+  right:0!important;
+  line-height:1!important;
+}
+#deletedOrdersCard #deletedOrdersListBox button.deleted-history-row-delete svg{width:15px!important;height:15px!important;stroke:currentColor;stroke-width:2.2!important;stroke-linecap:round;stroke-linejoin:round;}
 @media(max-width:760px){
   #deletedOrdersCard{margin-top:10px!important;}
   #deletedOrdersListBox table{min-width:980px;}
