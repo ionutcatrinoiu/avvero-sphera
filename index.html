@@ -1446,11 +1446,11 @@ pointer-events:none;
 <div class="card admin-users-card" style="margin-top:16px">
 <div class="nomen-card-head">
 <div><h2 style="margin:0">Administrare utilizatori</h2><div class="muted">Modifică parola, centrul sau privilegiile fiecărui cont.</div></div>
-<button aria-expanded="true" class="nomen-toggle" onclick="toggleAdminUsers(this)" title="Ascunde sau afișează" type="button">
+<button aria-expanded="false" class="nomen-toggle collapsed" onclick="toggleAdminUsers(this)" title="Ascunde sau afișează" type="button">
 <svg fill="none" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg>
 </button>
 </div>
-<div class="nomen-card-body" id="adminUsersBody">
+<div class="nomen-card-body collapsed" id="adminUsersBody">
 <div class="user-search-wrap">
 <input autocomplete="off" id="userAdminSearch" placeholder="Caută după nume, utilizator, centru, cod sau tipul contului" type="search"/>
 <span class="count-dot" id="userAdminCount">0</span>
@@ -9441,6 +9441,70 @@ html>.sphera-edit-popup.modal.open>.wizard{
     if(created)created.classList.add('client-create-modal');
     return result;
   };
+})();
+</script>
+<style id="sphera-v112-settings-nomenclature-polish">
+/* Setări: aceeași pictogramă de ștergere în toate controalele */
+#bugReportsCard .bug-report-toolbar{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:10px!important;min-height:42px!important}
+#bugReportsCard #deleteSelectedBugs{width:42px!important;height:42px!important;min-width:42px!important;padding:0!important;border:1px solid #ffd9d6!important;border-radius:50%!important;background:#fff7f6!important;color:#f04438!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;box-shadow:none!important;font-size:0!important}
+#bugReportsCard #deleteSelectedBugs svg{width:16px!important;height:16px!important;fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;stroke-linecap:round!important;stroke-linejoin:round!important}
+#bugReportsCard #deleteSelectedBugs:hover:not(:disabled){background:#f04438!important;color:#fff!important;border-color:#f04438!important}
+#bugReportsCard #deleteSelectedBugs:disabled{opacity:.42!important;cursor:not-allowed!important}
+
+/* Nomenclatoare: densitate mai bună, fără schimbarea structurii */
+#nomenclators .nomenclature-stack{gap:10px!important}
+#nomenclators .nomen-card{padding:16px 18px!important;border-radius:20px!important}
+#nomenclators .nomen-card-head{gap:12px!important}
+#nomenclators .nomen-card-head h2{font-size:21px!important;line-height:1.2!important}
+#nomenclators .nomen-toggle{width:38px!important;height:38px!important;min-width:38px!important}
+#nomenclators .nomen-toggle svg{width:19px!important;height:19px!important}
+#nomenclators .nomen-card-body{margin-top:10px!important}
+#nomenclators .nomen-card-body>.two{gap:8px!important}
+#nomenclators .nomen-card-body>.two input,#nomenclators .nomen-card-body>.two button{min-height:42px!important;height:42px!important;font-size:13px!important}
+#nomenclators .list{gap:7px!important;margin-top:9px!important}
+#nomenclators .item{padding:9px 11px!important;border-radius:14px!important;min-height:48px!important}
+#nomenclators .item-row{gap:9px!important}
+#nomenclators .item b{font-size:13px!important;line-height:1.25!important}
+#nomenclators .chips{gap:6px!important;margin-top:6px!important}
+#nomenclators .chip{min-height:34px!important;padding:5px 7px 5px 10px!important;font-size:13px!important;gap:6px!important}
+#nomenclators .design-editor{gap:7px!important;margin-top:8px!important}
+#nomenclators .design-editor input,#nomenclators .design-editor button{min-height:38px!important;height:38px!important;font-size:12px!important}
+#nomenclators .icon-btn.red{width:36px!important;height:36px!important;min-width:36px!important}
+#nomenclators .mini.red{width:27px!important;height:27px!important;min-width:27px!important;padding:0!important;border-radius:50%!important;border:1px solid #ffd0cc!important;background:#fff3f2!important;color:#e4312b!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-size:15px!important;font-weight:700!important;line-height:1!important;box-shadow:none!important;transition:background .16s ease,color .16s ease,border-color .16s ease,transform .16s ease!important}
+#nomenclators .mini.red:hover{background:#f04438!important;color:#fff!important;border-color:#f04438!important;transform:scale(1.04)!important}
+#nomenclators .list{scrollbar-width:thin!important;scrollbar-color:#c7ced8 transparent!important}
+#nomenclators .list::-webkit-scrollbar{width:6px!important;height:6px!important}
+#nomenclators .list::-webkit-scrollbar-track{background:transparent!important}
+#nomenclators .list::-webkit-scrollbar-thumb{background:#c7ced8!important;border-radius:999px!important}
+@media(max-width:760px){#nomenclators .nomen-card{padding:13px!important}#nomenclators .nomen-card-head h2{font-size:19px!important}}
+</style>
+<script id="sphera-v112-settings-nomenclature-polish-script">
+(function(){
+  'use strict';
+  const trashIcon='<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M6 7l1 14h10l1-14"></path><path d="M9 7V4h6v3"></path></svg>';
+  function removeSettingsExport(){document.getElementById('rxExportCard')?.remove()}
+  function polishSettingsDelete(){
+    const button=document.getElementById('deleteSelectedBugs');
+    if(!button)return;
+    if(button.dataset.iconReady!=='1'){
+      button.innerHTML=trashIcon;
+      button.dataset.iconReady='1';
+      button.title='Șterge bug-urile selectate';
+      button.setAttribute('aria-label','Șterge bug-urile selectate');
+    }
+  }
+  function keepUsersClosedInitially(){
+    const body=document.getElementById('adminUsersBody');
+    const button=document.querySelector('.admin-users-card .nomen-toggle');
+    if(!body||!button||body.dataset.defaultStateApplied==='1')return;
+    body.dataset.defaultStateApplied='1';
+    body.classList.add('collapsed');
+    button.classList.add('collapsed');
+    button.setAttribute('aria-expanded','false');
+  }
+  function refresh(){removeSettingsExport();polishSettingsDelete();keepUsersClosedInitially()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh);else refresh();
+  new MutationObserver(refresh).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
 </body>
