@@ -1391,7 +1391,7 @@ pointer-events:none;
 </div>
 </div>
 <div class="card" id="deletedOrdersCard" style="margin-top:16px">
-<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Istoric comenzi șterse</h2><div class="muted">Comenzile eliminate și detaliile ștergerii.</div></div><div class="deleted-history-actions"><button aria-label="Șterge istoricul" class="icon-btn red hide" id="clearDeletedOrdersBtn" onclick="clearDeletedOrdersHistory()" title="Șterge istoricul"><svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"></path></svg></button><button aria-label="Ascunde istoricul" class="icon-btn list-toggle" id="toggleDeletedOrdersBtn" onclick="toggleDeletedOrdersHistory()" title="Ascunde istoricul"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div></div>
+<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Comenzi șterse</h2><div class="muted">Comenzile eliminate și detaliile ștergerii.</div></div><div class="deleted-history-actions"><button aria-label="Șterge istoricul" class="icon-btn red hide" id="clearDeletedOrdersBtn" onclick="clearDeletedOrdersHistory()" title="Șterge istoricul"><svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"></path></svg></button><button aria-label="Ascunde istoricul" class="icon-btn list-toggle" id="toggleDeletedOrdersBtn" onclick="toggleDeletedOrdersHistory()" title="Ascunde istoricul"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div></div>
 <div id="deletedOrdersListBox">
 <div class="orders-tools"><span class="muted">Înregistrări disponibile</span><span class="pill count-dot" id="deletedOrdersCount">0</span></div>
 <div class="table-wrap"><table><thead><tr><th>Cod</th><th>Data</th><th>Client</th><th>Produs</th><th>Centru</th><th>Șters la</th><th>Șters de</th><th class="deleted-history-row-action"></th><th class="deleted-history-row-action"></th></tr></thead><tbody id="deletedOrderRows"></tbody></table></div>
@@ -8320,6 +8320,14 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
     const modals=[...document.querySelectorAll('.modal.open')].filter(item=>item.getClientRects().length>0);
     const modal=modals[modals.length-1];
     if(!modal)return;
+    const desktopWizard=window.matchMedia('(min-width:761px)').matches&&modal.id==='modal'&&modal.querySelector('#stepBox');
+    if(desktopWizard&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if(event.key==='ArrowRight'&&typeof nextStep==='function')nextStep();
+      if(event.key==='ArrowLeft'&&typeof prevStep==='function')prevStep();
+      return;
+    }
     const items=focusables(modal);
     const currentIndex=items.indexOf(document.activeElement);
     const sequential=event.key==='Tab'||event.key==='ArrowLeft'||event.key==='ArrowRight';
@@ -8533,7 +8541,18 @@ html>.sphera-edit-popup.modal.open>.wizard{
 #deletedOrdersCard #deletedOrdersListBox button.deleted-history-row-delete{margin-left:auto!important;margin-right:0!important;}
 @media(max-width:760px){
   #deletedOrdersCard{margin-top:10px!important;}
-  #deletedOrdersListBox table{min-width:980px;}
+  #deletedOrdersListBox{width:100%!important;min-width:0!important;}
+  #deletedOrdersListBox .table-wrap{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:scroll!important;
+    overflow-y:hidden!important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x;
+    overscroll-behavior-x:contain;
+  }
+  #deletedOrdersListBox table{width:980px!important;min-width:980px!important;max-width:none!important;}
 }
 </style>
 <style id="sphera-desktop-dashboard-kpi-row-fix">
