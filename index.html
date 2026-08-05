@@ -1390,6 +1390,13 @@ pointer-events:none;
 <div class="table-wrap"><table><thead><tr><th>Cod</th><th>Centru</th><th>Client</th><th>Produs</th><th>OD</th><th>OS</th><th>ADD</th><th>Nume pacient</th><th>Livrare</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
 </div>
 </div>
+<div class="card" id="deletedOrdersCard" style="margin-top:16px">
+<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Istoric comenzi șterse</h2><div class="muted">Comenzile eliminate și detaliile ștergerii.</div></div><button aria-label="Ascunde istoricul" class="icon-btn list-toggle" id="toggleDeletedOrdersBtn" onclick="toggleDeletedOrdersHistory()" title="Ascunde istoricul"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div>
+<div id="deletedOrdersListBox">
+<div class="orders-tools"><span class="muted">Înregistrări disponibile</span><span class="pill count-dot" id="deletedOrdersCount">0</span></div>
+<div class="table-wrap"><table><thead><tr><th>Cod</th><th>Data</th><th>Client</th><th>Produs</th><th>Centru</th><th>Șters la</th><th>Șters de</th></tr></thead><tbody id="deletedOrderRows"></tbody></table></div>
+</div>
+</div>
 <div class="card" id="dashboardClientsCard" style="margin-top:16px">
 <div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Ultimii 10 clienți adăugați</h2><div class="muted">Lista poate fi ascunsă sau afișată.</div></div><button aria-label="Ascunde lista" class="icon-btn list-toggle" id="toggleClientsBtn" onclick="toggleRecentClients()" title="Ascunde lista"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div>
 <div class="table-wrap" id="recentClientsBox"><table><thead><tr><th>Client</th><th>Localitate</th><th>Cod</th></tr></thead><tbody id="recentClientRows"></tbody></table></div>
@@ -1544,7 +1551,7 @@ function addTreatment(){addSimple('TREATMENTS','newTreatment')}
 function addOperator(){let center=cleanVal('newOperatorCenter'), operator=cleanVal('newOperatorName'), centerCode=cleanVal('newCenterCode'), operatorCode=cleanVal('newOperatorCode'); if(!center||!operator||!centerCode||!operatorCode){showAppConfirm({title:'Date incomplete', text:'Completează centrul, operatorul, codul centrului și codul operatorului.', confirmText:'OK', cancelText:'Închide'});return} CENTERS.push({center,centerCode,operator,operatorCode,last:'00000'}); ['newOperatorCenter','newOperatorName','newCenterCode','newOperatorCode'].forEach(id=>document.getElementById(id).value=''); saveNomenclators(); render()}
 function deleteOperator(i){CENTERS.splice(i,1); saveNomenclators(); render()}
 const GEOMETRIES = ["S", "AS"];
-let currentUser=null, step=0, draft={}, orders=safeLoad('rx_orders', []);
+let currentUser=null, step=0, draft={}, orders=safeLoad('rx_orders', []), deletedOrders=safeLoad('sphera_deleted_orders_history', []);
 let orderViewMode='all';
 orders=(orders||[]).map(o=>{
   const renameMap={'Fusion Evo Plus':'Fusion Evo Purtător','Fusion Evo Start':'Fusion Evo Începător','Attraction Gold Plus':'Attraction Gold Purtător','Attraction Gold Start':'Attraction Gold Începător','NuPolar Infitinte Grey':'NuPolar Infinite Grey','Protect Complet':'Protect Complete'};
@@ -2575,6 +2582,7 @@ function render(){
  renderClients();
  renderRecentClients();
  renderProcessingOrders();
+ renderDeletedOrders();
 }
 
 function recentClients(){return CLIENTS.filter(c=>Number(c.createdAt||0)>0).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0)).slice(0,10)}
@@ -2683,6 +2691,7 @@ function deleteOrder(id){
      if(typeof window.SPHERA_deleteOrderPermanently==='function'){
        await window.SPHERA_deleteOrderPermanently(id);
      }else{
+       archiveDeletedOrderLocally(order);
        orders=orders.filter(o=>String(o.id)!==String(id));
        save();
        render();
@@ -2691,6 +2700,63 @@ function deleteOrder(id){
  });
 }
 function clearOrders(){if(!isAdmin())return;showAppConfirm({title:'Ștergere comenzi', text:'Ștergi comenzile locale?', confirmText:'Șterge', cancelText:'Anulează', danger:true, onConfirm:()=>{orders=[];save();render();}})}
+
+function deletedTimestamp(value){
+ if(value&&typeof value.toDate==='function')return value.toDate().getTime();
+ if(value&&typeof value.seconds==='number')return value.seconds*1000+Math.floor(Number(value.nanoseconds||0)/1000000);
+ const parsed=Date.parse(value||'');
+ return Number.isFinite(parsed)?parsed:0;
+}
+function archiveDeletedOrderLocally(order,details={}){
+ if(!order)return;
+ const entry={
+  order:JSON.parse(JSON.stringify(order)),
+  orderId:String(order.id||''),
+  deletedAt:details.deletedAt||new Date().toISOString(),
+  deletedBy:details.deletedBy||currentUser?.name||currentUser?.username||'Utilizator',
+  deletedByUid:details.deletedByUid||currentUser?.uid||''
+ };
+ deletedOrders=[entry,...deletedOrders.filter(item=>String(item.orderId||item.order?.id||'')!==entry.orderId)];
+ localStorage.setItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
+ renderDeletedOrders();
+}
+function canViewDeletedOrder(order){
+ if(!currentUser||!order)return false;
+ if(isAdmin()||isOperatorMaster())return true;
+ if(String(currentUser.role||'').toLowerCase()==='viewer'){
+  const allowed=new Set((currentUser.warehouses||[]).map(norm));
+  return allowed.has(norm(order.center));
+ }
+ return norm(order.center)===norm(currentUser.center);
+}
+function formatDeletedDateTime(value){
+ const time=deletedTimestamp(value);
+ if(!time)return 'Data indisponibilă';
+ return new Intl.DateTimeFormat('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(time));
+}
+function renderDeletedOrders(){
+ const body=document.getElementById('deletedOrderRows');
+ if(!body)return;
+ const list=(deletedOrders||[]).filter(item=>item?.order&&canViewDeletedOrder(item.order)).sort((a,b)=>deletedTimestamp(b.deletedAt)-deletedTimestamp(a.deletedAt));
+ const count=document.getElementById('deletedOrdersCount');
+ if(count)count.textContent=String(list.length);
+ body.innerHTML=list.map(item=>{
+  const order=item.order;
+  return `<tr><td><b>${esc(order.code||item.orderId||'')}</b></td><td>${esc(formatDateRO(order.date||''))}</td><td>${esc(order.client?.name||'')}</td><td>${esc(productSummary(order))}</td><td>${esc(processingCenterLabel(order))}</td><td>${esc(formatDeletedDateTime(item.deletedAt))}</td><td>${esc(item.deletedBy||'Utilizator')}</td></tr>`;
+ }).join('')||'<tr><td colspan="7" class="muted">Nu există comenzi șterse.</td></tr>';
+}
+function toggleDeletedOrdersHistory(){
+ const box=document.getElementById('deletedOrdersListBox');
+ const button=document.getElementById('toggleDeletedOrdersBtn');
+ if(!box)return;
+ box.classList.toggle('hide');
+ const hidden=box.classList.contains('hide');
+ if(button){
+  button.innerHTML=`<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="${hidden?'M6 9l6 6 6-6':'M6 15l6-6 6 6'}"/></svg></span>`;
+  button.title=hidden?'Afișează istoricul':'Ascunde istoricul';
+  button.setAttribute('aria-label',button.title);
+ }
+}
 
 document.addEventListener('DOMContentLoaded',()=>{
   const user=document.getElementById('user');
@@ -4597,6 +4663,12 @@ cursor:pointer;
   function startDeletedOrdersSync(){
     if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();
     unsubscribeDeletedOrders=DELETED_ORDERS_COL.onSnapshot(snap=>{
+      deletedOrders=snap.docs.map(doc=>doc.data()||{}).filter(item=>item.order).map(item=>({
+        ...item,
+        orderId:String(item.orderId||item.order?.id||''),
+        deletedBy:item.deletedByName||item.deletedBy||'Utilizator'
+      }));
+      originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
       deletedOrderIds=new Set(
         snap.docs.map(doc=>String(doc.data()?.orderId||'')).filter(Boolean)
       );
@@ -4613,6 +4685,7 @@ cursor:pointer;
         if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
         setTimeout(()=>{applyingOrdersRemote=false},0);
       }
+      if(typeof renderDeletedOrders==='function')renderDeletedOrders();
     },error=>{
       console.error('SPHERA deleted orders listener error',error);
     });
@@ -4623,6 +4696,9 @@ cursor:pointer;
     if(!orderId)return false;
 
     const previousOrders=Array.isArray(orders)?orders.slice():[];
+    const deletedOrder=previousOrders.find(order=>String(order?.id)===orderId);
+    const previousDeletedOrders=Array.isArray(deletedOrders)?deletedOrders.slice():[];
+    if(deletedOrder)archiveDeletedOrderLocally(deletedOrder);
     orders=previousOrders.filter(order=>String(order?.id)!==orderId);
     deletedOrderIds.add(orderId);
     lastLocalOrderIds.delete(orderId);
@@ -4645,8 +4721,10 @@ cursor:pointer;
       batch.delete(ORDERS_COL.doc(docId));
       batch.set(DELETED_ORDERS_COL.doc(docId),{
         orderId,
+        order:deletedOrder?cleanOrderForCloud(deletedOrder):null,
         deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
-        deletedBy:auth.currentUser.uid
+        deletedBy:auth.currentUser.uid,
+        deletedByName:currentUser?.name||currentUser?.username||'Utilizator'
       },{merge:true});
       batch.set(ORDERS_STATE_REF,{
         initialized:true,
@@ -4658,6 +4736,8 @@ cursor:pointer;
     }catch(error){
       console.error('SPHERA permanent order delete error',error);
       orders=previousOrders;
+      deletedOrders=previousDeletedOrders;
+      originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
       deletedOrderIds.delete(orderId);
       lastLocalOrderIds=new Set(orders.map(order=>String(order.id)));
       applyingOrdersRemote=true;
@@ -4666,6 +4746,7 @@ cursor:pointer;
       if(typeof render==='function')render();
       if(typeof renderProcessingOrders==='function')renderProcessingOrders();
       if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+      if(typeof renderDeletedOrders==='function')renderDeletedOrders();
       setCloudStatus('Cloud: comanda nu a putut fi ștearsă','error');
       return false;
     }
@@ -8155,6 +8236,24 @@ html>.sphera-edit-popup.modal.open>.wizard{
   .side>.menu button{height:45px!important;min-height:45px!important;padding:0 8px!important;font-size:9.5px!important;}
   .desktop-user-card{min-width:156px!important;max-width:166px!important;}
   .desktop-header-logout{width:41px!important;min-width:41px!important;height:41px!important;}
+}
+</style>
+<style id="sphera-deleted-orders-history-style">
+#deletedOrdersCard{overflow:hidden!important;}
+#deletedOrdersListBox .orders-tools{justify-content:flex-end!important;}
+#deletedOrdersListBox .table-wrap{width:100%;overflow-x:auto;}
+#deletedOrdersListBox table{width:100%;min-width:1080px;table-layout:fixed;}
+#deletedOrdersListBox th,#deletedOrdersListBox td{padding:11px 8px;vertical-align:middle;line-height:1.3;}
+#deletedOrdersListBox th:nth-child(1),#deletedOrdersListBox td:nth-child(1){width:14%;}
+#deletedOrdersListBox th:nth-child(2),#deletedOrdersListBox td:nth-child(2){width:8%;}
+#deletedOrdersListBox th:nth-child(3),#deletedOrdersListBox td:nth-child(3){width:15%;}
+#deletedOrdersListBox th:nth-child(4),#deletedOrdersListBox td:nth-child(4){width:25%;}
+#deletedOrdersListBox th:nth-child(5),#deletedOrdersListBox td:nth-child(5){width:11%;}
+#deletedOrdersListBox th:nth-child(6),#deletedOrdersListBox td:nth-child(6){width:14%;}
+#deletedOrdersListBox th:nth-child(7),#deletedOrdersListBox td:nth-child(7){width:13%;}
+@media(max-width:760px){
+  #deletedOrdersCard{margin-top:10px!important;}
+  #deletedOrdersListBox table{min-width:980px;}
 }
 </style>
 </body>
