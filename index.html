@@ -8898,9 +8898,21 @@ html>.sphera-edit-popup.modal.open>.wizard{
   function detailStatus(order){try{const steps=orderWorkflowSteps(order);return steps[orderWorkflowIndex(order)]||order.workflowStatus||order.status||'Lansată'}catch(_){return order.workflowStatus||order.status||'Lansată'}}
   function detailRow(label,value){return '<div class="order-detail-label">'+esc(label)+'</div><div class="order-detail-value">'+esc(value||'')+'</div>'}
   function findDetailOrder(id){let order;try{order=(orders||[]).find(x=>String(x.id)===String(id))}catch(_){}return order}
+  function isAdministratorHistory(entry){
+    const role=String(entry?.role||'').trim().toLowerCase();
+    if(role==='admin'||role==='administrator')return true;
+    if(/status\s+resetat/i.test(String(entry?.reason||'')))return true;
+    const id=String(entry?.userId||entry?.uid||''),username=String(entry?.username||'').trim().toLowerCase(),name=String(entry?.user||'').trim().toLowerCase();
+    return (USERS||[]).some(user=>{
+      const userRole=String(user?.role||'').trim().toLowerCase();
+      if(userRole!=='admin'&&userRole!=='administrator')return false;
+      return (id&&String(user?.uid||user?.id||'')===id)||(username&&String(user?.username||'').trim().toLowerCase()===username)||(name&&String(user?.name||'').trim().toLowerCase()===name);
+    });
+  }
   window.showOrderDetails=function(id){
     const order=findDetailOrder(id);if(!order)return;
-    const history=Array.isArray(order.modificationHistory)?order.modificationHistory:[];
+    const history=(Array.isArray(order.modificationHistory)?order.modificationHistory:[]).filter(entry=>!isAdministratorHistory(entry));
+    const lastVisibleChange=history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0];
     const firstGroup=[
       ['Data',formatDateRO(order.date)],
       ['Ora lansării',order.createdTime||'Ora nu este disponibilă'],
@@ -8921,8 +8933,8 @@ html>.sphera-edit-popup.modal.open>.wizard{
       ['Status',currentStatus],
       ...(norm(currentStatus)==='livrata'?[['Data livrare',typeof deliveryDateDisplay==='function'?deliveryDateDisplay(order):(order.deliveredDate?(order.deliveredDate+(order.deliveredTime?', '+order.deliveredTime:'')):'Indisponibilă')]]:[]),
       ['Mențiuni',order.notes||''],
-      ['Ultima modificare',order.lastModifiedDate?order.lastModifiedDate+(order.lastModifiedTime?', '+order.lastModifiedTime:''):'Nicio modificare'],
-      ['Modificat de',order.lastModifiedBy||'Nicio modificare']
+      ['Ultima modificare',lastVisibleChange?(String(lastVisibleChange.date||'')+(lastVisibleChange.time?', '+lastVisibleChange.time:'')):'Nicio modificare'],
+      ['Modificat de',lastVisibleChange?(lastVisibleChange.user||lastVisibleChange.username||'Utilizator'):'Nicio modificare']
     ];
     const historyHtml=history.length?history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).map(entry=>'<div class="order-audit-item"><div class="order-audit-meta">'+esc(entry.date||'')+' '+esc(entry.time||'')+' · '+esc(entry.user||entry.username||'Utilizator')+'</div><div class="order-audit-reason">'+esc(entry.reason||'Fără motiv')+'</div></div>').join(''):'<div class="muted">Nicio modificare efectuată.</div>';
     const canEdit=typeof canEditOrder==='function'&&canEditOrder(order);
