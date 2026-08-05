@@ -1484,7 +1484,7 @@ pointer-events:none;
 <div class="progress"><div class="bar" id="bar"></div></div>
 <div id="stepBox"></div>
 <div class="err" id="stepErr"></div>
-<div class="icon-btns"><button class="icon-btn" onclick="prevStep()" tabindex="-1" title="Înapoi"><span class="arrow">‹</span></button><button class="icon-btn primary" onclick="nextStep()" title="Continuă"><span class="arrow">›</span></button></div>
+<div class="icon-btns"><button class="icon-btn" onclick="prevStep()" tabindex="-1" title="Înapoi"><span class="arrow">‹</span></button><button class="icon-btn primary" id="wizardNextArrow" onclick="nextStep()" title="Continuă"><span class="arrow">›</span></button></div>
 <div class="actions wizard-actions"><button class="btn ghost" onclick="prevStep()">Înapoi</button><button class="btn" id="nextBtn" onclick="nextStep()">Mai departe</button></div>
 </div>
 </div>
@@ -1987,7 +1987,32 @@ function redrawStepKeepingFocus(controlId){
  restore();
  requestAnimationFrame(restore);
 }
+function stepFocusSnapshot(){
+ const active=document.activeElement;
+ if(!active||!stepBox.contains(active))return null;
+ const field=active.closest('.field');
+ const controls=field?[...field.querySelectorAll('input:not([type="hidden"]),select,textarea,button')]:[];
+ return {
+  id:active.id||'',
+  label:field?norm(field.querySelector('label')?.textContent||''):'',
+  fieldIndex:Math.max(0,controls.indexOf(active))
+ };
+}
+function restoreStepFocus(snapshot){
+ if(!snapshot)return false;
+ let control=snapshot.id?document.getElementById(snapshot.id):null;
+ if(!control&&snapshot.label){
+  const field=[...stepBox.querySelectorAll('.field')].find(item=>norm(item.querySelector('label')?.textContent||'')===snapshot.label);
+  const controls=field?[...field.querySelectorAll('input:not([type="hidden"]),select,textarea,button')].filter(item=>!item.disabled):[];
+  control=controls[Math.min(snapshot.fieldIndex,Math.max(0,controls.length-1))]||null;
+ }
+ if(!control||control.disabled||!control.getClientRects().length)return false;
+ control.focus({preventScroll:true});
+ return true;
+}
 function drawStep(resetErr=true){
+ const previousStep=stepBox.dataset.logicalStep;
+ const focusSnapshot=previousStep===String(step)?stepFocusSnapshot():null;
  if(resetErr) stepErr.textContent='';
  stepNo.textContent='Pas '+(step+1)+' din '+steps.length;
  stepTitle.textContent=steps[step];
@@ -2040,9 +2065,14 @@ function drawStep(resetErr=true){
    break;
  }
  stepBox.innerHTML=h;
+ stepBox.dataset.logicalStep=String(step);
  if(step===4){ const el=document.getElementById('mountInput'); if(el){el.disabled=false;el.readOnly=false;el.removeAttribute('disabled');el.removeAttribute('readonly');} }
  if(step===0) clientSuggest(draft.clientQuery||'');
- setTimeout(()=>{let el=stepBox.querySelector('[autofocus], input, select, textarea, button'); if(el){el.focus(); if(el.select)el.select();}},30);
+ setTimeout(()=>{
+  if(restoreStepFocus(focusSnapshot))return;
+  let el=stepBox.querySelector('[autofocus], input:not([type="hidden"]), select, textarea, button');
+  if(el){el.focus(); if(el.select)el.select();}
+ },30);
 }
 function rxQueryVariants(value){
  const raw=String(value||'').trim().replace(',', '.');
@@ -2217,7 +2247,16 @@ function clientKey(e){
  if(e.key==='ArrowUp'){e.preventDefault(); e.stopPropagation(); if(clientResults.length){clientActive=(clientActive-1+clientResults.length)%clientResults.length; updateClientActive();} return;}
  if(e.key==='Enter'){e.preventDefault(); e.stopPropagation(); if(clientResults.length){let i=clientActive>=0?clientActive:0; selectClient(clientResults[i].code,true);} return;}
 }
-function selectClient(code){draft.client=CLIENTS.find(c=>c.code===code); draft.clientQuery=draft.client?draft.client.name:''; drawStep(false)}
+function focusWizardNextArrow(){
+ const button=document.getElementById('wizardNextArrow');
+ if(button&&document.getElementById('modal')?.classList.contains('open'))button.focus({preventScroll:true});
+}
+function selectClient(code){
+ draft.client=CLIENTS.find(c=>c.code===code);
+ draft.clientQuery=draft.client?draft.client.name:'';
+ drawStep(false);
+ setTimeout(focusWizardNextArrow,45);
+}
 
 function nextClientCode(){
   const used=new Set(CLIENTS.map(c=>String(c.code).padStart(3,'0')));
@@ -2245,7 +2284,7 @@ function createNewClientFromDialog(){
   draft.client=c; draft.clientQuery=c.name;
   const m=document.getElementById('newClientCode')?.closest('.modal'); if(m)m.remove();
   render();
-  if(document.getElementById('modal')?.classList.contains('open')){ step=0; drawStep(false); }
+  if(document.getElementById('modal')?.classList.contains('open')){ step=0; drawStep(false); setTimeout(focusWizardNextArrow,45); }
 }
 
 
@@ -2972,7 +3011,7 @@ cursor:pointer;
     const c={name,city,county,code,center:currentUser?.center||'',createdByCenter:currentUser?.center||'',createdAt:Date.now()};CLIENTS.unshift(c);USER_CLIENTS.unshift(c);saveUserClients();
     draft.client=c;draft.clientQuery=c.name;
     document.getElementById('newClientCode')?.closest('.modal')?.remove();render();
-    if(document.getElementById('modal')?.classList.contains('open')){step=0;drawStep(false);}
+    if(document.getElementById('modal')?.classList.contains('open')){step=0;drawStep(false);setTimeout(focusWizardNextArrow,45);}
   };
 
   setTimeout(()=>{render();},0);
@@ -3092,7 +3131,7 @@ cursor:pointer;
     const c={name,city,county:county.toUpperCase(),code,createdAt:Date.now()};CLIENTS.unshift(c);USER_CLIENTS.unshift(c);saveUserClients();
     draft.client=c;draft.clientQuery=c.name;
     codeEl?.closest('.modal')?.remove();render();
-    if(document.getElementById('modal')?.classList.contains('open')){step=0;drawStep(false);}
+    if(document.getElementById('modal')?.classList.contains('open')){step=0;drawStep(false);setTimeout(focusWizardNextArrow,45);}
   };
 
   function optionList(arr,value){return `<option value="">Selectează</option>`+(arr||[]).map(x=>`<option value="${esc(x)}" ${norm(x)===norm(value)?'selected':''}>${esc(x)}</option>`).join('');}
@@ -8070,7 +8109,7 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
   document.addEventListener('keydown',event=>{
     if(!['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
     if(event.target?.id==='clientSearch'&&['ArrowUp','ArrowDown'].includes(event.key))return;
-    if(event.target?.classList?.contains('rx-field'))return;
+    if(event.target?.classList?.contains('rx-field')&&event.key!=='Tab')return;
     const modals=[...document.querySelectorAll('.modal.open')].filter(item=>item.getClientRects().length>0);
     const modal=modals[modals.length-1];
     if(!modal)return;
