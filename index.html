@@ -3980,8 +3980,12 @@ cursor:pointer;
     return c==='oradea'||c==='craiova';
   }
 
+  function isNoMountOrder(order){
+    return order?.hasMount===false || isNoMountCenter(order);
+  }
+
   window.orderWorkflowSteps=function(order){
-    return isNoMountCenter(order)
+    return isNoMountOrder(order)
       ? ['Lansată','Check-out','Recepție','Facturată','Livrată']
       : ['Lansată','Check-out','Recepție','La montaj','Facturată','Livrată'];
   };
@@ -3991,7 +3995,7 @@ cursor:pointer;
     let value=order?.workflowStatus || (order?.status==='Livrată'?'Livrată':'Lansată');
     if(value==='Launched')value='Lansată';
     let i=steps.indexOf(value);
-    if(i<0 && value==='La montaj' && isNoMountCenter(order)) i=steps.indexOf('Recepție');
+    if(i<0 && value==='La montaj' && isNoMountOrder(order)) i=steps.indexOf('Recepție');
     return i<0?0:i;
   };
 
@@ -4056,7 +4060,7 @@ cursor:pointer;
       }
       const deliveryToClient=o.deliveryDestination==='client';
       const deliveryLabel=deliveryToClient?String(o.client?.name||'Client'):String(o.deliveryCenter||o.center||'');
-      return `<div class="workflow-order" onclick="showOrderDetails('${o.id}')"><div class="workflow-head ${notes?'':'no-notes'}"><div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(o.code||'')}</div></div><div><div class="workflow-label">Client</div><div class="workflow-value">${esc(o.client?.name||'')}</div></div><div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(o.client?.code||'')}</div></div><div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(o))}</div></div><div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient?'delivery-client':''}">${esc(deliveryLabel)}</div></div>${notesCell}</div><div class="workflow-track"><div class="workflow-progress" style="width:${width}%"></div>${steps}</div>${readonly}</div>`;
+      return `<div class="workflow-order" onclick="showOrderDetails('${o.id}')"><div class="workflow-head ${notes?'':'no-notes'}"><div><div class="workflow-label">Cod RX</div><div class="workflow-value workflow-rx-code">${esc(o.code||'')}</div></div><div><div class="workflow-label">Client</div><div class="workflow-value">${esc(o.client?.name||'')}</div></div><div><div class="workflow-label">Indicativ client</div><div class="workflow-value workflow-code">${esc(o.client?.code||'')}</div></div><div><div class="workflow-label">Centru</div><div class="workflow-value">${esc(processingCenterLabel(o))}</div></div><div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient?'delivery-client':''}">${esc(deliveryLabel)}</div></div>${notesCell}</div><div class="workflow-track" style="grid-template-columns:repeat(${stepsForOrder.length},minmax(0,1fr))"><div class="workflow-progress" style="width:${width}%"></div>${steps}</div>${readonly}</div>`;
     }).join('')||'<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
   };
 
@@ -4339,7 +4343,10 @@ cursor:pointer;
     const steps = stepsFor(order);
     let value = order.workflowStatus || (order.status === 'Livrată' ? 'Livrată' : 'Lansată');
     if (value === 'Launched') value = 'Lansată';
-    const index = steps.indexOf(value);
+    let index = steps.indexOf(value);
+    if (index < 0 && value === 'La montaj' && !steps.includes('La montaj')) {
+      index = steps.indexOf('Recepție');
+    }
     return index < 0 ? 0 : index;
   }
 
@@ -4490,7 +4497,7 @@ cursor:pointer;
             <div><div class="workflow-label">Livrare</div><div class="workflow-value ${deliveryToClient ? 'delivery-client' : ''}">${esc(deliveryLabel)}</div></div>
             ${notesCell}
           </div>
-          <div class="workflow-track">
+          <div class="workflow-track" style="grid-template-columns:repeat(${steps.length},minmax(0,1fr))">
             <div class="workflow-progress" style="width:${width}%"></div>
             ${checkpoints}
           </div>
