@@ -4561,6 +4561,8 @@ cursor:pointer;
   if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
   const auth=firebase.auth();
   const db=firebase.firestore();
+  window.SPHERA_AUTH=auth;
+  window.SPHERA_DB=db;
   const rememberAuth=localStorage.getItem('sphera_auth_remember')==='1';
   const authStartupReset=auth.setPersistence(
     rememberAuth ? firebase.auth.Auth.Persistence.LOCAL : firebase.auth.Auth.Persistence.NONE
@@ -4798,8 +4800,13 @@ cursor:pointer;
     try{
       const state=await ORDERS_STATE_REF.get();
       if(state.exists&&state.data()?.initialized===true){
+        const local=parseStored('rx_orders',[]);
         ordersReady=true;
-        applyOrdersFromCloud([]);
+        if(Array.isArray(local)&&local.length){
+          orders=local.map(cleanOrderForCloud);
+          lastLocalOrderIds=new Set();
+          await writeOrdersToCloud();
+        }
         return;
       }
     }catch(e){}
@@ -8814,12 +8821,12 @@ html>.sphera-edit-popup.modal.open>.wizard{
     async function acceptImage(blob,label){err.textContent='';pasteZone.classList.add('active');pasteZone.textContent='Se procesează imaginea...';try{screenshot=await resizeImage(blob);preview.src=screenshot;preview.style.display='block';name.textContent=label||'Imagine lipită din clipboard';pasteZone.textContent='Imagine atașată. Poți lipi alta cu Ctrl+V.'}catch(e){screenshot='';preview.style.display='none';err.textContent=e.message;pasteZone.textContent='Sau copiază printscreenul și apasă Ctrl+V'}finally{setTimeout(()=>pasteZone.classList.remove('active'),500)}}
     wrap.addEventListener('paste',event=>{const item=[...(event.clipboardData?.items||[])].find(x=>String(x.type).startsWith('image/'));if(!item)return;event.preventDefault();const blob=item.getAsFile();if(blob)acceptImage(blob,'Printscreen lipit din clipboard')});
     wrap.querySelector('.cancel').onclick=()=>wrap.remove();
-    wrap.querySelector('.ok').onclick=async()=>{const description=String(wrap.querySelector('#bugDescription').value||'').trim();if(description.length<8){err.textContent='Descrie problema în cel puțin 8 caractere.';return}const item={id:'BUG'+Date.now(),description,screenshot,userName:currentUser?.name||currentUser?.username||'Utilizator',username:currentUser?.username||'',role:currentUser?.role||'',center:currentUser?.center||'',createdAt:Date.now(),status:'Nou'},list=readBugs();list.unshift(item);try{localStorage.setItem(BUG_KEY,JSON.stringify(list.slice(0,200)))}catch(_){err.textContent='Imaginea este prea mare pentru stocare. Alege o imagine mai mică.';return}try{if(typeof db!=='undefined')await db.collection('bugReports').doc(item.id).set(item)}catch(e){err.textContent='Raportul nu a putut fi salvat online.';return}wrap.remove();renderBugReports();showAppConfirm({title:'Raport trimis',text:'Raportarea ta a fost înregistrată.',confirmText:'OK'})};
+    wrap.querySelector('.ok').onclick=async()=>{const description=String(wrap.querySelector('#bugDescription').value||'').trim();if(description.length<8){err.textContent='Descrie problema în cel puțin 8 caractere.';return}const item={id:'BUG'+Date.now(),description,screenshot,userName:currentUser?.name||currentUser?.username||'Utilizator',username:currentUser?.username||'',role:currentUser?.role||'',center:currentUser?.center||'',createdAt:Date.now(),status:'Nou'},list=readBugs();list.unshift(item);try{localStorage.setItem(BUG_KEY,JSON.stringify(list.slice(0,200)))}catch(_){err.textContent='Imaginea este prea mare pentru stocare. Alege o imagine mai mică.';return}try{if(!window.SPHERA_DB)throw new Error('Conexiunea cloud nu este disponibilă.');await window.SPHERA_DB.collection('bugReports').doc(item.id).set(item)}catch(e){err.textContent='Raportul nu a putut fi salvat online.';return}wrap.remove();renderBugReports();showAppConfirm({title:'Raport trimis',text:'Raportarea ta a fost înregistrată.',confirmText:'OK'})};
     setTimeout(()=>wrap.querySelector('#bugDescription')?.focus(),30)
   };
   window.openBugImage=function(id){const bug=readBugs().find(x=>String(x.id)===String(id));if(!bug?.screenshot)return;document.querySelector('.bug-image-viewer')?.remove();const modal=document.createElement('div');modal.className='modal open bug-image-viewer';modal.innerHTML='<div class="bug-viewer-panel"><button class="icon-btn red bug-viewer-close" type="button" title="Închide">×</button><img alt="Printscreen bug"></div>';modal.querySelector('img').src=bug.screenshot;modal.querySelector('.bug-viewer-close').onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove()};document.body.appendChild(modal)};
   window.toggleBugSelection=function(id,checked){if(checked)selectedBugs.add(String(id));else selectedBugs.delete(String(id));const count=document.getElementById('selectedBugCount');if(count)count.textContent=String(selectedBugs.size);const btn=document.getElementById('deleteSelectedBugs');if(btn)btn.disabled=!selectedBugs.size};
-  window.deleteSelectedBugReports=function(){if(!selectedBugs.size)return;showAppConfirm({title:'Ștergere bug-uri',text:'Ștergi cele '+selectedBugs.size+' raportări selectate?',confirmText:'Șterge',cancelText:'Anulează',danger:true,onConfirm:async()=>{const ids=[...selectedBugs],next=readBugs().filter(x=>!selectedBugs.has(String(x.id)));try{localStorage.setItem(BUG_KEY,JSON.stringify(next))}catch(_){}if(typeof db!=='undefined'){for(const id of ids){try{await db.collection('bugReports').doc(id).delete()}catch(e){console.error(e)}}}selectedBugs.clear();renderBugReports()}})};
+  window.deleteSelectedBugReports=function(){if(!selectedBugs.size)return;showAppConfirm({title:'Ștergere bug-uri',text:'Ștergi cele '+selectedBugs.size+' raportări selectate?',confirmText:'Șterge',cancelText:'Anulează',danger:true,onConfirm:async()=>{const ids=[...selectedBugs],next=readBugs().filter(x=>!selectedBugs.has(String(x.id)));try{localStorage.setItem(BUG_KEY,JSON.stringify(next))}catch(_){}if(window.SPHERA_DB){for(const id of ids){try{await window.SPHERA_DB.collection('bugReports').doc(id).delete()}catch(e){console.error(e)}}}selectedBugs.clear();renderBugReports()}})};
   window.renderBugReports=function(){const box=document.getElementById('bugReportsList');if(!box)return;const list=readBugs(),count=document.getElementById('bugReportsCount');if(count)count.textContent=String(list.length);let toolbar=document.querySelector('#bugReportsCard .bug-report-toolbar');if(!toolbar){toolbar=document.createElement('div');toolbar.className='bug-report-toolbar';toolbar.innerHTML='<span class="muted">Selectate: <b id="selectedBugCount">0</b></span><button class="btn red" id="deleteSelectedBugs" onclick="deleteSelectedBugReports()" disabled>Șterge selectate</button>';box.before(toolbar)}const selectedCount=document.getElementById('selectedBugCount');if(selectedCount)selectedCount.textContent=String(selectedBugs.size);const deleteBtn=document.getElementById('deleteSelectedBugs');if(deleteBtn)deleteBtn.disabled=!selectedBugs.size;box.innerHTML=list.map(x=>'<div class="bug-report"><input class="bug-report-select" type="checkbox" '+(selectedBugs.has(String(x.id))?'checked':'')+' onchange="toggleBugSelection(\''+esc(String(x.id))+'\',this.checked)" aria-label="Selectează raportarea"><div class="bug-report-content"><div class="bug-report-meta">'+esc(new Date(x.createdAt).toLocaleString('ro-RO'))+' · '+esc(x.userName)+' · '+esc(x.center||x.role)+'</div><div class="bug-report-text">'+esc(x.description)+'</div>'+(x.screenshot?'<button class="bug-image-button" type="button" onclick="openBugImage(\''+esc(String(x.id))+'\')" title="Deschide imaginea"><img class="bug-screenshot-thumb" src="'+x.screenshot+'" alt="Printscreen bug"></button>':'')+'</div></div>').join('')||'<div class="muted">Nu există bug-uri raportate.</div>'};
   const oldRender=window.render;window.render=function(){const result=oldRender&&oldRender.apply(this,arguments);installLadybug();return result};
   const observer=new MutationObserver(()=>installLadybug());observer.observe(document.body,{childList:true,subtree:true});installLadybug();
@@ -9329,6 +9336,45 @@ html>.sphera-edit-popup.modal.open>.wizard{
   const clientRows=document.getElementById('clientRows');
   if(clientRows)new MutationObserver(enforceClientPermissions).observe(clientRows,{childList:true,subtree:true});
   enforceClientPermissions();
+})();
+</script>
+<script id="sphera-v109-data-visibility-and-bugs-script">
+(function(){
+  'use strict';
+  const BUG_KEY='sphera_bug_reports_v1';
+  let unsubscribeBugs=null;
+  function clean(value){return String(value||'').trim().toLowerCase()}
+  function recoverUserCenter(){
+    if(!currentUser||String(currentUser.center||'').trim())return;
+    let stored=[];
+    try{stored=JSON.parse(localStorage.getItem('sphera_users_v1')||'[]')}catch(_){}
+    const users=[...(Array.isArray(USERS)?USERS:[]),...(Array.isArray(stored)?stored:[])];
+    const username=clean(currentUser.username),name=clean(currentUser.name),uid=String(currentUser.uid||'');
+    const profile=users.find(user=>(uid&&String(user.uid||'')===uid)||(username&&clean(user.username)===username)||(name&&clean(user.name)===name));
+    const operator=(Array.isArray(CENTERS)?CENTERS:[]).find(item=>name&&clean(item.operator)===name);
+    const knownCenter=username==='ionut.catrinoiu'?'Ploiești':'';
+    const center=String(profile?.center||profile?.centru||operator?.center||knownCenter||'').trim();
+    if(center)currentUser.center=center;
+  }
+  function startBugSync(){
+    if(!window.SPHERA_DB||!window.SPHERA_AUTH?.currentUser)return;
+    if(unsubscribeBugs)unsubscribeBugs();
+    unsubscribeBugs=window.SPHERA_DB.collection('bugReports').orderBy('createdAt','desc').limit(500).onSnapshot(snapshot=>{
+      const list=snapshot.docs.map(doc=>({id:doc.id,...(doc.data()||{})}));
+      try{localStorage.setItem(BUG_KEY,JSON.stringify(list))}catch(_){}
+      if(['admin','administrator'].includes(clean(currentUser?.role))&&typeof renderBugReports==='function')renderBugReports();
+    },error=>console.error('SPHERA bug reports sync error',error));
+  }
+  const previousRender=window.render;
+  window.render=function(){
+    recoverUserCenter();
+    return previousRender&&previousRender.apply(this,arguments);
+  };
+  window.SPHERA_AUTH?.onAuthStateChanged(user=>{
+    if(!user){if(unsubscribeBugs)unsubscribeBugs();unsubscribeBugs=null;return}
+    setTimeout(()=>{recoverUserCenter();startBugSync();if(typeof render==='function')render()},0);
+  });
+  recoverUserCenter();
 })();
 </script>
 </body>
