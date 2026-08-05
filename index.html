@@ -1384,7 +1384,7 @@ pointer-events:none;
 <button class="card stat-btn" onclick="showOrdersList('delivered')"><div class="muted">Comenzi livrate</div><div class="kpi" id="kDelivered">0</div></button>
 </div>
 <div class="card" id="dashboardOrdersCard" style="margin-top:16px">
-<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Comenzi RX</h2><div class="muted">Toate comenzile pot fi ascunse sau accesate din dashboard.</div></div><button aria-label="Ascunde lista" class="icon-btn list-toggle" id="toggleOrdersBtn" onclick="toggleOrdersList()" title="Ascunde lista"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div>
+<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Comenzi RX</h2><div class="muted">Toate comenzile pot fi ascunse sau accesate din dashboard.</div></div><div class="orders-card-actions"><button aria-label="Exportă comenzile RX" class="icon-btn orders-card-export-button" id="ordersExportBtn" onclick="openHeaderExport()" title="Exportă comenzile RX"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path></svg></button><button aria-label="Ascunde lista" class="icon-btn list-toggle" id="toggleOrdersBtn" onclick="toggleOrdersList()" title="Ascunde lista"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div></div>
 <div id="ordersListBox">
 <div class="orders-tools"><input id="q" oninput="render()" placeholder="Caută după centru, cod, client, pacient, produs sau dioptrii"/><span class="pill count-dot" id="orderFilterCount">0</span></div>
 <div class="table-wrap"><table><thead><tr><th>Cod</th><th>Centru</th><th>Client</th><th>Produs</th><th>OD</th><th>OS</th><th>ADD</th><th>Nume pacient</th><th>Livrare</th><th></th></tr></thead><tbody id="orderRows"></tbody></table></div>
@@ -2653,14 +2653,14 @@ function renderClients(){
  const count=document.getElementById('clientFilterCount');
  if(count)count.textContent=String(filtered.length);
  const rows=filtered.slice(0,10000);
- body.innerHTML=rows.map((c,i)=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${canManageClients()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
+ body.innerHTML=rows.map((c,i)=>`<tr><td><input value="${esc(c.name)}" ${canManageClients()?`onchange="updateClient('${c.code}','name',this.value)"`:'readonly'}></td><td><input value="${esc(c.city)}" ${canManageClients()?`onchange="updateClient('${c.code}','city',this.value)"`:'readonly'}></td><td><input value="${esc(c.code)}" readonly></td><td><div class="client-actions">${isAdmin()?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteClient('${c.code}')" title="Șterge client">${ICON_TRASH}</button>`:''}</div></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nu există clienți.</td></tr>';
 }
 function updateClient(code,field,value){if(!canManageClients())return;
  const all=[CLIENTS,USER_CLIENTS];
  all.forEach(list=>{const c=list.find(x=>String(x.code)===String(code)); if(c){c[field]=field==='name'?String(value).trim().toUpperCase():String(value).trim().toUpperCase();}});
  saveUserClients(); render();
 }
-function deleteClient(code){if(!canManageClients())return;
+function deleteClient(code){if(!isAdmin())return;
  const used=orders.some(o=>String(o.client?.code)===String(code));
  showAppConfirm({title:'Eliminare client', text:used?'Clientul are comenzi înregistrate. Îl elimini din nomenclator?':'Elimini acest client din nomenclator?', confirmText:'Elimină', cancelText:'Anulează', danger:true, onConfirm:()=>{let idx=CLIENTS.findIndex(c=>String(c.code)===String(code)); if(idx>-1)CLIENTS.splice(idx,1); USER_CLIENTS=USER_CLIENTS.filter(c=>String(c.code)!==String(code)); saveUserClients(); render();}});
 }
@@ -2678,7 +2678,7 @@ function showOrderDetails(id){
 
 function showAppConfirm({title='Confirmare', text='', confirmText='Confirmă', cancelText='Anulează', danger=false, onConfirm=null, onCancel=null}={}){
  let wrap=document.createElement('div');
- wrap.className='modal open';
+ wrap.className='modal open app-confirm-modal';
  const confirmButton=`<button class="btn ${danger?'danger':'ok'} app-confirm-default" autofocus> ${esc(confirmText)} </button>`;
  const cancelButton=`<button class="btn cancel"> ${esc(cancelText)} </button>`;
  wrap.innerHTML=`<div class="wizard alert-card"><div class="alert-icon">!</div><div class="alert-title">${esc(title)}</div><div class="alert-text">${esc(text).replace(/\n/g,'<br>')}</div><div class="alert-actions">${danger?confirmButton+cancelButton:cancelButton+confirmButton}</div></div>`;
@@ -2989,7 +2989,7 @@ cursor:pointer;
 /* SPHERA actualizare: coduri operatori, zile lucrătoare, filtrare județe */
 (function(){
   const preferredOperators=[
-    'Adriana Pintilie','Ioana Lăpușneanu','Cristina Andraș','Denisa Dorofte',
+    'Adriana Pintilie','Cristina Andraș','Ioana Lăpușneanu','Denisa Dorofte',
     'Bianca Pintilescu','Dana Hobjilă','Valentina Osniceanu','Constantin Spătar',
     'Ileana Stan','Alexandra Ilie','Marius Constantin','Mihai Corciova','Daniel Țilea'
   ];
@@ -8571,5 +8571,718 @@ html>.sphera-edit-popup.modal.open>.wizard{
   }
 }
 </style>
+<style id="sphera-v90-style">
+.menu button span:last-child:not(:first-child){display:none!important}
+.bug-menu-button{width:42px!important;min-width:42px!important;padding:0!important;justify-content:center!important}
+.bug-menu-button svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.9}
+.bug-form textarea{min-height:130px;resize:vertical}
+.bug-list{display:grid;gap:10px;margin-top:14px}
+.bug-report{border:1px solid var(--line);border-radius:16px;padding:13px;background:#fff}
+.bug-report-meta{font-size:12px;color:var(--muted);margin-bottom:7px}
+.bug-report-text{white-space:pre-wrap;line-height:1.45}
+.drag-ready>.item,.drag-ready>.chip{cursor:grab}.drag-ready>.item:active,.drag-ready>.chip:active{cursor:grabbing}
+.dragging-nomen{opacity:.35}.drag-over-nomen{outline:2px solid #165dff;outline-offset:2px}
+.nomen-drag-hint{font-size:12px;color:var(--muted);margin-top:8px}
+.order-notes-cell{max-width:190px}.order-notes-clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;line-height:1.3}
+#ordersListBox table{table-layout:fixed!important}#ordersListBox th:nth-child(8),#ordersListBox td:nth-child(8){width:12%!important}#ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:13%!important}
+.cui-input{text-transform:uppercase}
+@media(max-width:760px){.bug-menu-button{width:40px!important;min-width:40px!important}.order-notes-cell{max-width:150px}}
+</style>
+<script id="sphera-v90-script">
+(function(){
+  'use strict';
+  const BUGS_KEY='sphera_bug_reports_v1';
+  const isAdminNow=()=>['admin','administrator'].includes(String(currentUser?.role||'').toLowerCase());
+  const isExportNow=()=>['viewer','export','operator export','operator-export'].includes(String(currentUser?.role||'').toLowerCase());
+  const cleanCui=value=>String(value||'').toUpperCase().replace(/^RO/,'').replace(/\D/g,'');
+
+  function arrangeHeader(){
+    const menu=document.querySelector('.side>.menu'); if(!menu)return;
+    const dash=document.getElementById('menuDashboard'), status=document.getElementById('menuProcessing'), clients=document.getElementById('menuClients'), nom=document.getElementById('menuNomenclators'), settings=document.getElementById('menuSettings');
+    if(menu.dataset.v90Order!=='ready'){
+      [dash,status,clients,nom,settings].forEach(el=>{if(el)menu.appendChild(el)});
+      menu.dataset.v90Order='ready';
+    }
+    menu.querySelectorAll('button').forEach(btn=>{const spans=btn.querySelectorAll(':scope>span');if(spans.length>1)spans[spans.length-1].remove()});
+    if(!document.getElementById('menuBug')){
+      const bug=document.createElement('button'); bug.id='menuBug';bug.type='button';bug.className='bug-menu-button';bug.title='Raportează un bug';bug.setAttribute('aria-label','Raportează un bug');
+      bug.innerHTML='<svg viewBox="0 0 24 24"><path d="M8 8.5h8M9 4l1.5 3M15 4l-1.5 3M6 12H3M21 12h-3M7 17l-3 2M17 17l3 2M7 9v6a5 5 0 0 0 10 0V9a5 5 0 0 0-10 0Z"/></svg>';
+      bug.onclick=openBugDialog; menu.appendChild(bug);
+    }
+  }
+
+  function bugStore(){try{return JSON.parse(localStorage.getItem(BUGS_KEY)||'[]')}catch(_){return[]}}
+  function saveBugLocal(item){const list=bugStore();list.unshift(item);localStorage.setItem(BUGS_KEY,JSON.stringify(list.slice(0,500)))}
+  window.openBugDialog=function(){
+    const wrap=document.createElement('div');wrap.className='modal open';
+    wrap.innerHTML='<div class="wizard alert-card bug-form" style="max-width:520px"><div class="alert-icon" style="background:#fff1f1;color:#f04438">🐞</div><div class="alert-title">Raportează un bug</div><div class="alert-text">Descrie ce ai făcut și ce rezultat ai observat.</div><div class="field" style="text-align:left"><label>Descriere</label><textarea id="bugDescription" placeholder="Exemplu: În Status comenzi am apăsat Facturată, dar statusul nu s-a actualizat."></textarea><div class="err" id="bugError"></div></div><div class="alert-actions"><button class="btn cancel">Anulează</button><button class="btn ok">Trimite</button></div></div>';
+    document.body.appendChild(wrap);wrap.querySelector('.cancel').onclick=()=>wrap.remove();
+    wrap.querySelector('.ok').onclick=async()=>{const text=String(wrap.querySelector('#bugDescription')?.value||'').trim();if(text.length<8){wrap.querySelector('#bugError').textContent='Descrie problema în cel puțin 8 caractere.';return}const item={id:'BUG'+Date.now(),description:text,userName:currentUser?.name||currentUser?.username||'Utilizator',username:currentUser?.username||'',role:currentUser?.role||'',center:currentUser?.center||'',createdAt:Date.now(),status:'Nou'};saveBugLocal(item);try{if(typeof db!=='undefined')await db.collection('bugReports').doc(item.id).set(item)}catch(e){console.error('Bug report cloud save',e)}wrap.remove();if(isAdminNow())renderBugReports();showAppConfirm({title:'Raport trimis',text:'Raportarea ta a fost înregistrată.',confirmText:'OK'});};
+    setTimeout(()=>wrap.querySelector('#bugDescription')?.focus(),30);
+  };
+  function ensureBugSettings(){const settings=document.getElementById('settings');if(!settings||document.getElementById('bugReportsCard'))return;const card=document.createElement('div');card.className='card';card.id='bugReportsCard';card.style.marginTop='16px';card.innerHTML='<div class="top"><div><h2 style="margin:0">Bug-uri raportate</h2><div class="muted">Rapoarte trimise de utilizatorii aplicației.</div></div><span class="pill count-dot" id="bugReportsCount">0</span></div><div class="bug-list" id="bugReportsList"></div>';settings.appendChild(card)}
+  window.renderBugReports=function(){ensureBugSettings();const box=document.getElementById('bugReportsList');if(!box)return;const list=bugStore();document.getElementById('bugReportsCount').textContent=String(list.length);box.innerHTML=list.map(x=>'<div class="bug-report"><div class="bug-report-meta">'+esc(new Date(x.createdAt).toLocaleString('ro-RO'))+' · '+esc(x.userName)+' · '+esc(x.center||x.role)+'</div><div class="bug-report-text">'+esc(x.description)+'</div></div>').join('')||'<div class="muted">Nu există bug-uri raportate.</div>'}
+  try{if(typeof db!=='undefined')db.collection('bugReports').orderBy('createdAt','desc').limit(500).onSnapshot(s=>{const list=s.docs.map(d=>d.data());localStorage.setItem(BUGS_KEY,JSON.stringify(list));if(isAdminNow())renderBugReports()})}catch(e){console.error('Bug reports listener',e)}
+
+  function enforceDeletedVisibility(){const card=document.getElementById('deletedOrdersCard');if(card)card.style.setProperty('display',isAdminNow()?'':'none','important')}
+
+  function currentOrderCode(){const raw=String(currentUser?.operatorCode||currentUser?.code||'').replace(/\D/g,'');return raw.padStart(2,'0').slice(-2)}
+  const priorCreateOrder=window.createOrder;
+  window.createOrder=function(){
+    const userCode=currentOrderCode();
+    if(!/^\d{2}$/.test(userCode)||userCode==='00'){showAppConfirm({title:'Cod utilizator lipsă',text:'Administratorul trebuie să atribuie contului tău un cod unic din două cifre.',confirmText:'OK'});return}
+    const before=new Set((orders||[]).map(o=>String(o.id)));const result=priorCreateOrder&&priorCreateOrder.apply(this,arguments);const created=(orders||[]).find(o=>!before.has(String(o.id)));
+    if(created){const code=String(created.code||'');if(/^\d{4}\d{2}/.test(code)){created.code=code.slice(0,4)+userCode+code.slice(6);created.operatorCode=userCode;save();render();const input=document.getElementById('generatedCodeInput');if(input)input.value=created.code}}
+    return result;
+  };
+
+  window.orderWorkflowSteps=function(order){
+    const iasi=norm(order?.center||order?.createdByCenter||'')==='iasi';
+    if(iasi)return order?.hasMount===false?['Lansată','Check-out','Facturată','Recepție','Livrată']:['Lansată','Check-out','Facturată','La montaj','Recepție','Livrată'];
+    return order?.hasMount===false?['Lansată','Check-out','Recepție','Facturată','Livrată']:['Lansată','Check-out','Recepție','La montaj','Facturată','Livrată'];
+  };
+  window.orderWorkflowIndex=function(order){const steps=orderWorkflowSteps(order);const value=order?.workflowStatus||(order?.status==='Livrată'?'Livrată':'Lansată');const i=steps.indexOf(value);return i<0?0:i};
+  window.workflowIndex=function(order){return orderWorkflowIndex(order)};
+  window.canSetWorkflowStep=function(status,order){
+    if(!currentUser||!order)return false;const steps=orderWorkflowSteps(order),target=steps.indexOf(status),current=orderWorkflowIndex(order);if(target<0||target!==current+1)return false;
+    if(isAdminNow())return true;
+    if(isExportNow())return true;
+    if(typeof isOperatorMaster==='function'&&isOperatorMaster()){if(norm(order.center)==='iasi')return true;return status==='Check-out'&&current===0}
+    return current>=steps.indexOf('Check-out');
+  };
+  window.setWorkflowStatus=function(id,status){const order=(orders||[]).find(o=>String(o.id)===String(id));if(!order||!canSetWorkflowStep(status,order))return;order.workflowStatus=status;order.status=status==='Livrată'?'Livrată':'Lansată';save();render();if(typeof renderProcessingOrders==='function')renderProcessingOrders()};
+
+  function enhanceOrderTable(){const table=document.querySelector('#ordersListBox table');const head=table?.tHead?.rows?.[0];if(!head)return;if(![...head.cells].some(c=>c.textContent.trim()==='Mențiuni')){const patient=[...head.cells].find(c=>c.textContent.trim()==='Nume pacient');const th=document.createElement('th');th.textContent='Mențiuni';patient?.after(th)}const body=document.getElementById('orderRows');if(!body)return;[...body.rows].forEach(row=>{if(row.querySelector('.order-notes-cell'))return;const code=String(row.cells[0]?.textContent||'').trim();const o=(orders||[]).find(x=>String(x.code||'').trim()===code);const patientIndex=[...head.cells].findIndex(c=>c.textContent.trim()==='Nume pacient');if(patientIndex<0)return;const td=row.insertCell(patientIndex+1);td.className='order-notes-cell';td.innerHTML='<div class="order-notes-clamp">'+esc(o?.notes||'')+'</div>'})}
+
+  function makeSortable(container,onOrder){if(!container||container.dataset.sortableReady)return;container.dataset.sortableReady='1';container.classList.add('drag-ready');let dragged=null;container.addEventListener('dragstart',e=>{const item=e.target.closest(':scope > .item, :scope > .chip');if(!item)return;dragged=item;item.classList.add('dragging-nomen');e.dataTransfer.effectAllowed='move'});container.addEventListener('dragover',e=>{if(!dragged)return;e.preventDefault();const target=e.target.closest(':scope > .item, :scope > .chip');if(target&&target!==dragged){target.classList.add('drag-over-nomen');const r=target.getBoundingClientRect();container.insertBefore(dragged,e.clientY<r.top+r.height/2?target:target.nextSibling)}});container.addEventListener('dragleave',e=>e.target.closest('.drag-over-nomen')?.classList.remove('drag-over-nomen'));container.addEventListener('dragend',()=>{container.querySelectorAll('.drag-over-nomen').forEach(x=>x.classList.remove('drag-over-nomen'));if(dragged)dragged.classList.remove('dragging-nomen');dragged=null;onOrder([...container.children]);saveNomenclators()})}
+  function enableNomenDrag(){
+    const configs=[['idxList',()=>INDICES,(v)=>{INDICES=v;window.INDICES=v}],['matList',()=>MATERIALS,(v)=>{MATERIALS=v;window.MATERIALS=v}],['trList',()=>TREATMENTS,(v)=>{TREATMENTS=v;window.TREATMENTS=v}],['opList',()=>CENTERS,(v)=>{CENTERS=v;window.CENTERS=v}]];
+    configs.forEach(([id,get,set])=>{const box=document.getElementById(id);if(!box)return;[...box.children].forEach(x=>x.draggable=true);makeSortable(box,children=>{const old=get().slice();set(children.map(el=>old.find(v=>norm(typeof v==='object'?v.operator:v)===norm(el.querySelector('b')?.textContent||''))).filter(Boolean))})});
+    const prod=document.getElementById('prodList');if(prod){[...prod.children].forEach(item=>{item.draggable=true;const chips=item.querySelector('.chips');if(chips){[...chips.children].forEach(c=>{if(c.classList.contains('chip'))c.draggable=true});const productName=item.querySelector('b')?.textContent||'';makeSortable(chips,children=>{PRODUCTS[productName]=children.filter(c=>c.classList.contains('chip')).map(c=>String(c.childNodes[0]?.textContent||'').trim())})}});makeSortable(prod,children=>{const ordered={};children.forEach(el=>{const key=el.querySelector('b')?.textContent;if(key&&PRODUCTS[key])ordered[key]=PRODUCTS[key]});Object.keys(PRODUCTS).forEach(k=>{if(!ordered[k])ordered[k]=PRODUCTS[k]});PRODUCTS=ordered;window.PRODUCTS=ordered})}
+  }
+
+  const priorOpenClient=window.openNewClientDialog;
+  window.openNewClientDialog=function(){const result=priorOpenClient&&priorOpenClient.apply(this,arguments);const modal=[...document.querySelectorAll('.modal.open')].pop();if(modal&&!modal.querySelector('#newClientCui')){const city=modal.querySelector('#newClientCity')?.closest('.field');const field=document.createElement('div');field.className='field';field.style.textAlign='left';field.innerHTML='<label>CUI</label><input class="cui-input" id="newClientCui" inputmode="numeric" placeholder="Exemplu: RO12345678"><div class="err" id="newClientCuiErr"></div>';city?.after(field)}return result};
+  const priorCreateClient=window.createNewClientFromDialog;
+  window.createNewClientFromDialog=function(){const input=document.getElementById('newClientCui');const cui=cleanCui(input?.value);const err=document.getElementById('newClientCuiErr');if(!cui){if(err)err.textContent='Completează CUI-ul clientului.';input?.focus();return}const duplicate=(CLIENTS||[]).find(c=>cleanCui(c.cui)===cui);if(duplicate){showAppConfirm({title:'CUI deja înregistrat',text:'CUI-ul aparține clientului '+duplicate.name+', '+duplicate.city+'.',confirmText:'OK'});input?.focus();return}const before=new Set((CLIENTS||[]).map(c=>String(c.code)));const result=priorCreateClient&&priorCreateClient.apply(this,arguments);const added=(CLIENTS||[]).find(c=>!before.has(String(c.code)));if(added){added.cui=cui;const local=(USER_CLIENTS||[]).find(c=>String(c.code)===String(added.code));if(local)local.cui=cui;saveUserClients();render()}return result};
+
+  const priorRenderClients=window.renderClients;
+  window.renderClients=function(){const result=priorRenderClients&&priorRenderClients.apply(this,arguments);const table=document.querySelector('#clientsPage table');const head=table?.tHead?.rows?.[0];if(head&&!head.querySelector('[data-cui-head]')){const th=document.createElement('th');th.textContent='CUI';th.dataset.cuiHead='1';head.cells[2]?.before(th)}const body=document.getElementById('clientRows');if(head&&body){[...body.rows].forEach(row=>{if(row.querySelector('.client-cui-cell')||row.cells.length<3||row.cells[0]?.hasAttribute('colspan'))return;const code=String(row.cells[2]?.querySelector('input')?.value||row.cells[2]?.textContent||'').trim();const c=(CLIENTS||[]).find(x=>String(x.code)===code);const td=row.insertCell(2);td.className='client-cui-cell';td.innerHTML='<input value="'+esc(c?.cui?('RO'+cleanCui(c.cui)):'')+'" placeholder="CUI" '+(canManageClients()?'onchange="updateClientCui(\''+esc(code)+'\',this.value,this)"':'readonly')+'>'})}return result};
+  window.updateClientCui=function(code,value,input){const cui=cleanCui(value);if(!cui){input.value='';return}const duplicate=(CLIENTS||[]).find(c=>String(c.code)!==String(code)&&cleanCui(c.cui)===cui);if(duplicate){showAppConfirm({title:'CUI deja înregistrat',text:'CUI-ul aparține clientului '+duplicate.name+', '+duplicate.city+'.',confirmText:'OK'});const current=(CLIENTS||[]).find(c=>String(c.code)===String(code));input.value=current?.cui?'RO'+cleanCui(current.cui):'';return}[CLIENTS,USER_CLIENTS].forEach(list=>{const c=(list||[]).find(x=>String(x.code)===String(code));if(c)c.cui=cui});saveUserClients();renderClients()};
+
+  const priorRender=window.render;
+  window.render=function(){const result=priorRender&&priorRender.apply(this,arguments);arrangeHeader();enforceDeletedVisibility();enhanceOrderTable();enableNomenDrag();if(isAdminNow())renderBugReports();return result};
+  const observer=new MutationObserver(()=>{arrangeHeader();enforceDeletedVisibility();enhanceOrderTable();enableNomenDrag()});observer.observe(document.body,{childList:true,subtree:true});
+  arrangeHeader();enforceDeletedVisibility();ensureBugSettings();if(typeof render==='function')render();
+})();
+</script>
+<style id="sphera-v91-style">
+#dashboardOrdersCard,#ordersListBox,#ordersListBox .table-wrap{width:100%!important;max-width:100%!important;overflow:hidden!important}
+#ordersListBox table{width:100%!important;max-width:100%!important;min-width:0!important;table-layout:fixed!important}
+#ordersListBox th,#ordersListBox td{min-width:0!important;max-width:none!important;padding-left:6px!important;padding-right:6px!important;overflow:hidden!important;word-break:normal!important}
+#ordersListBox th:nth-child(1),#ordersListBox td:nth-child(1){width:10.8%!important}
+#ordersListBox th:nth-child(2),#ordersListBox td:nth-child(2){width:8.2%!important}
+#ordersListBox th:nth-child(3),#ordersListBox td:nth-child(3){width:11.5%!important}
+#ordersListBox th:nth-child(4),#ordersListBox td:nth-child(4){width:21.5%!important}
+#ordersListBox th:nth-child(5),#ordersListBox td:nth-child(5),#ordersListBox th:nth-child(6),#ordersListBox td:nth-child(6){width:9%!important}
+#ordersListBox th:nth-child(7),#ordersListBox td:nth-child(7){width:5%!important}
+#ordersListBox th:nth-child(8),#ordersListBox td:nth-child(8){width:10.5%!important}
+#ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:9.5%!important}
+#ordersListBox th:nth-child(10),#ordersListBox td:nth-child(10){width:3.8%!important;padding-left:2px!important;padding-right:2px!important;text-align:center!important}
+#ordersListBox th:nth-child(11),#ordersListBox td:nth-child(11){width:3.2%!important;padding-left:1px!important;padding-right:1px!important;text-align:center!important}
+#ordersListBox td:first-child,#ordersListBox td:first-child b{white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;font-size:13px!important;letter-spacing:-.2px!important}
+#ordersListBox th:nth-child(1),#ordersListBox td:nth-child(1){padding-right:14px!important}
+#ordersListBox th:nth-child(2),#ordersListBox td:nth-child(2){padding-left:14px!important}
+#ordersListBox .product-line{white-space:normal!important;display:-webkit-box!important;-webkit-box-orient:vertical;-webkit-line-clamp:1;overflow:hidden!important}
+#ordersListBox .product-details{-webkit-line-clamp:2!important}
+#ordersListBox .order-notes-cell .order-notes-clamp{overflow-wrap:anywhere}
+#ordersListBox .icon-btn.table-action{width:34px!important;min-width:34px!important;height:34px!important}
+.bug-screenshot-preview{display:none;width:100%;max-height:210px;object-fit:contain;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:#f8fafc}
+.bug-screenshot-thumb{display:block;max-width:260px;max-height:170px;margin-top:10px;border-radius:12px;border:1px solid var(--line);cursor:pointer;object-fit:contain}
+.bug-upload-button{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;border:1px dashed #f04438;border-radius:14px;background:#fff7f7;color:#d92d20;font-weight:900;cursor:pointer}
+.bug-upload-button:hover{background:#fff1f1}.bug-upload-button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:2}
+.bug-upload-name{font-size:12px;color:var(--muted);margin-top:7px;overflow-wrap:anywhere}
+.bug-menu-button{color:#e11d48!important}.bug-menu-button svg{fill:#e11d48!important;stroke:#e11d48!important}
+#deletedOrdersListBox table{width:100%!important;max-width:100%!important;table-layout:fixed!important}
+#deletedOrdersListBox th,#deletedOrdersListBox td{min-width:0!important;vertical-align:middle!important}
+#deletedOrdersListBox th:nth-last-child(2),#deletedOrdersListBox td:nth-last-child(2){width:3.8%!important;text-align:center!important;padding-left:2px!important;padding-right:2px!important}
+#deletedOrdersListBox th:last-child,#deletedOrdersListBox td:last-child{width:3.2%!important;text-align:center!important;padding-left:1px!important;padding-right:1px!important}
+#deletedOrdersListBox .deleted-history-row-action .icon-btn{display:inline-flex!important;margin:0 auto!important;vertical-align:middle!important}
+.nomen-drag-handle{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;margin-right:8px;border-radius:8px;background:#eef4ff;color:#165dff;font-weight:900;cursor:grab;user-select:none}
+.nomen-drag-handle:active{cursor:grabbing}
+@media(max-width:1100px){#ordersListBox th,#ordersListBox td{font-size:11.5px!important;padding-left:4px!important;padding-right:4px!important}#ordersListBox td:first-child,#ordersListBox td:first-child b{font-size:11.5px!important}}
+</style>
+<script id="sphera-v91-script">
+(function(){
+  'use strict';
+  const cleanRole=v=>String(v||'').trim().toLowerCase();
+  function authenticatedAccount(){
+    const username=String(currentUser?.username||'').trim().toLowerCase();
+    const uid=String(currentUser?.uid||currentUser?.id||'').trim();
+    return (USERS||[]).find(u=>uid&&String(u.uid||u.id||'')===uid)||(USERS||[]).find(u=>username&&String(u.username||'').trim().toLowerCase()===username)||currentUser;
+  }
+  function authenticatedCode(){
+    const account=authenticatedAccount();
+    let code=String(account?.operatorCode||account?.code||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(norm(account?.name||currentUser?.name||'')==='cristina andras')code='02';
+    return code;
+  }
+  const v90Create=window.createOrder;
+  window.createOrder=function(){
+    const code=authenticatedCode();
+    if(currentUser)currentUser.operatorCode=code;
+    const account=authenticatedAccount();if(account)account.operatorCode=code;
+    const result=v90Create&&v90Create.apply(this,arguments);
+    const created=(orders||[])[0];
+    if(created&&String(created.createdByUsername||currentUser?.username||'').toLowerCase()===String(currentUser?.username||'').toLowerCase()){
+      const raw=String(created.code||'');if(/^\d{6}/.test(raw)&&raw.slice(4,6)!==code){created.code=raw.slice(0,4)+code+raw.slice(6);created.operatorCode=code;save();render();const input=document.getElementById('generatedCodeInput');if(input)input.value=created.code}
+    }
+    return result;
+  };
+  window.processingCenterLabel=function(order){
+    const center=String(order?.center||'').trim();
+    let code=String(order?.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(!code||code==='00'){
+      const user=(USERS||[]).find(u=>norm(u.name||'')===norm(order?.operator||''));
+      code=String(user?.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    }
+    return [code!=='00'?code:'',center].filter(Boolean).join(' · ');
+  };
+
+  function directItem(container,node){
+    let item=node&&node.nodeType===1?node:node?.parentElement;
+    while(item&&item.parentElement!==container)item=item.parentElement;
+    return item&&item.parentElement===container?item:null;
+  }
+  function installSorter(container,commit){
+    if(!container||container.dataset.v91Sort==='ready')return;
+    container.dataset.v91Sort='ready';let dragged=null;
+    container.addEventListener('dragstart',event=>{const item=directItem(container,event.target);if(!item||event.target.closest('.chip')&&container.id==='prodList')return;dragged=item;item.classList.add('dragging-nomen');event.dataTransfer.effectAllowed='move';event.stopPropagation()});
+    container.addEventListener('dragover',event=>{if(!dragged)return;event.preventDefault();const target=directItem(container,event.target);if(!target||target===dragged)return;const rect=target.getBoundingClientRect();const before=container.classList.contains('chips')?event.clientX<rect.left+rect.width/2:event.clientY<rect.top+rect.height/2;container.insertBefore(dragged,before?target:target.nextSibling)});
+    container.addEventListener('drop',event=>{if(dragged)event.preventDefault()});
+    container.addEventListener('dragend',event=>{if(!dragged)return;dragged.classList.remove('dragging-nomen');dragged=null;commit([...container.children]);saveNomenclators();if(typeof scheduleCloudSave==='function')scheduleCloudSave();setTimeout(()=>render(),0);event.stopPropagation()});
+  }
+  function markHandle(item){if(!item||item.querySelector('.nomen-drag-handle'))return;const handle=document.createElement('span');handle.className='nomen-drag-handle';handle.title='Ține apăsat și mută';handle.textContent='⋮⋮';const row=item.querySelector(':scope > .item-row')||item;row.insertBefore(handle,row.firstChild);item.draggable=true}
+  function activateReliableSorting(){
+    [['idxList','INDICES'],['matList','MATERIALS'],['trList','TREATMENTS']].forEach(([id,key])=>{const box=document.getElementById(id);if(!box)return;[...box.children].forEach(markHandle);installSorter(box,children=>{const values=children.map(el=>String(el.querySelector('b')?.textContent||'').trim()).filter(Boolean);if(key==='INDICES')INDICES=window.INDICES=values;if(key==='MATERIALS')MATERIALS=window.MATERIALS=values;if(key==='TREATMENTS')TREATMENTS=window.TREATMENTS=values})});
+    const ops=document.getElementById('opList');if(ops){[...ops.children].forEach(markHandle);installSorter(ops,children=>{const old=CENTERS.slice();CENTERS=window.CENTERS=children.map(el=>old.find(x=>norm(x.operator)===norm(el.querySelector('b')?.textContent||''))).filter(Boolean)})}
+    const prod=document.getElementById('prodList');if(prod){[...prod.children].forEach(item=>{markHandle(item);const design=String(item.querySelector('b')?.textContent||'').trim();const chips=item.querySelector('.chips');if(chips){[...chips.querySelectorAll(':scope > .chip')].forEach(chip=>{chip.draggable=true;chip.title='Ține apăsat și mută'});installSorter(chips,children=>{PRODUCTS[design]=children.filter(x=>x.classList.contains('chip')).map(x=>String(x.childNodes[0]?.textContent||'').trim()).filter(Boolean)})}});installSorter(prod,children=>{const next={};children.forEach(item=>{const key=String(item.querySelector('b')?.textContent||'').trim();if(key&&PRODUCTS[key])next[key]=PRODUCTS[key]});Object.keys(PRODUCTS).forEach(key=>{if(!next[key])next[key]=PRODUCTS[key]});PRODUCTS=window.PRODUCTS=next})}
+  }
+
+  function imageToDataUrl(file){return new Promise((resolve,reject)=>{if(!file)return resolve('');if(!file.type.startsWith('image/'))return reject(new Error('Selectează o imagine.'));if(file.size>10*1024*1024)return reject(new Error('Imaginea trebuie să aibă maximum 10 MB.'));const reader=new FileReader();reader.onerror=()=>reject(new Error('Imaginea nu poate fi citită.'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error('Imaginea nu este validă.'));img.onload=()=>{const max=1600,scale=Math.min(1,max/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.72))};img.src=reader.result};reader.readAsDataURL(file)})}
+  window.openBugDialog=function(){
+    const existing=document.querySelector('.bug-report-modal');if(existing){existing.querySelector('#bugDescription')?.focus();return}
+    const wrap=document.createElement('div');wrap.className='modal open bug-report-modal';wrap.innerHTML='<div class="wizard alert-card bug-form" style="max-width:540px"><div class="alert-icon" style="background:#fff1f1;color:#f04438">🐞</div><div class="alert-title">Raportează un bug</div><div class="alert-text">Descrie problema și atașează un printscreen, dacă te ajută.</div><div class="field" style="text-align:left"><label>Descriere</label><textarea id="bugDescription" placeholder="Spune ce ai făcut și ce rezultat ai observat."></textarea></div><div class="field" style="text-align:left"><label>Printscreen opțional</label><input id="bugScreenshot" type="file" accept="image/png,image/jpeg,image/webp" hidden><label class="bug-upload-button" for="bugScreenshot"><svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5 5 5M5 14v5h14v-5"/></svg><span>Alege imaginea</span></label><div class="bug-upload-name" id="bugUploadName">PNG, JPG sau WebP, maximum 10 MB</div><img class="bug-screenshot-preview" id="bugScreenshotPreview" alt="Previzualizare printscreen"><div class="err" id="bugError"></div></div><div class="alert-actions"><button class="btn cancel">Anulează</button><button class="btn ok">Trimite</button></div></div>';document.body.appendChild(wrap);let screenshot='';const file=wrap.querySelector('#bugScreenshot'),preview=wrap.querySelector('#bugScreenshotPreview'),err=wrap.querySelector('#bugError'),fileName=wrap.querySelector('#bugUploadName');wrap.querySelector('.cancel').onclick=()=>wrap.remove();file.onchange=async()=>{err.textContent='';const selected=file.files?.[0];fileName.textContent=selected?.name||'PNG, JPG sau WebP, maximum 10 MB';try{screenshot=await imageToDataUrl(selected);preview.src=screenshot;preview.style.display=screenshot?'block':'none'}catch(e){screenshot='';file.value='';fileName.textContent='PNG, JPG sau WebP, maximum 10 MB';preview.style.display='none';err.textContent=e.message}};wrap.querySelector('.ok').onclick=async()=>{const description=String(wrap.querySelector('#bugDescription').value||'').trim();if(description.length<8){err.textContent='Descrie problema în cel puțin 8 caractere.';return}const item={id:'BUG'+Date.now(),description,screenshot,userName:currentUser?.name||currentUser?.username||'Utilizator',username:currentUser?.username||'',role:currentUser?.role||'',center:currentUser?.center||'',createdAt:Date.now(),status:'Nou'};const list=(()=>{try{return JSON.parse(localStorage.getItem('sphera_bug_reports_v1')||'[]')}catch(_){return[]}})();list.unshift(item);try{localStorage.setItem('sphera_bug_reports_v1',JSON.stringify(list.slice(0,200)))}catch(e){err.textContent='Imaginea este prea mare pentru stocarea locală. Alege o imagine mai mică.';return}try{if(typeof db!=='undefined')await db.collection('bugReports').doc(item.id).set(item)}catch(e){console.error(e);err.textContent='Raportul nu a putut fi salvat online.';return}wrap.remove();if(typeof renderBugReports==='function')renderBugReports();showAppConfirm({title:'Raport trimis',text:'Raportarea ta a fost înregistrată.',confirmText:'OK'})};setTimeout(()=>wrap.querySelector('#bugDescription')?.focus(),30)
+  };
+  window.renderBugReports=function(){const box=document.getElementById('bugReportsList');if(!box)return;let list=[];try{list=JSON.parse(localStorage.getItem('sphera_bug_reports_v1')||'[]')}catch(_){}const count=document.getElementById('bugReportsCount');if(count)count.textContent=String(list.length);box.innerHTML=list.map(x=>'<div class="bug-report"><div class="bug-report-meta">'+esc(new Date(x.createdAt).toLocaleString('ro-RO'))+' · '+esc(x.userName)+' · '+esc(x.center||x.role)+'</div><div class="bug-report-text">'+esc(x.description)+'</div>'+(x.screenshot?'<img class="bug-screenshot-thumb" src="'+x.screenshot+'" alt="Printscreen bug" onclick="window.open(this.src,\'_blank\')">':'')+'</div>').join('')||'<div class="muted">Nu există bug-uri raportate.</div>'
+  };
+
+  function tableSafety(){const table=document.querySelector('#ordersListBox table');if(!table)return;table.querySelectorAll('td:first-child b').forEach(el=>{el.title=el.textContent.trim()})}
+  const previousRender=window.render;
+  function reconnectBugButton(){const button=document.getElementById('menuBug');if(!button)return;button.onclick=window.openBugDialog;button.style.color='#e11d48';button.title='Raportează un bug'}
+  window.render=function(){const result=previousRender&&previousRender.apply(this,arguments);activateReliableSorting();tableSafety();reconnectBugButton();return result};
+  let enhancementQueued=false;
+  const watcher=new MutationObserver(()=>{if(enhancementQueued)return;enhancementQueued=true;requestAnimationFrame(()=>{enhancementQueued=false;activateReliableSorting();tableSafety()})});watcher.observe(document.body,{childList:true,subtree:true});
+  activateReliableSorting();tableSafety();reconnectBugButton();
+})();
+</script>
+<style id="sphera-v92-style">
+.bug-menu-button{width:42px!important;min-width:42px!important;height:42px!important;color:#475467!important;background:#f2f4f7!important;border-color:#eaecf0!important}
+.bug-menu-button svg{width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;overflow:visible}
+.bug-paste-zone{margin-top:8px;padding:9px 10px;border-radius:12px;background:#f8fafc;color:#667085;font-size:12px;text-align:center}
+.bug-paste-zone.active{background:#fff1f1;color:#d92d20}
+.bug-report{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start}.bug-report-content{min-width:0}
+.bug-report-select{width:18px!important;height:18px!important;margin-top:2px;accent-color:#165dff}
+.bug-report-toolbar{display:flex;align-items:center;justify-content:flex-end;gap:9px;margin-top:12px}.bug-report-toolbar .btn{min-height:38px;padding:8px 13px}
+.bug-image-button{display:block;width:max-content;max-width:100%;padding:0;border:0;background:transparent;cursor:pointer}
+.bug-image-viewer{padding:12px!important}.bug-viewer-panel{position:relative;width:calc(100vw - 24px)!important;height:calc(100vh - 24px)!important;max-width:none!important;max-height:none!important;padding:12px!important;border-radius:22px;background:#fff;box-shadow:0 30px 90px rgba(15,23,42,.35);display:flex;align-items:center;justify-content:center;overflow:hidden}.bug-image-viewer img{display:block;width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:contain;border-radius:12px}.bug-viewer-close{position:absolute;top:14px;right:14px;z-index:2;background:#fff!important}
+@media(max-width:760px){.bug-menu-button{width:40px!important;min-width:40px!important;height:40px!important}.bug-menu-button svg{width:20px!important;height:20px!important}.bug-image-viewer{padding:5px!important}.bug-viewer-panel{width:calc(100vw - 10px)!important;height:calc(100vh - 10px)!important;padding:6px!important;border-radius:16px}}
+</style>
+<script id="sphera-v92-script">
+(function(){
+  'use strict';
+  const BUG_KEY='sphera_bug_reports_v1';
+  const selectedBugs=new Set();
+  const ladybugSvg='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8.5h8M9 4l1.5 3M15 4l-1.5 3M6 12H3M21 12h-3M7 17l-3 2M17 17l3 2M7 9v6a5 5 0 0 0 10 0V9a5 5 0 0 0-10 0Z"/></svg>';
+  const readBugs=()=>{try{return JSON.parse(localStorage.getItem(BUG_KEY)||'[]')}catch(_){return[]}};
+  function resizeImage(file){return new Promise((resolve,reject)=>{if(!file||!String(file.type||'').startsWith('image/'))return reject(new Error('Clipboardul nu conține o imagine.'));if(file.size>10*1024*1024)return reject(new Error('Imaginea trebuie să aibă maximum 10 MB.'));const reader=new FileReader();reader.onerror=()=>reject(new Error('Imaginea nu poate fi citită.'));reader.onload=()=>{const img=new Image();img.onerror=()=>reject(new Error('Imaginea nu este validă.'));img.onload=()=>{const scale=Math.min(1,1600/Math.max(img.width,img.height)),canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.width*scale));canvas.height=Math.max(1,Math.round(img.height*scale));canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.72))};img.src=reader.result};reader.readAsDataURL(file)})}
+  function installLadybug(){const button=document.getElementById('menuBug');if(!button)return;if(button.dataset.v92Icon!=='ready'){button.innerHTML=ladybugSvg;button.dataset.v92Icon='ready'}button.onclick=window.openBugDialog;button.title='Raportează un bug';button.setAttribute('aria-label','Raportează un bug')}
+  window.openBugDialog=function(){
+    const existing=document.querySelector('.bug-report-modal');if(existing){existing.querySelector('#bugDescription')?.focus();return}
+    const wrap=document.createElement('div');wrap.className='modal open bug-report-modal';wrap.innerHTML='<div class="wizard alert-card bug-form" style="max-width:560px"><div class="alert-icon" style="background:#fff1f1;color:#f04438">🐞</div><div class="alert-title">Raportează un bug</div><div class="alert-text">Descrie problema. Pentru printscreen, copiază imaginea și apasă Ctrl+V.</div><div class="field" style="text-align:left"><label>Descriere</label><textarea id="bugDescription" placeholder="Spune ce ai făcut și ce rezultat ai observat."></textarea></div><div class="field" style="text-align:left"><label>Printscreen opțional</label><div class="bug-paste-zone" id="bugPasteZone">Copiază printscreenul și apasă Ctrl+V</div><div class="bug-upload-name" id="bugUploadName"></div><img class="bug-screenshot-preview" id="bugScreenshotPreview" alt="Previzualizare printscreen"><div class="err" id="bugError"></div></div><div class="alert-actions"><button class="btn cancel">Anulează</button><button class="btn ok">Trimite</button></div></div>';document.body.appendChild(wrap);
+    let screenshot='';const preview=wrap.querySelector('#bugScreenshotPreview'),err=wrap.querySelector('#bugError'),name=wrap.querySelector('#bugUploadName'),pasteZone=wrap.querySelector('#bugPasteZone');
+    async function acceptImage(blob,label){err.textContent='';pasteZone.classList.add('active');pasteZone.textContent='Se procesează imaginea...';try{screenshot=await resizeImage(blob);preview.src=screenshot;preview.style.display='block';name.textContent=label||'Imagine lipită din clipboard';pasteZone.textContent='Imagine atașată. Poți lipi alta cu Ctrl+V.'}catch(e){screenshot='';preview.style.display='none';err.textContent=e.message;pasteZone.textContent='Sau copiază printscreenul și apasă Ctrl+V'}finally{setTimeout(()=>pasteZone.classList.remove('active'),500)}}
+    wrap.addEventListener('paste',event=>{const item=[...(event.clipboardData?.items||[])].find(x=>String(x.type).startsWith('image/'));if(!item)return;event.preventDefault();const blob=item.getAsFile();if(blob)acceptImage(blob,'Printscreen lipit din clipboard')});
+    wrap.querySelector('.cancel').onclick=()=>wrap.remove();
+    wrap.querySelector('.ok').onclick=async()=>{const description=String(wrap.querySelector('#bugDescription').value||'').trim();if(description.length<8){err.textContent='Descrie problema în cel puțin 8 caractere.';return}const item={id:'BUG'+Date.now(),description,screenshot,userName:currentUser?.name||currentUser?.username||'Utilizator',username:currentUser?.username||'',role:currentUser?.role||'',center:currentUser?.center||'',createdAt:Date.now(),status:'Nou'},list=readBugs();list.unshift(item);try{localStorage.setItem(BUG_KEY,JSON.stringify(list.slice(0,200)))}catch(_){err.textContent='Imaginea este prea mare pentru stocare. Alege o imagine mai mică.';return}try{if(typeof db!=='undefined')await db.collection('bugReports').doc(item.id).set(item)}catch(e){err.textContent='Raportul nu a putut fi salvat online.';return}wrap.remove();renderBugReports();showAppConfirm({title:'Raport trimis',text:'Raportarea ta a fost înregistrată.',confirmText:'OK'})};
+    setTimeout(()=>wrap.querySelector('#bugDescription')?.focus(),30)
+  };
+  window.openBugImage=function(id){const bug=readBugs().find(x=>String(x.id)===String(id));if(!bug?.screenshot)return;document.querySelector('.bug-image-viewer')?.remove();const modal=document.createElement('div');modal.className='modal open bug-image-viewer';modal.innerHTML='<div class="bug-viewer-panel"><button class="icon-btn red bug-viewer-close" type="button" title="Închide">×</button><img alt="Printscreen bug"></div>';modal.querySelector('img').src=bug.screenshot;modal.querySelector('.bug-viewer-close').onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove()};document.body.appendChild(modal)};
+  window.toggleBugSelection=function(id,checked){if(checked)selectedBugs.add(String(id));else selectedBugs.delete(String(id));const count=document.getElementById('selectedBugCount');if(count)count.textContent=String(selectedBugs.size);const btn=document.getElementById('deleteSelectedBugs');if(btn)btn.disabled=!selectedBugs.size};
+  window.deleteSelectedBugReports=function(){if(!selectedBugs.size)return;showAppConfirm({title:'Ștergere bug-uri',text:'Ștergi cele '+selectedBugs.size+' raportări selectate?',confirmText:'Șterge',cancelText:'Anulează',danger:true,onConfirm:async()=>{const ids=[...selectedBugs],next=readBugs().filter(x=>!selectedBugs.has(String(x.id)));try{localStorage.setItem(BUG_KEY,JSON.stringify(next))}catch(_){}if(typeof db!=='undefined'){for(const id of ids){try{await db.collection('bugReports').doc(id).delete()}catch(e){console.error(e)}}}selectedBugs.clear();renderBugReports()}})};
+  window.renderBugReports=function(){const box=document.getElementById('bugReportsList');if(!box)return;const list=readBugs(),count=document.getElementById('bugReportsCount');if(count)count.textContent=String(list.length);let toolbar=document.querySelector('#bugReportsCard .bug-report-toolbar');if(!toolbar){toolbar=document.createElement('div');toolbar.className='bug-report-toolbar';toolbar.innerHTML='<span class="muted">Selectate: <b id="selectedBugCount">0</b></span><button class="btn red" id="deleteSelectedBugs" onclick="deleteSelectedBugReports()" disabled>Șterge selectate</button>';box.before(toolbar)}const selectedCount=document.getElementById('selectedBugCount');if(selectedCount)selectedCount.textContent=String(selectedBugs.size);const deleteBtn=document.getElementById('deleteSelectedBugs');if(deleteBtn)deleteBtn.disabled=!selectedBugs.size;box.innerHTML=list.map(x=>'<div class="bug-report"><input class="bug-report-select" type="checkbox" '+(selectedBugs.has(String(x.id))?'checked':'')+' onchange="toggleBugSelection(\''+esc(String(x.id))+'\',this.checked)" aria-label="Selectează raportarea"><div class="bug-report-content"><div class="bug-report-meta">'+esc(new Date(x.createdAt).toLocaleString('ro-RO'))+' · '+esc(x.userName)+' · '+esc(x.center||x.role)+'</div><div class="bug-report-text">'+esc(x.description)+'</div>'+(x.screenshot?'<button class="bug-image-button" type="button" onclick="openBugImage(\''+esc(String(x.id))+'\')" title="Deschide imaginea"><img class="bug-screenshot-thumb" src="'+x.screenshot+'" alt="Printscreen bug"></button>':'')+'</div></div>').join('')||'<div class="muted">Nu există bug-uri raportate.</div>'};
+  const oldRender=window.render;window.render=function(){const result=oldRender&&oldRender.apply(this,arguments);installLadybug();return result};
+  const observer=new MutationObserver(()=>installLadybug());observer.observe(document.body,{childList:true,subtree:true});installLadybug();
+})();
+</script>
+<style id="sphera-v93-style">
+.order-repeat-btn svg{width:22px!important;height:22px!important;fill:none!important;stroke:currentColor!important;stroke-width:2.2!important;stroke-linecap:round;stroke-linejoin:round}
+.order-repeat-btn{position:relative}.order-repeat-btn .repeat-plus{stroke-width:2.4!important}
+</style>
+<script id="sphera-v93-script">
+(function(){
+  'use strict';
+  const repeatIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7h-9a5 5 0 0 0-5 5v1"/><path d="m17 4 3 3-3 3"/><path d="M4 17h9a5 5 0 0 0 5-5v-1"/><path d="m7 20-3-3 3-3"/><path class="repeat-plus" d="M12 9v6M9 12h6"/></svg>';
+  function repeatAllowed(){const role=String(currentUser?.role||'').trim().toLowerCase();return !!currentUser&&!['viewer','export','operator export','operator-export'].includes(role)&&(typeof canCreateOrders!=='function'||canCreateOrders())}
+  window.repeatOrder=function(id){
+    if(!repeatAllowed())return;
+    const source=(orders||[]).find(order=>String(order.id)===String(id));if(!source)return;
+    showAppConfirm({title:'Repetare comandă',text:'Creezi o comandă nouă pentru '+String(source.client?.name||'același client')+'?',confirmText:'Repetă comanda',cancelText:'Anulează',onConfirm:()=>{
+      const today=new Date().toISOString().slice(0,10);
+      draft={
+        date:today,status:'Lansată',client:source.client?JSON.parse(JSON.stringify(source.client)):null,
+        product:source.product||'',design:source.design||'',index:source.index||'',geometry:source.geometry||'',material:source.material||'',materialColor:source.materialColor||'',treatment:source.treatment||'',patient:source.patient||'',
+        hasMount:source.hasMount===true,mount:source.hasMount===true?(source.mount||''):'',
+        deliveryDestination:source.deliveryDestination||'center',deliveryCenter:source.deliveryCenter||source.center||'',
+        center:source.center||currentUser?.center||'',operator:currentUser?.name||source.operator||'',notes:source.notes||'',
+        odActive:source.rx?.odActive!==false,osActive:source.rx?.osActive!==false,
+        odSph:source.rx?.odSph||'',odCyl:source.rx?.odCyl||'',odAx:source.rx?.odAx||'',odAdd:source.rx?.odAdd||'',
+        osSph:source.rx?.osSph||'',osCyl:source.rx?.osCyl||'',osAx:source.rx?.osAx||'',osAdd:source.rx?.osAdd||'',
+        prismEnabled:source.rx?.prismEnabled===true,odPrism:source.rx?.odPrism||'',odBase:source.rx?.odBase||'',osPrism:source.rx?.osPrism||'',osBase:source.rx?.osBase||''
+      };
+      const existingIds=new Set((orders||[]).map(item=>String(item.id)));
+      document.querySelectorAll('.modal.open').forEach(modal=>modal.remove());
+      createOrder();
+      const created=(orders||[]).find(item=>!existingIds.has(String(item.id)));
+      if(created&&typeof regenerateRepeatedOrderCode==='function')regenerateRepeatedOrderCode(created);
+    }});
+  };
+  function addRepeatButton(orderId){
+    if(!repeatAllowed())return;const modals=[...document.querySelectorAll('.modal.open')].filter(modal=>!modal.classList.contains('bug-report-modal')&&!modal.classList.contains('bug-image-viewer'));const modal=modals[modals.length-1];if(!modal||modal.querySelector('.order-repeat-btn'))return;
+    const actions=modal.querySelector('.icon-btns');if(!actions)return;const button=document.createElement('button');button.type='button';button.className='icon-btn primary order-repeat-btn';button.title='Repetă comanda';button.setAttribute('aria-label','Repetă comanda');button.innerHTML=repeatIcon;button.onclick=()=>repeatOrder(orderId);actions.appendChild(button)
+  }
+  const previousDetails=window.showOrderDetails;
+  window.showOrderDetails=function(id){const result=previousDetails&&previousDetails.apply(this,arguments);setTimeout(()=>addRepeatButton(id),0);return result};
+})();
+</script>
+<style id="sphera-v94-style">
+#alertModal.open,.app-confirm-modal.open{z-index:120!important}
+.order-details-card{max-width:760px!important}.order-number-row{display:flex;align-items:center;gap:10px;margin-top:4px}.order-number-value{font-size:25px;font-weight:950;letter-spacing:.2px}
+.order-detail-group{display:grid;grid-template-columns:160px minmax(0,1fr);gap:9px 14px;padding:16px 0;border-top:1px solid var(--line)}.order-detail-group:first-of-type{margin-top:16px}.order-detail-label{color:#667085}.order-detail-value{font-weight:850;color:#101828;overflow-wrap:anywhere}.order-history-group{padding-top:16px;border-top:1px solid var(--line)}
+.order-details-actions{display:flex;justify-content:flex-end;align-items:center;gap:10px;margin-top:20px}.order-repeat-btn svg{width:23px!important;height:23px!important;stroke-width:2.15!important}
+@media(max-width:600px){.order-detail-group{grid-template-columns:125px minmax(0,1fr);gap:8px 10px}.order-number-value{font-size:20px}}
+</style>
+<script id="sphera-v94-script">
+(function(){
+  'use strict';
+  const circleRepeatIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10a8 8 0 0 0-14.8-3.8L4 10"/><path d="M4 5v5h5"/><path d="M4 14a8 8 0 0 0 14.8 3.8L20 14"/><path d="M20 19v-5h-5"/></svg>';
+  function detailStatus(order){try{const steps=orderWorkflowSteps(order);return steps[orderWorkflowIndex(order)]||order.workflowStatus||order.status||'Lansată'}catch(_){return order.workflowStatus||order.status||'Lansată'}}
+  function detailRow(label,value){return '<div class="order-detail-label">'+esc(label)+'</div><div class="order-detail-value">'+esc(value||'')+'</div>'}
+  function findDetailOrder(id){let order;try{order=(orders||[]).find(x=>String(x.id)===String(id))}catch(_){}return order}
+  window.showOrderDetails=function(id){
+    const order=findDetailOrder(id);if(!order)return;
+    const history=Array.isArray(order.modificationHistory)?order.modificationHistory:[];
+    const firstGroup=[
+      ['Data',formatDateRO(order.date)],
+      ['Ora lansării',order.createdTime||'Ora nu este disponibilă'],
+      ['Client',(order.client?.name||'')+' · '+(order.client?.city||'')+' · cod '+(order.client?.code||'')],
+      ['Produs',productSummary(order)],
+      ['OD',odText(order)+(order.rx?.odAdd?' add '+order.rx.odAdd:'')+(order.rx?.odPrism?' prismă '+order.rx.odPrism+(order.rx?.odBase?' bază '+order.rx.odBase:''):'')],
+      ['OS',osText(order)+(order.rx?.osAdd?' add '+order.rx.osAdd:'')+(order.rx?.osPrism?' prismă '+order.rx.osPrism+(order.rx?.osBase?' bază '+order.rx.osBase:''):'')],
+      ['Nume pacient',order.patient||'']
+    ];
+    const secondGroup=[
+      ['Operator',order.operator||order.createdByName||''],
+      ['Centru',order.center||''],
+      ['Montaj',order.hasMount===false?'Fără montaj':(order.mount||'Fără montaj')],
+      ['Livrare',order.deliveryDestination==='client'?(order.client?.name||'Client'):(order.deliveryCenter||order.center||'')]
+    ];
+    const currentStatus=detailStatus(order);
+    const thirdGroup=[
+      ['Status',currentStatus],
+      ...(norm(currentStatus)==='livrata'?[['Data livrare',typeof deliveryDateDisplay==='function'?deliveryDateDisplay(order):(order.deliveredDate?(order.deliveredDate+(order.deliveredTime?', '+order.deliveredTime:'')):'Indisponibilă')]]:[]),
+      ['Mențiuni',order.notes||''],
+      ['Ultima modificare',order.lastModifiedDate?order.lastModifiedDate+(order.lastModifiedTime?', '+order.lastModifiedTime:''):'Nicio modificare'],
+      ['Modificat de',order.lastModifiedBy||'Nicio modificare']
+    ];
+    const historyHtml=history.length?history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0)).map(entry=>'<div class="order-audit-item"><div class="order-audit-meta">'+esc(entry.date||'')+' '+esc(entry.time||'')+' · '+esc(entry.user||entry.username||'Utilizator')+'</div><div class="order-audit-reason">'+esc(entry.reason||'Fără motiv')+'</div></div>').join(''):'<div class="muted">Nicio modificare efectuată.</div>';
+    const canEdit=typeof canEditOrder==='function'&&canEditOrder(order);
+    const canRepeat=typeof canCreateOrders!=='function'||canCreateOrders();
+    const editButton=canEdit?'<button class="icon-btn primary" type="button" onclick="this.closest(\'.modal\').remove();openOrderEdit(\''+esc(String(order.id))+'\')" title="Editează comanda" aria-label="Editează comanda"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z"/></svg></button>':'';
+    const repeatButton=canRepeat?'<button class="icon-btn primary order-repeat-btn" type="button" onclick="repeatOrder(\''+esc(String(order.id))+'\')" title="Repetă comanda" aria-label="Repetă comanda">'+circleRepeatIcon+'</button>':'';
+    const modal=document.createElement('div');modal.className='modal open order-details-modal';modal.innerHTML='<div class="wizard order-details-card"><div class="muted">Detalii comandă</div><div class="order-number-row"><div class="order-number-value">'+esc(order.code||'')+'</div><button class="icon-btn primary order-code-copy" type="button" title="Copiază numărul comenzii" aria-label="Copiază numărul comenzii"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="8" y="8" width="11" height="11" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg></button></div><div class="order-detail-group">'+firstGroup.map(x=>detailRow(x[0],x[1])).join('')+'</div><div class="order-detail-group">'+secondGroup.map(x=>detailRow(x[0],x[1])).join('')+'</div><div class="order-detail-group">'+thirdGroup.map(x=>detailRow(x[0],x[1])).join('')+'</div><div class="order-history-group"><div class="order-audit-title">Istoric modificări</div><div class="order-audit-list">'+historyHtml+'</div></div><div class="order-details-actions">'+editButton+repeatButton+'</div></div>';
+    modal.querySelector('.order-code-copy').onclick=()=>navigator.clipboard&&navigator.clipboard.writeText(String(order.code||''));document.body.appendChild(modal)
+  };
+})();
+</script>
+<script id="sphera-v95-script">
+(function(){
+  'use strict';
+  function accountCodeForRepeat(){
+    const username=String(currentUser?.username||'').trim().toLowerCase();
+    const account=(USERS||[]).find(user=>username&&String(user.username||'').trim().toLowerCase()===username)||currentUser||{};
+    let code=String(account.operatorCode||account.code||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(norm(account.name||currentUser?.name||'')==='cristina andras')code='02';
+    return code;
+  }
+  function repeatedCodeDate(){
+    const now=new Date(),date=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    if(now.getDay()===0||now.getDay()===6||now.getHours()>=14)date.setDate(date.getDate()+1);
+    while(date.getDay()===0||date.getDay()===6)date.setDate(date.getDate()+1);
+    return date;
+  }
+  function sequenceFromOrder(order){
+    const direct=Number(String(order?.seq||'').replace(/\D/g,''));if(Number.isFinite(direct)&&direct>0)return direct;
+    const digits=String(order?.code||'').replace(/\D/g,'');
+    if(digits.length>=14){const parsed=Number(digits.slice(6,-3));return Number.isFinite(parsed)?parsed:0}
+    return 0;
+  }
+  window.regenerateRepeatedOrderCode=function(created){
+    if(!created)return;
+    const date=repeatedCodeDate(),day=String(date.getDate()).padStart(2,'0'),month=String(date.getMonth()+1).padStart(2,'0');
+    const indicator=accountCodeForRepeat(),clientCode=String(created.client?.code||'').replace(/\D/g,'').padStart(3,'0').slice(-3);
+    let maximum=0;
+    (orders||[]).forEach(order=>{if(order===created||String(order.id)===String(created.id)||norm(order.center||'')!==norm(created.center||''))return;maximum=Math.max(maximum,sequenceFromOrder(order))});
+    (CENTERS||[]).filter(item=>norm(item.center||'')===norm(created.center||'')||norm(item.operator||'')===norm(currentUser?.name||'')).forEach(item=>{maximum=Math.max(maximum,Number(String(item.last||'').replace(/\D/g,''))||0)});
+    let next=Math.max(maximum+1,1),code='';const used=new Set((orders||[]).filter(order=>order!==created&&String(order.id)!==String(created.id)).map(order=>String(order.code||'')));
+    do{const sequence=String(next).padStart(5,'0').slice(-5);code=day+month+indicator+sequence+clientCode;next++}while(used.has(code));
+    const finalSequence=String(next-1).padStart(5,'0').slice(-5);
+    created.seq=finalSequence;created.code=code;created.operatorCode=indicator;created.codeDate=date.toISOString().slice(0,10);created.date=new Date().toISOString().slice(0,10);
+    const operator=(CENTERS||[]).find(item=>norm(item.operator||'')===norm(currentUser?.name||''));if(operator)operator.last=finalSequence;
+    if(typeof saveNomenclators==='function')saveNomenclators();save();render();
+    const input=document.getElementById('generatedCodeInput');if(input){input.value=code;input.focus();input.select()}
+    return code;
+  };
+})();
+</script>
+<style id="sphera-v96-style">
+#ordersListBox .table-wrap.orders-scroll-enabled{overflow-y:auto!important;overflow-x:hidden!important;scrollbar-gutter:stable}
+#ordersListBox .table-wrap.orders-scroll-enabled thead th{position:sticky!important;top:0!important;z-index:4;background:#fff!important;box-shadow:0 1px 0 var(--line)}
+#ordersListBox th:nth-child(1),#ordersListBox td:nth-child(1){width:10.5%!important}
+#ordersListBox th:nth-child(2),#ordersListBox td:nth-child(2){width:8%!important}
+#ordersListBox th:nth-child(3),#ordersListBox td:nth-child(3){width:11%!important}
+#ordersListBox th:nth-child(4),#ordersListBox td:nth-child(4){width:20%!important}
+#ordersListBox th:nth-child(5),#ordersListBox td:nth-child(5),#ordersListBox th:nth-child(6),#ordersListBox td:nth-child(6){width:8.5%!important}
+#ordersListBox th:nth-child(7),#ordersListBox td:nth-child(7){width:4.5%!important}
+#ordersListBox th:nth-child(8),#ordersListBox td:nth-child(8){width:10%!important}
+#ordersListBox th:nth-child(9),#ordersListBox td:nth-child(9){width:9%!important}
+#ordersListBox th:nth-child(10),#ordersListBox td:nth-child(10){width:5.5%!important;min-width:68px!important;overflow:visible!important}
+#ordersListBox th:nth-child(11),#ordersListBox td:nth-child(11){width:3%!important}
+#ordersListBox .table-wrap.orders-scroll-enabled{scrollbar-width:thin;scrollbar-color:rgba(100,116,139,.42) transparent}
+#ordersListBox .table-wrap.orders-scroll-enabled::-webkit-scrollbar{width:6px;height:6px}
+#ordersListBox .table-wrap.orders-scroll-enabled::-webkit-scrollbar-track{background:transparent}
+#ordersListBox .table-wrap.orders-scroll-enabled::-webkit-scrollbar-thumb{background:rgba(100,116,139,.38);border-radius:999px}
+#ordersListBox .table-wrap.orders-scroll-enabled::-webkit-scrollbar-thumb:hover{background:rgba(71,84,103,.58)}
+</style>
+<script id="sphera-v96-script">
+(function(){
+  'use strict';
+  function limitOrdersToFifteen(){
+    const body=document.getElementById('orderRows'),table=body?.closest('table'),wrap=table?.closest('.table-wrap');if(!body||!table||!wrap)return;
+    const rows=[...body.rows],header=table.tHead;if(rows.length<=15){wrap.classList.remove('orders-scroll-enabled');wrap.style.maxHeight='none';return}
+    const visibleHeight=(header?.offsetHeight||42)+rows.slice(0,15).reduce((sum,row)=>sum+row.offsetHeight,0);
+    wrap.style.maxHeight=(visibleHeight+2)+'px';wrap.classList.add('orders-scroll-enabled')
+  }
+  const previousRender=window.render;window.render=function(){const result=previousRender&&previousRender.apply(this,arguments);requestAnimationFrame(limitOrdersToFifteen);return result};
+  const observer=new MutationObserver(()=>requestAnimationFrame(limitOrdersToFifteen));const body=document.getElementById('orderRows');if(body)observer.observe(body,{childList:true});
+  window.addEventListener('resize',limitOrdersToFifteen);requestAnimationFrame(limitOrdersToFifteen)
+})();
+</script>
+<style id="sphera-v97-style">
+.admin-status-reset{display:inline-flex;align-items:center;gap:7px;margin-left:10px;border:1px solid #fdb022;background:#fffaeb;color:#b54708;border-radius:10px;padding:6px 9px;font-size:12px;font-weight:900;cursor:pointer;vertical-align:middle}.admin-status-reset:hover{background:#fef0c7}.admin-status-reset svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.status-reset-card{max-width:460px!important}.status-reset-card select{margin-top:8px}
+</style>
+<script id="sphera-v97-script">
+(function(){
+  'use strict';
+  const isDeliveredOrder=order=>norm(order?.workflowStatus||order?.status||'')==='livrata'||norm(order?.status||'')==='livrata';
+  const isAdminAccount=()=>['admin','administrator'].includes(String(currentUser?.role||'').trim().toLowerCase());
+  const previousCanEdit=window.canEditOrder;
+  window.canEditOrder=function(order){if(isDeliveredOrder(order))return false;return previousCanEdit?previousCanEdit(order):false};
+  const previousOpenEdit=window.openOrderEdit;
+  window.openOrderEdit=function(id){const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order||isDeliveredOrder(order))return;return previousOpenEdit&&previousOpenEdit.apply(this,arguments)};
+  const previousSaveEdit=window.saveOrderEdit;
+  window.saveOrderEdit=function(id){const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order||isDeliveredOrder(order))return;return previousSaveEdit&&previousSaveEdit.apply(this,arguments)};
+  window.openAdminStatusReset=function(id){
+    if(!isAdminAccount())return;const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order||!isDeliveredOrder(order))return;
+    document.querySelector('.status-reset-modal')?.remove();let steps;try{steps=orderWorkflowSteps(order).filter(step=>norm(step)!=='livrata')}catch(_){steps=['Lansată','Check-out','Recepție','La montaj','Facturată']}
+    const modal=document.createElement('div');modal.className='modal open status-reset-modal';modal.style.zIndex='130';modal.innerHTML='<div class="wizard alert-card status-reset-card"><div class="alert-icon" style="background:#fffaeb;color:#b54708">↶</div><div class="alert-title">Resetează statusul</div><div class="alert-text">Alege etapa la care revine comanda '+esc(order.code||'')+'.</div><div class="field" style="text-align:left"><label>Etapă</label><select id="resetOrderStatus">'+steps.map(step=>'<option value="'+esc(step)+'" '+(step==='Lansată'?'selected':'')+'>'+esc(step)+'</option>').join('')+'</select></div><div class="alert-actions"><button class="btn cancel" type="button">Anulează</button><button class="btn ok" type="button">Resetează</button></div></div>';document.body.appendChild(modal);modal.querySelector('.cancel').onclick=()=>modal.remove();modal.querySelector('.ok').onclick=()=>{const target=modal.querySelector('#resetOrderStatus').value;order.workflowStatus=target;order.status='Lansată';delete order.deliveredAt;delete order.deliveredDate;delete order.deliveredTime;delete order.deliveredBy;if(typeof clearDeliveryEvent==='function')clearDeliveryEvent(order);save();render();modal.remove();document.querySelector('.order-details-modal')?.remove();setTimeout(()=>showOrderDetails(id),0)};setTimeout(()=>modal.querySelector('#resetOrderStatus')?.focus(),30)
+  };
+  function addAdminReset(orderId){
+    if(!isAdminAccount())return;const order=(orders||[]).find(item=>String(item.id)===String(orderId));if(!order||!isDeliveredOrder(order))return;const modal=[...document.querySelectorAll('.order-details-modal.open')].pop();if(!modal||modal.querySelector('.admin-status-reset'))return;const labels=[...modal.querySelectorAll('.order-detail-label')],label=labels.find(item=>norm(item.textContent)==='status');const value=label?.nextElementSibling;if(!value)return;const button=document.createElement('button');button.type='button';button.className='admin-status-reset';button.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/></svg><span>Resetează statusul</span>';button.onclick=()=>openAdminStatusReset(orderId);value.appendChild(button)
+  }
+  const previousDetails=window.showOrderDetails;
+  window.showOrderDetails=function(id){const result=previousDetails&&previousDetails.apply(this,arguments);setTimeout(()=>addAdminReset(id),0);return result};
+})();
+</script>
+<script id="sphera-v98-script">
+(function(){
+  'use strict';
+  function delivered(order){return norm(order?.workflowStatus||order?.status||'')==='livrata'||norm(order?.status||'')==='livrata'}
+  function stampDelivery(order){
+    if(!order||order.deliveredAt)return false;const now=new Date();order.deliveredAt=now.getTime();order.deliveredDate=now.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'});order.deliveredTime=now.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});order.deliveredBy=currentUser?.name||currentUser?.username||'Utilizator';return true
+  }
+  const previousSetStatus=window.setWorkflowStatus;
+  window.setWorkflowStatus=function(id,status){const order=(orders||[]).find(item=>String(item.id)===String(id)),wasDelivered=delivered(order);const result=previousSetStatus&&previousSetStatus.apply(this,arguments);if(order&&!wasDelivered&&delivered(order)&&stampDelivery(order)){save();render()}return result};
+  const previousToggleStatus=window.toggleOrderStatus;
+  window.toggleOrderStatus=function(id){const order=(orders||[]).find(item=>String(item.id)===String(id)),wasDelivered=delivered(order);const result=previousToggleStatus&&previousToggleStatus.apply(this,arguments);if(order&&!wasDelivered&&delivered(order)&&stampDelivery(order)){save();render()}return result};
+})();
+</script>
+<style id="sphera-v99-style">
+#ordersListBox .status-toggle.status-readonly{pointer-events:none!important;cursor:default!important;opacity:1!important;transform:none!important}
+#ordersListBox .status-toggle.status-readonly:hover{transform:none!important}
+</style>
+<script id="sphera-v99-script">
+(function(){
+  'use strict';
+  window.toggleOrderStatus=function(){return false};
+  function makeDashboardStatusReadonly(){
+    document.querySelectorAll('#ordersListBox .status-toggle').forEach(button=>{
+      const row=button.closest('tr'),code=String(row?.cells?.[0]?.textContent||'').trim(),order=(orders||[]).find(item=>String(item.code||'').trim()===code),delivered=norm(order?.workflowStatus||order?.status||'')==='livrata'||norm(order?.status||'')==='livrata';
+      button.removeAttribute('onclick');button.onclick=null;button.disabled=true;button.classList.add('status-readonly');button.title=delivered?'Comandă livrată':'Statusul se modifică din secțiunea Status comenzi';button.setAttribute('aria-label',button.title)
+    })
+  }
+  const previousRender=window.render;window.render=function(){const result=previousRender&&previousRender.apply(this,arguments);makeDashboardStatusReadonly();return result};
+  const body=document.getElementById('orderRows');if(body)new MutationObserver(makeDashboardStatusReadonly).observe(body,{childList:true});makeDashboardStatusReadonly()
+})();
+</script>
+<script id="sphera-v100-script">
+(function(){
+  'use strict';
+  window.setWorkflowStatus=function(id,status){
+    const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order||!canSetWorkflowStep(status,order))return false;
+    const isDelivery=norm(status)==='livrata';
+    order.workflowStatus=status;order.status=isDelivery?'Livrată':'Lansată';
+    if(isDelivery){
+      const now=new Date();order.deliveredAt=now.getTime();order.deliveredDate=now.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'});order.deliveredTime=now.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});order.deliveredBy=currentUser?.name||currentUser?.username||'Utilizator'
+      if(typeof persistDeliveryEvent==='function')persistDeliveryEvent(order);
+    }
+    save();render();if(typeof renderProcessingOrders==='function')renderProcessingOrders();return true
+  };
+})();
+</script>
+<script id="sphera-v101-script">
+(function(){
+  'use strict';
+  function stampBeforeDelivery(order){
+    if(!order)return;const now=new Date();order.deliveredAt=now.getTime();order.deliveredDate=now.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'});order.deliveredTime=now.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});order.deliveredBy=currentUser?.name||currentUser?.username||'Utilizator'
+  }
+  document.addEventListener('click',event=>{
+    const button=event.target.closest?.('#processingOrdersList .workflow-step');if(!button||button.disabled)return;
+    const label=norm(button.textContent||'');if(!label.includes('livrata'))return;
+    const onclick=String(button.getAttribute('onclick')||''),match=onclick.match(/setWorkflowStatus\(['"]([^'"]+)['"],['"]Livrată['"]\)/);if(!match)return;
+    const order=(orders||[]).find(item=>String(item.id)===String(match[1]));if(!order||!canSetWorkflowStep('Livrată',order))return;
+    stampBeforeDelivery(order);if(typeof persistDeliveryEvent==='function')persistDeliveryEvent(order);save()
+  },true);
+})();
+</script>
+<script id="sphera-v102-script">
+(function(){
+  'use strict';
+  const DELIVERY_KEY='sphera_delivery_events_v1';
+  const readLedger=()=>{try{return JSON.parse(localStorage.getItem(DELIVERY_KEY)||'{}')}catch(_){return{}}};
+  const eventId=order=>String(order?.id||order?.code||'').trim();
+  const cloudId=order=>encodeURIComponent(eventId(order)).replace(/%/g,'_').slice(0,900);
+  window.persistDeliveryEvent=function(order){
+    if(!order)return;const id=eventId(order);if(!id)return;const ledger=readLedger(),event={orderId:id,orderCode:String(order.code||''),deliveredAt:Number(order.deliveredAt||Date.now()),deliveredDate:String(order.deliveredDate||''),deliveredTime:String(order.deliveredTime||''),deliveredBy:String(order.deliveredBy||currentUser?.name||currentUser?.username||'Utilizator')};ledger[id]=event;localStorage.setItem(DELIVERY_KEY,JSON.stringify(ledger));try{if(typeof db!=='undefined')db.collection('deliveryEvents').doc(cloudId(order)).set(event,{merge:true}).catch(console.error)}catch(e){console.error(e)}return event
+  };
+  window.clearDeliveryEvent=function(order){const id=eventId(order),ledger=readLedger();delete ledger[id];localStorage.setItem(DELIVERY_KEY,JSON.stringify(ledger));try{if(typeof db!=='undefined')db.collection('deliveryEvents').doc(cloudId(order)).delete().catch(console.error)}catch(e){console.error(e)}};
+  window.deliveryDateDisplay=function(order){
+    const id=eventId(order),event=readLedger()[id];if(order?.deliveredDate)return order.deliveredDate+(order.deliveredTime?', '+order.deliveredTime:'');if(event?.deliveredDate){order.deliveredAt=event.deliveredAt;order.deliveredDate=event.deliveredDate;order.deliveredTime=event.deliveredTime;order.deliveredBy=event.deliveredBy;return event.deliveredDate+(event.deliveredTime?', '+event.deliveredTime:'')}
+    const now=new Date();order.deliveredAt=now.getTime();order.deliveredDate=now.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'});order.deliveredTime=now.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});order.deliveredBy=currentUser?.name||currentUser?.username||'Utilizator';persistDeliveryEvent(order);save();return order.deliveredDate+', '+order.deliveredTime
+  };
+  try{if(typeof db!=='undefined')db.collection('deliveryEvents').onSnapshot(snapshot=>{const ledger=readLedger();snapshot.docs.forEach(doc=>{const event=doc.data()||{};if(event.orderId)ledger[String(event.orderId)]=event});localStorage.setItem(DELIVERY_KEY,JSON.stringify(ledger));(orders||[]).forEach(order=>{const event=ledger[eventId(order)];if(event&&norm(order.workflowStatus||order.status||'')==='livrata'){order.deliveredAt=event.deliveredAt;order.deliveredDate=event.deliveredDate;order.deliveredTime=event.deliveredTime;order.deliveredBy=event.deliveredBy}});if(typeof render==='function')render()})}catch(e){console.error(e)}
+})();
+</script>
+<style id="sphera-v103-style">
+.prism-toggle-row{display:flex;justify-content:flex-start;align-items:center;margin-bottom:12px;padding-left:0}.prism-checkbox{position:relative;z-index:2;display:inline-flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:7px;color:#344054;font-size:13px;font-weight:800;line-height:16px;white-space:nowrap;cursor:pointer;user-select:none}.prism-checkbox span{display:inline-flex!important;align-items:center;height:16px;line-height:16px;margin:0!important}.prism-checkbox input{position:relative;z-index:3;display:block!important;appearance:auto!important;-webkit-appearance:checkbox!important;width:16px!important;min-width:16px!important;max-width:16px!important;height:16px!important;min-height:16px!important;max-height:16px!important;margin:0!important;padding:0!important;border-radius:2px!important;box-shadow:none!important;accent-color:#165dff;cursor:pointer;pointer-events:auto!important}
+.rx-grid.prism-active{grid-template-columns:70px repeat(5,minmax(0,1fr)) 42px!important;max-width:none!important}.rx-grid.prism-active .prism-field{min-width:0!important;text-transform:uppercase}.rx-grid.prism-active .prism-value{text-transform:none}.rx-grid.prism-active .rx-head{white-space:nowrap}
+@media(max-width:900px){.rx-grid.prism-active{grid-template-columns:42px repeat(5,minmax(72px,1fr)) 42px!important;overflow-x:auto;padding-bottom:6px}}
+</style>
+<script id="sphera-v103-script">
+(function(){
+  'use strict';
+  function prismProductEligible(){const product=norm(draft?.product||''),design=norm(draft?.design||'');return product==='monofocal'&&(design.includes('attraction')||design==='senso id'||design.includes('senso id'))}
+  window.togglePrismFields=function(){draft.prismEnabled=!draft.prismEnabled;if(!draft.prismEnabled){draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase=''}drawStep(false)};
+  window.prismValueInput=function(input,key){let value=String(input.value||'').replace(',','.').replace(/[^0-9.]/g,'');const parts=value.split('.');if(parts.length>2)value=parts.shift()+'.'+parts.join('');draft[key]=value;input.value=value};
+  window.prismValueBlur=function(input,key){const raw=String(input.value||'').trim();if(!raw){draft[key]='';input.value='';return}const value=Number(raw);if(Number.isFinite(value)&&value>=0&&value<=10){draft[key]=String(Number(value.toFixed(2)));input.value=draft[key]}}
+  window.prismBaseInput=function(input,key){const value=String(input.value||'').toUpperCase().replace(/[^0-9A-ZĂÂÎȘȚ\- ]/g,'').slice(0,12);draft[key]=value;input.value=value};
+  function enhancePrescriptionStep(){
+    if(step!==2)return;if(!prismProductEligible()){draft.prismEnabled=false;draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase='';return}const grid=stepBox.querySelector('.rx-grid');if(!grid||stepBox.querySelector('.prism-toggle-row'))return;
+    const row=document.createElement('div');row.className='prism-toggle-row';row.innerHTML='<label class="prism-checkbox"><input id="prismEnabledCheckbox" type="checkbox" '+(draft.prismEnabled?'checked':'')+'><span>Prismă</span></label>';const checkbox=row.querySelector('#prismEnabledCheckbox');checkbox.addEventListener('change',event=>{event.stopPropagation();draft.prismEnabled=event.currentTarget.checked;if(!draft.prismEnabled){draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase=''}drawStep(false)});grid.before(row);if(!draft.prismEnabled)return;
+    grid.classList.add('prism-active');const axisHead=[...grid.querySelectorAll('.rx-head')].find(head=>norm(head.textContent)==='ax');if(axisHead){const prismHead=document.createElement('div');prismHead.className='rx-head';prismHead.textContent='PRISMĂ';const baseHead=document.createElement('div');baseHead.className='rx-head';baseHead.textContent='BAZĂ';axisHead.after(prismHead,baseHead)}
+    ['od','os'].forEach(eye=>{const axis=grid.querySelector('.rx-axis-field[data-eye="'+eye+'"]');if(!axis)return;const active=draft[eye+'Active']!==false;const prism=document.createElement('input');prism.className='rx-field prism-field prism-value';prism.inputMode='decimal';prism.value=draft[eye+'Prism']||'';prism.disabled=!active;prism.oninput=()=>prismValueInput(prism,eye+'Prism');prism.onblur=()=>prismValueBlur(prism,eye+'Prism');const base=document.createElement('input');base.className='rx-field prism-field';base.value=draft[eye+'Base']||'';base.disabled=!active;base.oninput=()=>prismBaseInput(base,eye+'Base');axis.after(prism,base)})
+  }
+  const previousDrawStep=window.drawStep;window.drawStep=function(){const result=previousDrawStep&&previousDrawStep.apply(this,arguments);enhancePrescriptionStep();return result};
+  const previousValidate=window.validateStep;window.validateStep=function(silent){const valid=previousValidate?previousValidate.call(this,silent):true;if(!valid||step!==2||!prismProductEligible()||!draft.prismEnabled)return valid;const eyes=['od','os'].filter(eye=>draft[eye+'Active']!==false);let error='',completed=0;for(const eye of eyes){const prism=String(draft[eye+'Prism']||'').trim(),base=String(draft[eye+'Base']||'').trim();if(!prism&&!base)continue;if(!prism||!base){error='Completează împreună Prisma și Baza pentru fiecare ochi.';break}const value=Number(prism);if(!Number.isFinite(value)||value<0||value>10){error='Prisma trebuie să aibă o valoare între 0 și 10.';break}if(!/^[0-9A-ZĂÂÎȘȚ\- ]+$/i.test(base)){error='Baza acceptă doar litere și cifre.';break}completed++}if(!error&&!completed)error='Completează Prisma și Baza pentru cel puțin un ochi sau elimină opțiunea.';if(error&&!silent)stepErr.textContent=error;return !error};
+  const previousToggleEye=window.toggleEye;window.toggleEye=function(eye,checked){if(!checked){draft[eye+'Prism']='';draft[eye+'Base']=''}return previousToggleEye&&previousToggleEye.apply(this,arguments)};
+  const previousCreate=window.createOrder;window.createOrder=function(){const before=new Set((orders||[]).map(order=>String(order.id))),snapshot={prismEnabled:draft.prismEnabled===true,odPrism:draft.odPrism||'',odBase:draft.odBase||'',osPrism:draft.osPrism||'',osBase:draft.osBase||''};const result=previousCreate&&previousCreate.apply(this,arguments);const created=(orders||[]).find(order=>!before.has(String(order.id)));if(created){created.rx=created.rx||{};Object.assign(created.rx,snapshot);save();render()}return result};
+  if(step===2)enhancePrescriptionStep()
+})();
+</script>
+<style id="sphera-v104-style">
+.mixed-design-toggle{display:inline-flex!important;flex-direction:row!important;align-items:center!important;gap:8px;margin:0 0 16px;padding:0;border:0;background:transparent;color:#344054;font-size:13px;font-weight:800;line-height:16px;cursor:pointer}.mixed-design-toggle input{appearance:auto!important;-webkit-appearance:checkbox!important;display:block!important;width:16px!important;min-width:16px!important;height:16px!important;margin:0!important;padding:0!important;accent-color:#165dff;pointer-events:auto!important}.mixed-design-toggle span{display:inline-flex;align-items:center;height:16px;margin:0!important}.eye-product-card{border:1px solid #dce4ef;border-radius:16px;padding:16px;margin-bottom:14px;background:#fbfcfe}.eye-product-title{font-size:15px;font-weight:900;color:#101828;margin-bottom:12px}.mixed-rx-grid{display:grid;grid-template-columns:70px repeat(4,minmax(0,1fr)) 42px;gap:10px;align-items:center}.mixed-rx-grid .rx-field{min-width:0}.mixed-rx-grid .not-required{background:#f2f4f7!important;pointer-events:none}.mixed-product-summary{display:block;line-height:1.35}.mixed-product-summary + .mixed-product-summary{margin-top:3px}
+#stepBox,.eye-product-card,.eye-product-card .field,.mixed-choice{pointer-events:auto!important}.mixed-choice{position:relative;z-index:3}.mixed-choice.open{z-index:50}.mixed-choice-button{position:relative!important;z-index:4!important;pointer-events:auto!important;width:100%;min-height:46px;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border:1px solid #dce4ef;border-radius:13px;background:#fff;color:#101828;text-align:left;font-weight:500}.mixed-choice-button:after{content:'⌄';font-size:18px;color:#475467}.mixed-choice-options{display:none;position:absolute;left:0;right:0;top:calc(100% + 5px);max-height:220px;overflow:auto;padding:6px;background:#fff;border:1px solid #dce4ef;border-radius:13px;box-shadow:0 16px 35px rgba(16,24,40,.18);z-index:60;pointer-events:auto!important}.mixed-choice.open .mixed-choice-options{display:block!important}.mixed-choice-option{display:block;width:100%;padding:10px 11px;border:0;border-radius:9px;background:#fff;color:#101828;text-align:left;pointer-events:auto!important}.mixed-choice-option:hover,.mixed-choice-option.selected{background:#eef4ff;color:#155eef}
+.mixed-radio-group{display:flex;flex-wrap:wrap;gap:7px;padding:7px;border:1px solid #dce4ef;border-radius:13px;background:#fff;max-height:128px;overflow:auto;pointer-events:auto!important}.mixed-radio-option{position:relative;display:inline-flex!important;flex-direction:row!important;align-items:center!important;margin:0!important;padding:8px 10px;border:1px solid #e4e7ec;border-radius:10px;background:#f8fafc;color:#344054;font-size:12px;font-weight:750;line-height:1.2;cursor:pointer;pointer-events:auto!important}.mixed-radio-option input{position:absolute!important;opacity:0!important;width:1px!important;height:1px!important;pointer-events:none!important}.mixed-radio-option:has(input:checked){border-color:#165dff;background:#eef4ff;color:#155eef;box-shadow:0 0 0 1px #165dff inset}
+.mixed-eye-product-line{display:block!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;-webkit-line-clamp:1!important;line-height:1.35!important}.mixed-eye-product-line+.mixed-eye-product-line{margin-top:2px}
+.order-details-card .order-detail-value,.sphera-details-popup .detail-grid b{white-space:pre-line!important}
+#modal.open{inset:72px 0 0 0!important;width:100vw!important;height:calc(100vh - 72px)!important;z-index:2147482000!important;align-items:center!important;justify-content:center!important;padding:16px 20px!important}#modal.open>.wizard{position:relative!important;inset:auto!important;margin:auto!important;max-height:calc(100vh - 104px)!important;overflow-y:auto!important;overscroll-behavior:contain}#modal.open>.wizard select,#modal.open>.wizard input,#modal.open>.wizard textarea{position:relative;pointer-events:auto!important}.rx-grid.prism-active .rx-field{position:relative!important;z-index:1!important;pointer-events:auto!important}
+@media(max-width:760px){.eye-product-card{padding:12px}.mixed-rx-grid{grid-template-columns:42px repeat(4,minmax(72px,1fr)) 42px;overflow-x:auto;padding-bottom:6px}}
+</style>
+<script id="sphera-v104-script">
+(function(){
+  'use strict';
+  const eyeNames={od:'OD',os:'OS'};
+  const keys=['product','design','index','geometry','material','materialColor','treatment'];
+  function copyPrimary(){const item={};keys.forEach(key=>item[key]=draft[key]||'');return item}
+  function ensureEyeProducts(){
+    if(!draft.eyeProducts)draft.eyeProducts={od:copyPrimary(),os:copyPrimary()};
+    ['od','os'].forEach(eye=>{draft.eyeProducts[eye]=draft.eyeProducts[eye]||copyPrimary();keys.forEach(key=>{if(draft.eyeProducts[eye][key]===undefined)draft.eyeProducts[eye][key]=''})});
+    return draft.eyeProducts;
+  }
+  function syncPrimary(){if(!draft.mixedDesign)return;const od=ensureEyeProducts().od;keys.forEach(key=>draft[key]=od[key]||'')}
+  function valuesFor(eye,key){
+    const item=ensureEyeProducts()[eye],product=norm(item.product),design=norm(item.design);
+    if(key==='product')return designKeys();
+    if(key==='design'){const real=Object.keys(PRODUCTS).find(name=>norm(name)===product);return real?(PRODUCTS[real]||[]):[]}
+    if(key==='index')return design==='myoless'||product==='gestionarea miopiei'?['1.60','1.67']:INDICES;
+    if(key==='material'){
+      if(product==='degresiv')return MATERIALS.filter(value=>['incolor','incolor uv pro'].includes(norm(value)));
+      if(design==='myoless'||product==='gestionarea miopiei')return MATERIALS.filter(value=>['incolor','incolor uv pro','ultrachrome','neochromes','transitions','transitions xtractive'].includes(norm(value)));
+      return MATERIALS;
+    }
+    if(key==='treatment')return design==='myoless'||product==='gestionarea miopiei'?TREATMENTS.filter(value=>!['hc','premium drive'].includes(norm(value))):TREATMENTS;
+    return [];
+  }
+  function eyeNeedsAdd(eye){const item=ensureEyeProducts()[eye];return ['progresiv','progresiv specializat','degresiv','bifocal'].includes(norm(item.product))||norm(item.design)==='boostreader add+'}
+  function eyeNeedsGeometry(eye){const item=ensureEyeProducts()[eye];return norm(item.product)==='monofocal'&&norm(item.design)==='attraction'}
+  function eyeNeedsColor(eye){const material=ensureEyeProducts()[eye].material;return material&&!['incolor','incolor uv pro','led pro'].includes(norm(material))}
+  function optionHtml(values,current){return '<option value="">Selectează</option>'+[...new Set(values||[])].map(value=>'<option value="'+esc(value)+'" '+(norm(value)===norm(current)?'selected':'')+'>'+esc(value)+'</option>').join('')}
+  window.toggleMixedDesign=function(checked){draft.mixedDesign=checked;if(checked){ensureEyeProducts();syncPrimary()}else{draft.eyeProducts=null;draft.osAdd=draft.odAdd||''}drawStep(false)};
+  window.enableMixedDesign=function(){toggleMixedDesign(true)};
+  window.disableMixedDesign=function(){toggleMixedDesign(false)};
+  window.setEyeProduct=function(eye,key,value){const item=ensureEyeProducts()[eye];item[key]=value;if(key==='product'){item.design='';item.index='';item.geometry='';item.material='';item.materialColor='';item.treatment=''}if(key==='design'){item.index='';item.geometry='';item.material='';item.materialColor='';item.treatment=''}if(key==='material'&&!eyeNeedsColor(eye))item.materialColor='';if(!eyeNeedsAdd(eye))draft[eye+'Add']='';syncPrimary();if(['product','design','material'].includes(key))renderMixedProducts()};
+  window.toggleMixedMenu=function(button,event){if(event){event.preventDefault();event.stopPropagation()}const choice=button.closest('.mixed-choice'),box=document.getElementById('stepBox'),wasOpen=choice?.classList.contains('open');if(!choice||!box)return;box.querySelectorAll('.mixed-choice.open').forEach(item=>item.classList.remove('open'));if(!wasOpen)choice.classList.add('open')};
+  window.chooseMixedValue=function(eye,key,value,event){if(event){event.preventDefault();event.stopPropagation()}setEyeProduct(eye,key,value)};
+  function field(eye,key,label,values){const item=ensureEyeProducts()[eye],current=item[key]||'';return '<div class="field"><label>'+label+'</label><select class="mixed-native-select" data-eye="'+eye+'" data-key="'+key+'">'+optionHtml(values,current)+'</select></div>'}
+  function renderEyeCard(eye){const item=ensureEyeProducts()[eye];const color=eyeNeedsColor(eye)?'<div class="field"><label>Culoare</label><input class="mixed-color-input" data-eye="'+eye+'" value="'+esc(item.materialColor||'')+'"></div>':'';const geometry=eyeNeedsGeometry(eye)?field(eye,'geometry','Geometrie',GEOMETRIES):'<div></div>';return '<div class="eye-product-card"><div class="eye-product-title">'+eyeNames[eye]+'</div><div class="two">'+field(eye,'product','Design',valuesFor(eye,'product'))+field(eye,'design','Produs',valuesFor(eye,'design'))+'</div><div class="two">'+field(eye,'index','Indice',valuesFor(eye,'index'))+geometry+'</div><div class="two">'+field(eye,'material','Material',valuesFor(eye,'material'))+(color||field(eye,'treatment','Tratament',valuesFor(eye,'treatment')))+'</div>'+(color?field(eye,'treatment','Tratament',valuesFor(eye,'treatment')):'')+'</div>'}
+  function bindMixedProductControls(){stepBox.querySelectorAll('.mixed-native-select').forEach(select=>select.addEventListener('change',event=>{const control=event.currentTarget;setEyeProduct(control.dataset.eye,control.dataset.key,control.value)}));stepBox.querySelectorAll('.mixed-color-input').forEach(input=>input.addEventListener('input',event=>{const control=event.currentTarget;ensureEyeProducts()[control.dataset.eye].materialColor=capWords(control.value)}))}
+  function renderMixedProducts(){stepBox.innerHTML='<label class="mixed-design-toggle"><input id="mixedDesignCheckbox" type="checkbox" checked><span>Design diferit</span></label>'+renderEyeCard('od')+renderEyeCard('os');bindMixedProductControls();document.getElementById('mixedDesignCheckbox')?.addEventListener('change',event=>{if(!event.currentTarget.checked)disableMixedDesign()})}
+  function rxInputHtml(eye,key,type,disabled,extraClass){const cap=key[0].toUpperCase()+key.slice(1),value=draft[eye+cap]||'',axisAttr=type==='axis'?' data-eye="'+eye+'"':'',inputHandler=key==='cyl'?'mixedCylInput(this,\''+eye+'\')':'rxInput(this,\''+eye+cap+'\',\''+type+'\')';return '<input class="rx-field '+(extraClass||'')+'"'+axisAttr+' inputmode="'+(type==='axis'?'numeric':'decimal')+'" value="'+esc(value)+'" '+(disabled?'disabled':'')+' oninput="'+inputHandler+'" onblur="normalizeMixedRx(this,\''+eye+'\',\''+cap+'\',\''+type+'\')">'}
+  window.mixedCylInput=function(input,eye){rxInput(input,eye+'Cyl','signed');syncAxisState(eye)};
+  window.normalizeMixedRx=function(input,eye,cap,type){normalizeRx(eye+cap,type);const item=ensureEyeProducts()[eye];if(type==='signed'&&cap==='Sph'&&norm(item.design)==='myoless'&&draft[eye+cap])draft[eye+cap]='-'+draft[eye+cap].replace(/[+-]/g,'');input.value=draft[eye+cap]||''};
+  function renderMixedRx(){const rows=['od','os'].map(eye=>{const active=draft[eye+'Active']!==false,needAdd=eyeNeedsAdd(eye),axisDisabled=!active||Number(String(draft[eye+'Cyl']||'').replace(',','.'))===0;return '<div class="eye-line '+(active?'':'rx-off')+'"><span>'+eyeNames[eye]+'</span></div>'+rxInputHtml(eye,'sph','signed',!active)+rxInputHtml(eye,'cyl','signed',!active)+rxInputHtml(eye,'ax','axis',axisDisabled,'rx-axis-field')+(needAdd?rxInputHtml(eye,'add','add',!active,'rx-add-field'):'<input class="rx-field not-required" disabled>')+(active?'<button type="button" class="icon-btn red" onclick="toggleEye(\''+eye+'\',false)" tabindex="-1">'+ICON_TRASH+'</button>':'<button type="button" class="icon-btn blue" onclick="toggleEye(\''+eye+'\',true)">'+ICON_PLUS+'</button>')}).join('');stepBox.innerHTML='<div class="mixed-rx-grid"><div></div><div class="rx-head">SPH</div><div class="rx-head">CYL</div><div class="rx-head">AX</div><div class="rx-head">ADD</div><div></div>'+rows+'</div>'}
+  function addToggle(){if(step!==1||stepBox.querySelector('.mixed-design-toggle'))return;const label=document.createElement('label');label.className='mixed-design-toggle';label.innerHTML='<input id="mixedDesignCheckbox" type="checkbox"><span>Design diferit</span>';label.querySelector('input').addEventListener('change',event=>{if(event.currentTarget.checked)enableMixedDesign()});stepBox.prepend(label)}
+  function enhance(){if(step===1){if(draft.mixedDesign)renderMixedProducts();else addToggle()}if(step===2&&draft.mixedDesign)renderMixedRx()}
+  const oldDraw=window.drawStep;window.drawStep=function(){const result=oldDraw&&oldDraw.apply(this,arguments);enhance();return result};
+  function validEyeProduct(eye){const item=ensureEyeProducts()[eye];return inList(item.product,designKeys())&&inList(item.design,valuesFor(eye,'design'))&&inList(item.index,valuesFor(eye,'index'))&&inList(item.material,valuesFor(eye,'material'))&&inList(item.treatment,valuesFor(eye,'treatment'))&&(!eyeNeedsGeometry(eye)||req(item.geometry))&&(!eyeNeedsColor(eye)||req(item.materialColor))}
+  function validateMixedRx(silent){let error='';for(const eye of ['od','os']){if(draft[eye+'Active']===false)continue;if(!String(draft[eye+'Sph']||'').trim())draft[eye+'Sph']='+0.00';if(!String(draft[eye+'Cyl']||'').trim())draft[eye+'Cyl']='+0.00';draft[eye+'Sph']=formatSignedQuarter(draft[eye+'Sph']);draft[eye+'Cyl']=formatSignedQuarter(draft[eye+'Cyl']);if(Number(draft[eye+'Cyl'])===0)draft[eye+'Ax']='';else normalizeRx(eye+'Ax','axis');if(draft[eye+'Add'])normalizeRx(eye+'Add','add');if(!signedNumber(draft[eye+'Sph'])||!signedNumber(draft[eye+'Cyl'])||(Number(draft[eye+'Cyl'])!==0&&!axis(draft[eye+'Ax']))||(eyeNeedsAdd(eye)&&!unsignedAdd(draft[eye+'Add']))){error='Completează corect prescripția pentru '+eyeNames[eye]+'.';break}}if(!silent)stepErr.textContent=error;return !error}
+  const oldValidate=window.validateStep;window.validateStep=function(silent){if(draft.mixedDesign&&step===1){const ok=validEyeProduct('od')&&validEyeProduct('os');if(!silent)stepErr.textContent=ok?'':'Completează configurația pentru OD și OS.';return ok}if(draft.mixedDesign&&step===2)return validateMixedRx(silent);return oldValidate?oldValidate.call(this,silent):true};
+  const oldCreate=window.createOrder;window.createOrder=function(){const before=new Set((orders||[]).map(item=>String(item.id))),snapshot=draft.mixedDesign?JSON.parse(JSON.stringify(ensureEyeProducts())):null;syncPrimary();const result=oldCreate&&oldCreate.apply(this,arguments);const created=(orders||[]).find(item=>!before.has(String(item.id)));if(created&&snapshot){created.mixedDesign=true;created.eyeProducts=snapshot;save();render()}return result};
+  function mixedEyeProductText(order,eye){const item=order?.eyeProducts?.[eye]||{},category=String(item.product||''),prefix=['monofocal','bifocal'].includes(norm(category))?category+' ':'';return eyeNames[eye]+' '+[prefix+displayProductName(item.design||''),item.index,item.material,item.materialColor,item.treatment].filter(value=>String(value||'').trim()).join(' ')}
+  const oldSummary=window.productSummary;window.productSummary=function(order){if(order?.mixedDesign&&order.eyeProducts)return ['od','os'].map(eye=>mixedEyeProductText(order,eye)).join('\n');return oldSummary?oldSummary(order):''};
+  function renderMixedProductRows(){document.querySelectorAll('#ordersListBox tbody tr').forEach(row=>{const code=String(row.cells?.[0]?.textContent||'').trim(),order=(orders||[]).find(item=>String(item.code||'').trim()===code);if(!order?.mixedDesign||!order.eyeProducts||!row.cells?.[3])return;row.cells[3].innerHTML='<div class="product-line mixed-eye-product-line">'+esc(mixedEyeProductText(order,'od'))+'</div><div class="product-line mixed-eye-product-line">'+esc(mixedEyeProductText(order,'os'))+'</div>'})}
+  const oldRender=window.render;window.render=function(){const result=oldRender&&oldRender.apply(this,arguments);renderMixedProductRows();return result};
+  document.addEventListener('click',event=>{
+    const option=event.target.closest?.('.mixed-choice-option');
+    if(option){event.preventDefault();event.stopImmediatePropagation();const choice=option.closest('.mixed-choice'),field=choice?.closest('.field'),card=choice?.closest('.eye-product-card'),eye=card?.querySelector('.eye-product-title')?.textContent.trim().toLowerCase(),label=field?.querySelector('label')?.textContent.trim().toLowerCase(),key={design:'product',produs:'design',indice:'index',geometrie:'geometry',material:'material',tratament:'treatment'}[label];if(eye&&key)chooseMixedValue(eye,key,option.textContent.trim());return}
+    const trigger=event.target.closest?.('.mixed-choice-button');
+    if(trigger){event.preventDefault();event.stopImmediatePropagation();toggleMixedMenu(trigger);return}
+    document.querySelectorAll('#stepBox .mixed-choice.open').forEach(item=>item.classList.remove('open'));
+  },true);
+  if(typeof step!=='undefined')enhance();
+})();
+</script>
+<style id="sphera-v105-style">
+.rx-export-card{margin-top:16px}.rx-export-controls{display:grid;grid-template-columns:minmax(220px,1fr) minmax(150px,.55fr) minmax(150px,.55fr) auto;gap:12px;align-items:end}.rx-export-custom{display:contents}.rx-export-card .field{margin:0}.rx-export-actions{display:flex;align-items:center;justify-content:flex-end}.rx-export-result{margin-top:12px;min-height:18px;font-size:13px;color:#667085}.rx-export-result.error{color:#d92d20}.rx-export-card .btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:900px){.rx-export-controls{grid-template-columns:1fr 1fr}.rx-export-actions{justify-content:stretch}.rx-export-actions .btn{width:100%}}
+</style>
+<script id="sphera-v105-script">
+(function(){
+  'use strict';
+  function isAdminExport(){try{return typeof isAdmin==='function'&&isAdmin()}catch(_){return norm(currentUser?.role||'')==='admin'}}
+  function isoDate(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
+  function periodDates(value){const today=new Date(),start=new Date(today.getFullYear(),today.getMonth(),today.getDate()),end=new Date(start);if(value==='last7'){start.setDate(start.getDate()-6)}else if(value==='currentMonth'){start.setDate(1);end.setMonth(end.getMonth()+1,0)}else if(value==='previousMonth'){start.setMonth(start.getMonth()-1,1);end.setDate(0)}else if(value==='custom'){const from=document.getElementById('rxExportFrom')?.value,to=document.getElementById('rxExportTo')?.value;return {from:from||'',to:to||''}}else return {from:'',to:''};return {from:isoDate(start),to:isoDate(end)}}
+  function orderIsoDate(order){const raw=String(order?.date||order?.codeDate||'');if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;const timestamp=Number(order?.createdAt||0);return timestamp?isoDate(new Date(timestamp)):''}
+  function dashboardOrdersForExport(){const period=document.getElementById('rxExportPeriod')?.value||'all',range=periodDates(period);return (orders||[]).filter(order=>!order.deletedAt&&!order.deleted).filter(order=>{const date=orderIsoDate(order);if(range.from&&(!date||date<range.from))return false;if(range.to&&(!date||date>range.to))return false;return true}).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))}
+  function xml(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[char]))}
+  function deliveryText(order){const value=norm(order?.workflowStatus||order?.status||'');return value==='livrata'?'Livrată':'Nelivrată'}
+  function excelDocument(list){const headers=['COD','CENTRU','CLIENT','PRODUS','OD','OS','ADD','NUME PACIENT','MENȚIUNI','LIVRARE'];const rows=list.map(order=>[order.code||'',typeof processingCenterLabel==='function'?processingCenterLabel(order):(order.center||''),order.client?.name||'',productSummary(order),odText(order),osText(order),addText(order),order.patient||'',order.notes||'',deliveryText(order)]);const widths=[145,90,170,320,115,115,70,160,210,90];const columns=widths.map(width=>'<Column ss:Width="'+width+'"/>').join('');const header='<Row ss:StyleID="Header">'+headers.map(value=>'<Cell><Data ss:Type="String">'+xml(value)+'</Data></Cell>').join('')+'</Row>';const body=rows.map(row=>'<Row>'+row.map(value=>'<Cell ss:StyleID="Cell"><Data ss:Type="String">'+xml(value)+'</Data></Cell>').join('')+'</Row>').join('');return '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Calibri" ss:Size="11"/></Style><Style ss:ID="Header"><Alignment ss:Vertical="Center"/><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/><Borders><Border ss:Position="Bottom" ss:LineStyle="Continuous" ss:Weight="1"/></Borders></Style><Style ss:ID="Cell"><Alignment ss:Vertical="Center" ss:WrapText="1"/></Style></Styles><Worksheet ss:Name="Comenzi RX"><Table>'+columns+header+body+'</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><AutoFilter x:Range="R1C1:R'+(rows.length+1)+'C10" xmlns="urn:schemas-microsoft-com:office:excel"/></WorksheetOptions></Worksheet></Workbook>'}
+  window.syncRxExportPeriod=function(){const custom=document.getElementById('rxExportPeriod')?.value==='custom';document.querySelectorAll('#rxExportCard .rx-export-date').forEach(field=>field.style.display=custom?'block':'none');const result=document.getElementById('rxExportResult');if(result){result.textContent='';result.classList.remove('error')}};
+  window.exportRxOrdersExcel=function(){const result=document.getElementById('rxExportResult'),period=document.getElementById('rxExportPeriod')?.value||'all',range=periodDates(period);if(period==='custom'&&(!range.from||!range.to)){result.textContent='Selectează data de început și data de sfârșit.';result.classList.add('error');return}if(range.from&&range.to&&range.from>range.to){result.textContent='Data de început trebuie să fie înaintea datei de sfârșit.';result.classList.add('error');return}const list=dashboardOrdersForExport();if(!list.length){result.textContent='Nu există comenzi în perioada selectată.';result.classList.add('error');return}const blob=new Blob(['\ufeff',excelDocument(list)],{type:'application/vnd.ms-excel;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a'),suffix=range.from&&range.to?range.from.split('-').reverse().join('-')+'_'+range.to.split('-').reverse().join('-'):isoDate(new Date()).split('-').reverse().join('-');link.href=url;link.download='Comenzi_RX_'+suffix+'.xls';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);result.classList.remove('error');result.textContent='Fișier generat cu '+list.length+' comenzi.'};
+  function ensureRxExportCard(){const settings=document.getElementById('settings');if(!settings||!isAdminExport()||document.getElementById('rxExportCard'))return;const card=document.createElement('div');card.className='card rx-export-card';card.id='rxExportCard';card.innerHTML='<div class="top"><div><h2 style="margin:0">Export comenzi RX</h2><div class="muted">Descarcă în Excel informațiile afișate în cardul Comenzi RX.</div></div></div><div class="rx-export-controls"><div class="field"><label>Perioadă</label><select id="rxExportPeriod" onchange="syncRxExportPeriod()"><option value="last7">Ultimele 7 zile</option><option value="currentMonth">Luna curentă</option><option value="previousMonth">Luna precedentă</option><option value="all">Toate comenzile</option><option value="custom">Interval personalizat</option></select></div><div class="field rx-export-date" style="display:none"><label>De la</label><input id="rxExportFrom" type="date"></div><div class="field rx-export-date" style="display:none"><label>Până la</label><input id="rxExportTo" type="date"></div><div class="rx-export-actions"><button class="btn primary" type="button" onclick="exportRxOrdersExcel()"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>Descarcă Excel</button></div></div><div class="rx-export-result" id="rxExportResult"></div>';const bug=document.getElementById('bugReportsCard');if(bug)settings.insertBefore(card,bug);else settings.appendChild(card)}
+  const previousUsersRender=window.renderUsersAdmin;window.renderUsersAdmin=function(){const result=previousUsersRender&&previousUsersRender.apply(this,arguments);ensureRxExportCard();return result};
+  const previousShowPage=window.showPage;window.showPage=function(id,button){const result=previousShowPage&&previousShowPage.apply(this,arguments);if(id==='settings')ensureRxExportCard();return result};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureRxExportCard,{once:true});else ensureRxExportCard();
+})();
+</script>
+<style id="sphera-v106-style">
+.orders-card-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.orders-card-export-button{width:42px!important;min-width:42px!important;height:42px!important;padding:0!important;border-radius:999px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;color:#165dff!important;background:#fff!important;border:1px solid #d7e1f2!important;box-shadow:0 8px 18px rgba(16,24,40,.07)!important}.orders-card-export-button:hover{background:#e8f0ff!important;color:#165dff!important;border-color:#b7ccff!important;box-shadow:0 8px 18px rgba(16,24,40,.07)!important}.orders-card-export-button svg{width:21px!important;height:21px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round;stroke-linejoin:round}.header-export-modal{z-index:2147482500!important}.header-export-form{text-align:center!important}.header-export-form>.alert-icon{display:inline-flex!important;margin-left:auto!important;margin-right:auto!important}.header-export-form>.alert-title,.header-export-form>.alert-text{text-align:center!important}.header-export-form>.field,.header-export-grid .field{text-align:left!important}.header-export-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.header-export-grid .field{margin:8px 0}.header-export-center{padding:10px 12px;border-radius:12px;background:#f2f4f7;color:#344054;font-weight:800;text-align:center;margin-bottom:10px}.header-export-error{min-height:18px;margin-top:8px;color:#d92d20;font-size:13px;text-align:center}
+@media(max-width:760px){.orders-card-export-button{width:40px!important;min-width:40px!important;height:40px!important}.header-export-grid{grid-template-columns:1fr}}
+</style>
+<script id="sphera-v106-script">
+(function(){
+  'use strict';
+  function adminUser(){try{return typeof isAdmin==='function'&&isAdmin()}catch(_){return ['admin','administrator'].includes(norm(currentUser?.role||''))}}
+  function userCenter(){return String(currentUser?.center||'').trim()}
+  function dateIso(date){return date.getFullYear()+'-'+String(date.getMonth()+1).padStart(2,'0')+'-'+String(date.getDate()).padStart(2,'0')}
+  function selectedRange(){const value=document.getElementById('headerExportPeriod')?.value||'last7',today=new Date(),from=new Date(today.getFullYear(),today.getMonth(),today.getDate()),to=new Date(from);if(value==='last7')from.setDate(from.getDate()-6);else if(value==='currentMonth'){from.setDate(1);to.setMonth(to.getMonth()+1,0)}else if(value==='previousMonth'){from.setMonth(from.getMonth()-1,1);to.setDate(0)}else if(value==='all')return {from:'',to:''};else return {from:document.getElementById('headerExportFrom')?.value||'',to:document.getElementById('headerExportTo')?.value||''};return {from:dateIso(from),to:dateIso(to)}}
+  function orderDate(order){const raw=String(order?.date||order?.codeDate||'');if(/^\d{4}-\d{2}-\d{2}$/.test(raw))return raw;const timestamp=Number(order?.createdAt||0);return timestamp?dateIso(new Date(timestamp)):''}
+  function centerMatches(order){if(adminUser())return true;const center=userCenter();if(!center)return false;return norm(order?.center||order?.createdByCenter||'')===norm(center)}
+  function scopedOrders(){const range=selectedRange(),source=typeof visibleOrders==='function'?visibleOrders():(orders||[]);return source.filter(order=>!order.deletedAt&&!order.deleted&&centerMatches(order)).filter(order=>{const date=orderDate(order);if(range.from&&(!date||date<range.from))return false;if(range.to&&(!date||date>range.to))return false;return true}).sort((a,b)=>Number(b.createdAt||0)-Number(a.createdAt||0))}
+  function xmlText(value){return String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[char]))}
+  function deliveryValue(order){return norm(order?.workflowStatus||order?.status||'')==='livrata'?'Livrată':'Nelivrată'}
+  function workbook(list){const headers=['COD','CENTRU','CLIENT','PRODUS','OD','OS','ADD','NUME PACIENT','MENȚIUNI','LIVRARE'],widths=[145,90,170,320,115,115,70,160,210,90],rows=list.map(order=>[order.code||'',typeof processingCenterLabel==='function'?processingCenterLabel(order):(order.center||''),order.client?.name||'',productSummary(order),odText(order),osText(order),addText(order),order.patient||'',order.notes||'',deliveryValue(order)]),columns=widths.map(width=>'<Column ss:Width="'+width+'"/>').join(''),head='<Row ss:StyleID="Header">'+headers.map(value=>'<Cell><Data ss:Type="String">'+xmlText(value)+'</Data></Cell>').join('')+'</Row>',body=rows.map(row=>'<Row>'+row.map(value=>'<Cell ss:StyleID="Cell"><Data ss:Type="String">'+xmlText(value)+'</Data></Cell>').join('')+'</Row>').join('');return '<?xml version="1.0"?><?mso-application progid="Excel.Sheet"?><Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"><Styles><Style ss:ID="Default" ss:Name="Normal"><Alignment ss:Vertical="Center"/><Font ss:FontName="Calibri" ss:Size="11"/></Style><Style ss:ID="Header"><Font ss:FontName="Calibri" ss:Size="11" ss:Bold="1"/><Interior ss:Color="#DDEBF7" ss:Pattern="Solid"/></Style><Style ss:ID="Cell"><Alignment ss:Vertical="Center" ss:WrapText="1"/></Style></Styles><Worksheet ss:Name="Comenzi RX"><Table>'+columns+head+body+'</Table><WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel"><FreezePanes/><FrozenNoSplit/><SplitHorizontal>1</SplitHorizontal><TopRowBottomPane>1</TopRowBottomPane><AutoFilter x:Range="R1C1:R'+(rows.length+1)+'C10"/></WorksheetOptions></Worksheet></Workbook>'}
+  window.syncHeaderExportPeriod=function(){const custom=document.getElementById('headerExportPeriod')?.value==='custom';document.querySelectorAll('.header-export-date').forEach(field=>field.style.display=custom?'block':'none');const error=document.getElementById('headerExportError');if(error)error.textContent=''};
+  window.downloadHeaderExport=function(){const error=document.getElementById('headerExportError'),range=selectedRange(),period=document.getElementById('headerExportPeriod')?.value;if(period==='custom'&&(!range.from||!range.to)){error.textContent='Selectează ambele date.';return}if(range.from&&range.to&&range.from>range.to){error.textContent='Intervalul selectat nu este valid.';return}const list=scopedOrders();if(!list.length){error.textContent='Nu există comenzi pentru centrul și perioada selectate.';return}const blob=new Blob(['\ufeff',workbook(list)],{type:'application/vnd.ms-excel;charset=utf-8'}),url=URL.createObjectURL(blob),link=document.createElement('a'),center=adminUser()?'Toate_centrele':(userCenter()||'Centru').replace(/[^0-9A-Za-zĂÂÎȘȚăâîșț]+/g,'_'),suffix=range.from&&range.to?range.from.split('-').reverse().join('-')+'_'+range.to.split('-').reverse().join('-'):dateIso(new Date()).split('-').reverse().join('-');link.href=url;link.download='Comenzi_RX_'+center+'_'+suffix+'.xls';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);document.querySelector('.header-export-modal')?.remove()};
+  window.openHeaderExport=function(){if(!currentUser)return;document.querySelector('.header-export-modal')?.remove();const center=adminUser()?'Toate centrele':(userCenter()||'Centru neconfigurat'),modal=document.createElement('div');modal.className='modal open header-export-modal';modal.innerHTML='<div class="wizard alert-card header-export-form" style="max-width:560px"><div class="alert-icon" style="background:#eff8ff;color:#1570ef"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></div><div class="alert-title">Export comenzi RX</div><div class="alert-text">Selectează perioada exportului.</div><div class="header-export-center">Centru: '+esc(center)+'</div><div class="field"><label>Perioadă</label><select id="headerExportPeriod" onchange="syncHeaderExportPeriod()"><option value="last7">Ultimele 7 zile</option><option value="currentMonth">Luna curentă</option><option value="previousMonth">Luna precedentă</option><option value="all">Toate comenzile</option><option value="custom">Interval personalizat</option></select></div><div class="header-export-grid"><div class="field header-export-date" style="display:none"><label>De la</label><input id="headerExportFrom" type="date"></div><div class="field header-export-date" style="display:none"><label>Până la</label><input id="headerExportTo" type="date"></div></div><div class="header-export-error" id="headerExportError"></div><div class="alert-actions"><button class="btn cancel" type="button">Anulează</button><button class="btn ok" type="button" onclick="downloadHeaderExport()">Descarcă Excel</button></div></div>';document.body.appendChild(modal);modal.querySelector('.cancel').onclick=()=>modal.remove();modal.addEventListener('mousedown',event=>{if(event.target===modal)modal.remove()})};
+})();
+</script>
+<style id="sphera-v107-style">
+.termene-cui-field{margin-top:0!important}.termene-cui-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}.termene-cui-row .btn{min-width:118px;white-space:nowrap}.termene-lookup-state{min-height:18px;margin-top:6px;font-size:13px;color:#667085}.termene-lookup-state.success{color:#067647}.termene-lookup-state.error{color:#d92d20}.termene-filled{background:#f8fafc!important}
+@media(max-width:520px){.termene-cui-row{grid-template-columns:1fr}.termene-cui-row .btn{width:100%}}
+</style>
+<script id="sphera-v107-script">
+(function(){
+  'use strict';
+  function digits(value){return String(value||'').replace(/\D/g,'')}
+  function state(text,type){const box=document.getElementById('termeneLookupState');if(!box)return;box.textContent=text||'';box.className='termene-lookup-state'+(type?' '+type:'')}
+  function duplicateByCui(cui){return (CLIENTS||[]).find(client=>digits(client.cui)===cui)}
+  function setSelectValue(select,value){if(!select)return false;const wanted=norm(value||''),option=[...select.options].find(item=>norm(item.value)===wanted||norm(item.textContent)===wanted);if(!option)return false;select.value=option.value;return true}
+  function enhanceClientDialog(){
+    const modal=[...document.querySelectorAll('.modal.open')].pop(),cui=document.getElementById('newClientCui');
+    if(!modal||!cui||modal.dataset.termeneReady)return;
+    modal.dataset.termeneReady='1';
+    const field=cui.closest('.field'),nameField=document.getElementById('newClientName')?.closest('.field');
+    field.classList.add('termene-cui-field');
+    field.innerHTML='<label>CUI</label><div class="termene-cui-row"><input class="cui-input" id="newClientCui" inputmode="numeric" autocomplete="off" placeholder="RO12345678"><button class="btn ghost" id="termeneLookupBtn" type="button">Caută firma</button></div><div class="termene-lookup-state" id="termeneLookupState"></div><div class="err" id="newClientCuiErr"></div>';
+    if(nameField)nameField.before(field);
+    const input=document.getElementById('newClientCui'),button=document.getElementById('termeneLookupBtn');
+    input.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^RO0-9]/g,'');state('');document.getElementById('newClientCuiErr').textContent=''});
+    input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();lookupTermeneCompany()}});
+    button.addEventListener('click',lookupTermeneCompany);
+    modal.querySelector('.alert-text').textContent='Introdu CUI-ul pentru completarea automată din registrul ANAF.';
+    setTimeout(()=>input.focus(),30)
+  }
+  window.lookupTermeneCompany=async function(){
+    const input=document.getElementById('newClientCui'),button=document.getElementById('termeneLookupBtn'),cui=digits(input?.value),duplicate=duplicateByCui(cui);
+    if(!/^\d{2,10}$/.test(cui)){state('Introdu un CUI valid.','error');input?.focus();return}
+    if(duplicate){state('CUI-ul aparține clientului '+duplicate.name+', '+duplicate.city+'.','error');if(typeof showAppConfirm==='function')showAppConfirm({title:'CUI deja înregistrat',text:'CUI-ul aparține clientului '+duplicate.name+', '+duplicate.city+'.',confirmText:'OK'});return}
+    button.disabled=true;button.textContent='Se caută';state('Caut firma în registrul ANAF.');
+    try{
+      const response=await fetch('/api/termene-company?cui='+encodeURIComponent(cui),{headers:{Accept:'application/json'}}),data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'Firma nu a putut fi preluată.');
+      const name=document.getElementById('newClientName'),city=document.getElementById('newClientCity');
+      if(name){name.value=String(data.name||'').toUpperCase();name.classList.add('termene-filled')}
+      const citySet=city?.tagName==='SELECT'?setSelectValue(city,data.city):(city?(city.value=String(data.city||'').toUpperCase(),true):false);
+      if(!citySet)throw new Error('Firma este în '+String(data.city||data.county||'altă localitate')+', în afara listei disponibile pentru centrul tău.');
+      city.classList.add('termene-filled');input.value='RO'+cui;input.dataset.termeneVerified='1';state('Datele firmei au fost completate.','success');
+    }catch(error){state(error.message||'Conexiunea cu ANAF nu este disponibilă.','error')}
+    finally{button.disabled=false;button.textContent='Caută firma'}
+  };
+  const previousOpen=window.openNewClientDialog;
+  window.openNewClientDialog=function(){const result=previousOpen&&previousOpen.apply(this,arguments);enhanceClientDialog();return result};
+})();
+</script>
 </body>
 </html>
