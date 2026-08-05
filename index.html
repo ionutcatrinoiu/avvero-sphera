@@ -2438,15 +2438,20 @@ function productSummary(o){
  let parts=[displayProductName(o.design),o.index,o.material,o.materialColor,o.treatment].filter(x=>String(x||'').trim());
  return parts.join(' ');
 }
+function axisDisplay(value){
+ const raw=String(value??'').trim();
+ if(!raw)return '000';
+ const integer=Number(raw.replace(/\D/g,''));
+ const safe=Number.isFinite(integer)?Math.min(180,Math.max(0,integer)):0;
+ return String(safe).padStart(3,'0');
+}
 function odText(o){
  const r=o?.rx||{}; if(r.odActive===false)return '';
- const cyl=Number(String(r.odCyl||'').replace(',','.'));
- return [r.odSph||'',r.odCyl||'',(Number.isFinite(cyl)&&cyl!==0&&String(r.odAx||'').trim())?('ax '+r.odAx):((Number.isFinite(cyl)&&cyl===0)?'ax 0.00':'')].filter(Boolean).join(' ');
+ return [r.odSph||'',r.odCyl||'','ax '+axisDisplay(r.odAx)].filter(Boolean).join(' ');
 }
 function osText(o){
  const r=o?.rx||{}; if(r.osActive===false)return '';
- const cyl=Number(String(r.osCyl||'').replace(',','.'));
- return [r.osSph||'',r.osCyl||'',(Number.isFinite(cyl)&&cyl!==0&&String(r.osAx||'').trim())?('ax '+r.osAx):((Number.isFinite(cyl)&&cyl===0)?'ax 0.00':'')].filter(Boolean).join(' ');
+ return [r.osSph||'',r.osCyl||'','ax '+axisDisplay(r.osAx)].filter(Boolean).join(' ');
 }
 function addText(o){let a=[]; if(o.rx.odActive!==false&&o.rx.odAdd)a.push(o.rx.odAdd); if(o.rx.osActive!==false&&o.rx.osAdd)a.push(o.rx.osAdd); return a.length?([...new Set(a)].join(' / ')):''}
 function rxText(o){return `OD ${odText(o)} ${o?.rx?.odAdd?('add '+o.rx.odAdd):''} / OS ${osText(o)} ${o?.rx?.osAdd?('add '+o.rx.osAdd):''}`.replace(/\s+/g,' ').trim()}
