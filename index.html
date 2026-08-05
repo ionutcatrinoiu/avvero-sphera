@@ -9412,5 +9412,23 @@ html>.sphera-edit-popup.modal.open>.wizard{
  #deletedOrdersListBox th,#deletedOrdersListBox td{font-size:10px!important;padding-left:3px!important;padding-right:3px!important;}
 }
 </style>
+<style id="sphera-v111-client-modal-layer-style">
+.client-create-modal.modal.open{z-index:2147483500!important;}
+.client-create-modal.modal.open>.wizard{position:relative!important;z-index:1!important;}
+</style>
+<script id="sphera-v111-client-modal-layer-script">
+(function(){
+  'use strict';
+  const previousOpenClientDialog=window.openNewClientDialog;
+  window.openNewClientDialog=function(){
+    const existing=new Set(document.querySelectorAll('.modal'));
+    const result=previousOpenClientDialog&&previousOpenClientDialog.apply(this,arguments);
+    const created=[...document.querySelectorAll('.modal.open')].reverse().find(modal=>!existing.has(modal)&&modal.querySelector('#newClientName'))
+      ||[...document.querySelectorAll('.modal.open')].reverse().find(modal=>modal.querySelector('#newClientName'));
+    if(created)created.classList.add('client-create-modal');
+    return result;
+  };
+})();
+</script>
 </body>
 </html>
