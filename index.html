@@ -1391,7 +1391,7 @@ pointer-events:none;
 </div>
 </div>
 <div class="card" id="deletedOrdersCard" style="margin-top:16px">
-<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Istoric comenzi șterse</h2><div class="muted">Comenzile eliminate și detaliile ștergerii.</div></div><button aria-label="Ascunde istoricul" class="icon-btn list-toggle" id="toggleDeletedOrdersBtn" onclick="toggleDeletedOrdersHistory()" title="Ascunde istoricul"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div>
+<div class="top" style="margin-bottom:12px"><div><h2 style="margin:0">Istoric comenzi șterse</h2><div class="muted">Comenzile eliminate și detaliile ștergerii.</div></div><div class="deleted-history-actions"><button aria-label="Șterge istoricul" class="icon-btn red hide" id="clearDeletedOrdersBtn" onclick="clearDeletedOrdersHistory()" title="Șterge istoricul"><svg aria-hidden="true" fill="none" viewbox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"></path></svg></button><button aria-label="Ascunde istoricul" class="icon-btn list-toggle" id="toggleDeletedOrdersBtn" onclick="toggleDeletedOrdersHistory()" title="Ascunde istoricul"><span class="toggle-chevron"><svg aria-hidden="true" viewbox="0 0 24 24"><path d="M6 15l6-6 6 6"></path></svg></span></button></div></div>
 <div id="deletedOrdersListBox">
 <div class="orders-tools"><span class="muted">Înregistrări disponibile</span><span class="pill count-dot" id="deletedOrdersCount">0</span></div>
 <div class="table-wrap"><table><thead><tr><th>Cod</th><th>Data</th><th>Client</th><th>Produs</th><th>Centru</th><th>Șters la</th><th>Șters de</th></tr></thead><tbody id="deletedOrderRows"></tbody></table></div>
@@ -2785,6 +2785,8 @@ function formatDeletedDateTime(value){
 function renderDeletedOrders(){
  const body=document.getElementById('deletedOrderRows');
  if(!body)return;
+ const clearButton=document.getElementById('clearDeletedOrdersBtn');
+ if(clearButton)clearButton.classList.toggle('hide',!isAdmin());
  const list=(deletedOrders||[]).filter(item=>item?.order&&canViewDeletedOrder(item.order)).sort((a,b)=>deletedTimestamp(b.deletedAt)-deletedTimestamp(a.deletedAt));
  const count=document.getElementById('deletedOrdersCount');
  if(count)count.textContent=String(list.length);
@@ -2792,6 +2794,24 @@ function renderDeletedOrders(){
   const order=item.order;
   return `<tr><td><b>${esc(order.code||item.orderId||'')}</b></td><td>${esc(formatDateRO(order.date||''))}</td><td>${esc(order.client?.name||'')}</td><td>${esc(productSummary(order))}</td><td>${esc(processingCenterLabel(order))}</td><td>${esc(formatDeletedDateTime(item.deletedAt))}</td><td>${esc(item.deletedBy||'Utilizator')}</td></tr>`;
  }).join('')||'<tr><td colspan="7" class="muted">Nu există comenzi șterse.</td></tr>';
+}
+function clearDeletedOrdersHistory(){
+ if(!isAdmin())return;
+ showAppConfirm({
+  title:'Ștergere istoric',
+  text:'Ștergi istoricul comenzilor eliminate?',
+  confirmText:'Șterge istoricul',
+  cancelText:'Anulează',
+  danger:true,
+  onConfirm:async()=>{
+   if(typeof window.SPHERA_clearDeletedOrdersHistory==='function')await window.SPHERA_clearDeletedOrdersHistory();
+   else{
+    deletedOrders=[];
+    localStorage.setItem('sphera_deleted_orders_history','[]');
+    renderDeletedOrders();
+   }
+  }
+ });
 }
 function toggleDeletedOrdersHistory(){
  const box=document.getElementById('deletedOrdersListBox');
@@ -4796,6 +4816,44 @@ cursor:pointer;
       if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
       if(typeof renderDeletedOrders==='function')renderDeletedOrders();
       setCloudStatus('Cloud: comanda nu a putut fi ștearsă','error');
+      return false;
+    }
+  };
+
+  window.SPHERA_clearDeletedOrdersHistory=async function(){
+    if(!isAdmin()||!auth.currentUser)return false;
+    setCloudStatus('Cloud: se șterge istoricul','wait');
+    try{
+      const snapshot=await DELETED_ORDERS_COL.get();
+      let batch=db.batch();
+      let operations=0;
+      const commits=[];
+      const flush=()=>{
+        if(!operations)return;
+        commits.push(batch.commit());
+        batch=db.batch();
+        operations=0;
+      };
+      snapshot.docs.forEach(doc=>{
+        batch.set(doc.ref,{
+          order:firebase.firestore.FieldValue.delete(),
+          deletedByName:firebase.firestore.FieldValue.delete(),
+          historyClearedAt:firebase.firestore.FieldValue.serverTimestamp(),
+          historyClearedBy:auth.currentUser.uid
+        },{merge:true});
+        operations++;
+        if(operations>=400)flush();
+      });
+      flush();
+      await Promise.all(commits);
+      deletedOrders=[];
+      originalSetItem('sphera_deleted_orders_history','[]');
+      if(typeof renderDeletedOrders==='function')renderDeletedOrders();
+      setCloudStatus('Cloud: istoricul a fost șters','ok');
+      return true;
+    }catch(error){
+      console.error('SPHERA deleted history clear error',error);
+      setCloudStatus('Cloud: istoricul nu a putut fi șters','error');
       return false;
     }
   };
@@ -8288,6 +8346,8 @@ html>.sphera-edit-popup.modal.open>.wizard{
 </style>
 <style id="sphera-deleted-orders-history-style">
 #deletedOrdersCard{overflow:hidden!important;}
+.deleted-history-actions{display:flex;align-items:center;gap:10px;}
+#clearDeletedOrdersBtn svg{width:16px;height:16px;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;}
 #deletedOrdersListBox .orders-tools{justify-content:flex-end!important;}
 #deletedOrdersListBox .table-wrap{width:100%;overflow-x:auto;}
 #deletedOrdersListBox table{width:100%;min-width:1080px;table-layout:fixed;}
