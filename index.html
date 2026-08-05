@@ -8131,21 +8131,8 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
     return element.getClientRects().length>0&&style.visibility!=='hidden'&&style.display!=='none'&&!element.disabled;
   }
   function focusables(modal){
-    const elements=[...modal.querySelectorAll('input:not([type="hidden"]),select,textarea,button,[tabindex]')]
+    return [...modal.querySelectorAll('input:not([type="hidden"]),select,textarea,button,[tabindex]')]
       .filter(element=>visible(element)&&element.tabIndex>=0);
-    const positioned=elements.map((element,index)=>{
-      const rect=element.getBoundingClientRect();
-      return {element,index,top:rect.top,left:rect.left,centerY:rect.top+rect.height/2,height:rect.height};
-    }).sort((a,b)=>a.top-b.top||a.left-b.left||a.index-b.index);
-    const rows=[];
-    positioned.forEach(item=>{
-      let row=rows.find(candidate=>Math.abs(candidate.centerY-item.centerY)<=Math.max(14,Math.min(candidate.height,item.height)*.55));
-      if(!row){row={centerY:item.centerY,height:item.height,items:[]};rows.push(row);}
-      row.items.push(item);
-      row.centerY=row.items.reduce((sum,entry)=>sum+entry.centerY,0)/row.items.length;
-      row.height=Math.max(row.height,item.height);
-    });
-    return rows.sort((a,b)=>a.centerY-b.centerY).flatMap(row=>row.items.sort((a,b)=>a.left-b.left||a.index-b.index).map(item=>item.element));
   }
   function directionalTarget(items,current,key){
     if(!items.length)return null;
@@ -8167,7 +8154,6 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
   document.addEventListener('keydown',event=>{
     if(!['Tab','ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
     if(event.target?.id==='clientSearch'&&['ArrowUp','ArrowDown'].includes(event.key))return;
-    if(event.target?.classList?.contains('rx-field')&&event.key!=='Tab')return;
     const modals=[...document.querySelectorAll('.modal.open')].filter(item=>item.getClientRects().length>0);
     const modal=modals[modals.length-1];
     if(!modal)return;
