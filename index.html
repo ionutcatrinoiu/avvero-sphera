@@ -8511,5 +8511,21 @@ html>.sphera-edit-popup.modal.open>.wizard{
   #deletedOrdersListBox table{min-width:980px;}
 }
 </style>
+<style id="sphera-desktop-dashboard-kpi-row-fix">
+@media screen and (min-width:761px){
+  #dashboard > .grid.dashboard-stats,
+  section#dashboard > div.grid.dashboard-stats{
+    grid-template-columns:repeat(6,minmax(0,1fr))!important;
+  }
+  #dashboard > .grid.dashboard-stats.dashboard-five-cards,
+  section#dashboard > div.grid.dashboard-stats.dashboard-five-cards{
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  }
+  #dashboard > .grid.dashboard-stats > :last-child:nth-child(odd),
+  section#dashboard > div.grid.dashboard-stats > :last-child:nth-child(odd){
+    grid-column:auto!important;
+  }
+}
+</style>
 </body>
 </html>
