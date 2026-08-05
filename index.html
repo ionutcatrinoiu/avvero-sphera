@@ -2825,7 +2825,7 @@ function showDeletedOrderDetails(orderId){
  const details=lines.map(([label,value])=>`<div class="muted">${esc(label)}</div><div><b>${esc(value)}</b></div>`).join('');
  const wrap=document.createElement('div');
  wrap.className='modal open sphera-centered-popup sphera-details-popup';
- wrap.innerHTML=`<div class="wizard"><div class="top"><div><div class="muted">Detalii comandă ștearsă</div><div class="step-title">${esc(order.code||orderId)}</div></div><button class="btn ghost" type="button" onclick="this.closest('.modal').remove()">Închide</button></div><div class="detail-grid">${details}</div><div class="icon-btns"><button class="icon-btn primary" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('${esc(order.code||orderId)}')" title="Copiază codul">${ICON_COPY}</button></div></div>`;
+ wrap.innerHTML=`<div class="wizard"><div class="top"><div><div class="muted">Detalii comandă ștearsă</div><div class="step-title">${esc(order.code||orderId)}</div></div></div><div class="detail-grid">${details}</div></div>`;
  document.body.appendChild(wrap);
 }
 function restoreDeletedOrder(orderId){
