@@ -3109,7 +3109,7 @@ cursor:pointer;
     const code=nextClientCode();
     const counties=allowedCountiesForCurrentUser();
     const countyField=counties?`<div class="field" style="text-align:left"><label>Județ</label>${counties.length===1?`<input id="newClientCounty" value="${esc(counties[0])}" readonly>`:`<select id="newClientCounty">${counties.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select>`}</div>`:'';
-    const wrap=document.createElement('div');wrap.className='modal open';
+    const wrap=document.createElement('div');wrap.className='modal open client-create-modal';
     wrap.innerHTML=`<div class="wizard alert-card" style="max-width:420px"><div class="alert-icon" style="background:#eaf1ff;color:#2457ff">${ICON_PLUS}</div><div class="alert-title">Adaugă client</div><div class="alert-text">Completează datele pentru generarea codului.</div><div class="field" style="text-align:left"><label>Denumirea clientului</label><input id="newClientName" placeholder="Scrie denumirea clientului" autofocus></div>${countyField}<div class="field" style="text-align:left"><label>Localitate</label><input id="newClientCity" placeholder="Scrie localitatea"></div><input id="newClientCode" value="${code}" type="hidden"><div id="newClientErr" class="err"></div><div class="alert-actions"><button class="btn cancel" onclick="this.closest('.modal').remove()">Anulează</button><button class="btn ok" onclick="createNewClientFromDialog()">Adaugă</button></div></div>`;
     document.body.appendChild(wrap);setTimeout(()=>document.getElementById('newClientName')?.focus(),30);
   };
@@ -3227,7 +3227,7 @@ cursor:pointer;
     if(!canManageClients())return;
     const code=nextClientCode();
     const cities=allowedCityOptions();
-    const wrap=document.createElement('div');wrap.className='modal open';
+    const wrap=document.createElement('div');wrap.className='modal open client-create-modal';
     wrap.innerHTML=`<div class="wizard alert-card" style="max-width:420px"><div class="alert-icon" style="background:#eaf1ff;color:#2457ff">${ICON_PLUS}</div><div class="alert-title">Adaugă client</div><div class="alert-text">Completează datele pentru generarea codului.</div><div class="field" style="text-align:left"><label>Denumirea clientului</label><input id="newClientName" placeholder="Scrie denumirea clientului" autofocus></div><div class="field" style="text-align:left"><label>Localitate</label><select id="newClientCity"><option value="">Selectează localitatea</option>${cities.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('')}</select></div><input id="newClientCode" value="${code}" type="hidden"><div id="newClientErr" class="err"></div><div class="alert-actions"><button class="btn cancel" onclick="this.closest('.modal').remove()">Anulează</button><button id="defaultAddClientBtn" class="btn ok" onclick="createNewClientFromDialog()">Adaugă</button></div></div>`;
     document.body.appendChild(wrap);
     wrap.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();document.getElementById('defaultAddClientBtn')?.click();}});
@@ -9413,8 +9413,9 @@ html>.sphera-edit-popup.modal.open>.wizard{
 }
 </style>
 <style id="sphera-v111-client-modal-layer-style">
-.client-create-modal.modal.open{z-index:2147483500!important;}
+.client-create-modal.modal.open{z-index:2147483550!important;}
 .client-create-modal.modal.open>.wizard{position:relative!important;z-index:1!important;}
+.app-confirm-modal.modal.open{z-index:2147483600!important;}
 </style>
 <script id="sphera-v111-client-modal-layer-script">
 (function(){
