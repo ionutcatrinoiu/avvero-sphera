@@ -9296,5 +9296,40 @@ html>.sphera-edit-popup.modal.open>.wizard{
   };
 })();
 </script>
+<style id="sphera-v108-client-permissions-style">
+.client-cui-cell input[readonly]{background:#f8fafc!important;color:#475467!important;cursor:default!important}
+</style>
+<script id="sphera-v108-client-permissions-script">
+(function(){
+  'use strict';
+  function clientAdmin(){
+    return ['admin','administrator'].includes(String(currentUser?.role||'').trim().toLowerCase());
+  }
+  function enforceClientPermissions(){
+    document.querySelectorAll('#clientRows .client-cui-cell input').forEach(input=>{
+      input.readOnly=true;
+      input.setAttribute('aria-readonly','true');
+      input.removeAttribute('onchange');
+    });
+    if(!clientAdmin()){
+      document.querySelectorAll('#clientRows button[onclick^="deleteClient"],#clientRows button[title="Șterge client"]').forEach(button=>button.remove());
+    }
+  }
+  const previousRenderClients=window.renderClients;
+  window.renderClients=function(){
+    const result=previousRenderClients&&previousRenderClients.apply(this,arguments);
+    enforceClientPermissions();
+    return result;
+  };
+  const previousDeleteClient=window.deleteClient;
+  window.deleteClient=function(){
+    if(!clientAdmin())return;
+    return previousDeleteClient&&previousDeleteClient.apply(this,arguments);
+  };
+  const clientRows=document.getElementById('clientRows');
+  if(clientRows)new MutationObserver(enforceClientPermissions).observe(clientRows,{childList:true,subtree:true});
+  enforceClientPermissions();
+})();
+</script>
 </body>
 </html>
