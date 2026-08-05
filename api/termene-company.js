@@ -17,7 +17,7 @@ export default async function handler(request, response) {
       day: '2-digit'
     }).formatToParts(new Date()).filter(part => part.type !== 'literal').map(part => [part.type, part.value]));
     const today = `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
-    const upstream = await fetch('https://webservicesp.anaf.ro/PlatitorTvaRest/api/v8/ws/tva', {
+    const upstream = await fetch('https://webservicesp.anaf.ro/api/PlatitorTvaRest/v9/tva', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
