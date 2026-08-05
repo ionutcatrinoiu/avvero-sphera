@@ -9248,7 +9248,8 @@ html>.sphera-edit-popup.modal.open>.wizard{
   function digits(value){return String(value||'').replace(/\D/g,'')}
   function state(text,type){const box=document.getElementById('termeneLookupState');if(!box)return;box.textContent=text||'';box.className='termene-lookup-state'+(type?' '+type:'')}
   function duplicateByCui(cui){return (CLIENTS||[]).find(client=>digits(client.cui)===cui)}
-  function setSelectValue(select,value){if(!select)return false;const wanted=norm(value||''),option=[...select.options].find(item=>norm(item.value)===wanted||norm(item.textContent)===wanted);if(!option)return false;select.value=option.value;return true}
+  function cityLabel(value){return String(value||'').replace(/^\s*(?:mun(?:icipiul)?\.?|oraș(?:ul)?|oras(?:ul)?|com(?:una)?\.?)\s+/i,'').trim()}
+  function setSelectValue(select,value){if(!select)return false;const clean=cityLabel(value),wanted=norm(clean),option=[...select.options].find(item=>norm(cityLabel(item.value))===wanted||norm(cityLabel(item.textContent))===wanted);if(option){select.value=option.value;return true}const added=document.createElement('option');added.value=clean.toUpperCase();added.textContent=clean;select.appendChild(added);select.value=added.value;return true}
   function enhanceClientDialog(){
     const modal=[...document.querySelectorAll('.modal.open')].pop(),cui=document.getElementById('newClientCui');
     if(!modal||!cui||modal.dataset.termeneReady)return;
@@ -9258,7 +9259,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
     field.innerHTML='<label>CUI</label><div class="termene-cui-row"><input class="cui-input" id="newClientCui" inputmode="numeric" autocomplete="off" placeholder="RO12345678"><button class="btn ghost" id="termeneLookupBtn" type="button">Caută firma</button></div><div class="termene-lookup-state" id="termeneLookupState"></div><div class="err" id="newClientCuiErr"></div>';
     if(nameField)nameField.before(field);
     const input=document.getElementById('newClientCui'),button=document.getElementById('termeneLookupBtn');
-    input.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^RO0-9]/g,'');state('');document.getElementById('newClientCuiErr').textContent=''});
+    input.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^RO0-9]/g,'');delete input.dataset.anafVerified;delete input.dataset.anafCounty;state('');document.getElementById('newClientCuiErr').textContent=''});
     input.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();event.stopPropagation();lookupTermeneCompany()}});
     button.addEventListener('click',lookupTermeneCompany);
     modal.querySelector('.alert-text').textContent='Introdu CUI-ul pentru completarea automată din registrul ANAF.';
@@ -9274,14 +9275,25 @@ html>.sphera-edit-popup.modal.open>.wizard{
       if(!response.ok)throw new Error(data.error||'Firma nu a putut fi preluată.');
       const name=document.getElementById('newClientName'),city=document.getElementById('newClientCity');
       if(name){name.value=String(data.name||'').toUpperCase();name.classList.add('termene-filled')}
-      const citySet=city?.tagName==='SELECT'?setSelectValue(city,data.city):(city?(city.value=String(data.city||'').toUpperCase(),true):false);
-      if(!citySet)throw new Error('Firma este în '+String(data.city||data.county||'altă localitate')+', în afara listei disponibile pentru centrul tău.');
-      city.classList.add('termene-filled');input.value='RO'+cui;input.dataset.termeneVerified='1';state('Datele firmei au fost completate.','success');
+      const cleanCity=cityLabel(data.city),citySet=city?.tagName==='SELECT'?setSelectValue(city,cleanCity):(city?(city.value=cleanCity.toUpperCase(),true):false);
+      if(!citySet||!cleanCity)throw new Error('ANAF nu a returnat localitatea firmei.');
+      city.classList.add('termene-filled');input.value='RO'+cui;input.dataset.anafVerified='1';input.dataset.anafCounty=String(data.county||'').toUpperCase();state('Datele firmei au fost completate.','success');
     }catch(error){state(error.message||'Conexiunea cu ANAF nu este disponibilă.','error')}
     finally{button.disabled=false;button.textContent='Caută firma'}
   };
   const previousOpen=window.openNewClientDialog;
   window.openNewClientDialog=function(){const result=previousOpen&&previousOpen.apply(this,arguments);enhanceClientDialog();return result};
+  const previousCreate=window.createNewClientFromDialog;
+  window.createNewClientFromDialog=function(){
+    const cuiInput=document.getElementById('newClientCui');
+    if(cuiInput?.dataset.anafVerified!=='1')return previousCreate&&previousCreate.apply(this,arguments);
+    const cui=digits(cuiInput.value),duplicate=duplicateByCui(cui),nameEl=document.getElementById('newClientName'),cityEl=document.getElementById('newClientCity'),codeEl=document.getElementById('newClientCode'),err=document.getElementById('newClientErr');
+    if(duplicate){if(typeof showAppConfirm==='function')showAppConfirm({title:'CUI deja înregistrat',text:'CUI-ul aparține clientului '+duplicate.name+', '+duplicate.city+'.',confirmText:'OK'});return}
+    const name=String(nameEl?.value||'').trim().toUpperCase(),city=cityLabel(cityEl?.value||'').toUpperCase(),county=String(cuiInput.dataset.anafCounty||'').trim().toUpperCase();
+    if(!name||!city){if(err)err.textContent='Caută firma după CUI pentru completarea datelor.';return}
+    let code=String(codeEl?.value||nextClientCode()).padStart(3,'0').slice(-3);if((CLIENTS||[]).some(client=>String(client.code)===code))code=nextClientCode();
+    const client={name,city,county,code,cui,center:currentUser?.center||'',createdByCenter:currentUser?.center||'',createdAt:Date.now()};CLIENTS.unshift(client);USER_CLIENTS.unshift(client);saveUserClients();draft.client=client;draft.clientQuery=client.name;codeEl?.closest('.modal')?.remove();render();if(document.getElementById('modal')?.classList.contains('open')){step=0;drawStep(false);if(typeof focusWizardNextArrow==='function')setTimeout(focusWizardNextArrow,45)}
+  };
 })();
 </script>
 </body>
