@@ -1226,7 +1226,7 @@ html,
 .user-view-head,
 .user-view-row{
   display:grid;
-  grid-template-columns:90px minmax(280px,1.5fr) minmax(220px,1fr) minmax(180px,.9fr);
+  grid-template-columns:90px minmax(260px,1.4fr) minmax(150px,.8fr) minmax(220px,1fr) minmax(180px,.9fr);
   gap:16px;
   align-items:center;
 }
@@ -1246,11 +1246,11 @@ html,
 }
 .user-view-code{color:#165dff;font-weight:900}
 .user-view-name{font-weight:900}
-.user-view-center,.user-view-role{color:#344054;font-weight:600}
+.user-view-password,.user-view-center,.user-view-role{color:#344054;font-weight:600}
 @media(max-width:760px){
   .user-view-head{display:none}
   .user-view-row{grid-template-columns:70px 1fr}
-  .user-view-center,.user-view-role{grid-column:2}
+  .user-view-password,.user-view-center,.user-view-role{grid-column:2}
 }
 
 
@@ -5312,15 +5312,17 @@ cursor:pointer;
     if(count)count.textContent=String(rows.length);
 
     box.innerHTML=
-      '<div class="user-view-head"><span>Cod</span><span>Nume prenume</span><span>Centru procesare</span><span>Tip cont</span></div>'+
+      '<div class="user-view-head"><span>Cod</span><span>Nume prenume</span><span>Parolă</span><span>Centru procesare</span><span>Tip cont</span></div>'+
       (rows.map(user=>{
         const code=String(user.operatorCode||'00').padStart(2,'0').slice(-2);
         const name=user.name||user.username||'Utilizator';
+        const password=user.pass||'Nesetată';
         const center=user.role==='admin'?'Fără centru':(user.center||'Fără centru');
         const role=roleLabel(user.role)||'Operator';
         return `<div class="user-view-row">
           <div class="user-view-code">${esc(code)}</div>
           <div class="user-view-name">${esc(name)}</div>
+          <div class="user-view-password">${esc(password)}</div>
           <div class="user-view-center">${esc(center)}</div>
           <div class="user-view-role">${esc(role)}</div>
         </div>`;
