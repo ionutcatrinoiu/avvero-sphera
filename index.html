@@ -2061,7 +2061,7 @@ function drawStep(resetErr=true){
    h=`<div class="field"><label>Mențiuni speciale</label><textarea rows="5" oninput="draft.notes=this.value" autofocus>${esc(draft.notes||'')}</textarea></div>`;
    break;
   case 7:
-   h=`<div class="card"><h2>Verifică datele</h2><p><b>Client:</b> ${esc(draft.client?.name||'')} · ${esc(draft.client?.city||'')} · ${esc(draft.client?.code||'')}</p><p><b>Produs:</b> ${esc(productSummary(draft))}</p><p><b>Pacient:</b> ${esc(draft.patient||'')}</p><p><b>Montaj:</b> ${draft.hasMount===true?esc(draft.mount||''):'Fără montaj'}</p><p><b>Livrare:</b> ${draft.deliveryDestination==='client'?esc(draft.client?.name||'Client'):esc((String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||currentUser?.center||'Centru procesare')))}</p><p><b>Procesare:</b> ${esc(draft.center||'')} · ${esc(draft.operator||'')}</p></div>`;
+   h=`<div class="card"><h2>Verifică datele</h2><p><b>Client:</b> ${esc(draft.client?.name||'')} · ${esc(draft.client?.city||'')} · ${esc(draft.client?.code||'')}</p><div class="confirmation-product-row"><b>Produs:</b><div>${confirmationProductHtml(draft)}</div></div><p><b>Pacient:</b> ${esc(draft.patient||'')}</p><p><b>Montaj:</b> ${draft.hasMount===true?esc(draft.mount||''):'Fără montaj'}</p><p><b>Livrare:</b> ${draft.deliveryDestination==='client'?esc(draft.client?.name||'Client'):esc((String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||currentUser?.center||'Centru procesare')))}</p><p><b>Operator:</b> ${esc(confirmationOperatorText())}</p></div>`;
    break;
  }
  stepBox.innerHTML=h;
@@ -2437,6 +2437,19 @@ function displayProductName(v){const raw=String(v||'');const canonical=Object.va
 function productSummary(o){
  let parts=[displayProductName(o.design),o.index,o.material,o.materialColor,o.treatment].filter(x=>String(x||'').trim());
  return parts.join(' ');
+}
+function confirmationProductHtml(order){
+ const summary=String(productSummary(order)||'');
+ const lines=order?.mixedDesign&&order?.eyeProducts?summary.split(/\n+/).filter(Boolean):[summary];
+ return lines.map(line=>`<div class="confirmation-product-line">${esc(line)}</div>`).join('');
+}
+function confirmationOperatorText(){
+ const operatorName=String(draft.operator||currentUser?.name||currentUser?.username||'').trim();
+ const user=(USERS||[]).find(item=>norm(item.name||'')===norm(operatorName)||norm(item.username||'')===norm(operatorName))||currentUser||{};
+ const centerOperator=(CENTERS||[]).find(item=>norm(item.operator||'')===norm(operatorName));
+ const rawCode=user.operatorCode||user.code||centerOperator?.operatorCode||currentUser?.operatorCode||'00';
+ const digits=String(rawCode).replace(/\D/g,'').slice(-2).padStart(2,'0');
+ return digits+' · '+operatorName;
 }
 function axisDisplay(value){
  const raw=String(value??'').trim();
@@ -9210,7 +9223,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
   function validateMixedRx(silent){let error='';for(const eye of ['od','os']){if(draft[eye+'Active']===false)continue;if(!String(draft[eye+'Sph']||'').trim())draft[eye+'Sph']='+0.00';if(!String(draft[eye+'Cyl']||'').trim())draft[eye+'Cyl']='+0.00';draft[eye+'Sph']=formatSignedQuarter(draft[eye+'Sph']);draft[eye+'Cyl']=formatSignedQuarter(draft[eye+'Cyl']);if(Number(draft[eye+'Cyl'])===0)draft[eye+'Ax']='';else normalizeRx(eye+'Ax','axis');if(draft[eye+'Add'])normalizeRx(eye+'Add','add');if(!signedNumber(draft[eye+'Sph'])||!signedNumber(draft[eye+'Cyl'])||(Number(draft[eye+'Cyl'])!==0&&!axis(draft[eye+'Ax']))||(eyeNeedsAdd(eye)&&!unsignedAdd(draft[eye+'Add']))){error='Completează corect prescripția pentru '+eyeNames[eye]+'.';break}}if(!silent)stepErr.textContent=error;return !error}
   const oldValidate=window.validateStep;window.validateStep=function(silent){if(draft.mixedDesign&&step===1){const ok=validEyeProduct('od')&&validEyeProduct('os');if(!silent)stepErr.textContent=ok?'':'Completează configurația pentru OD și OS.';return ok}if(draft.mixedDesign&&step===2)return validateMixedRx(silent);return oldValidate?oldValidate.call(this,silent):true};
   const oldCreate=window.createOrder;window.createOrder=function(){const before=new Set((orders||[]).map(item=>String(item.id))),snapshot=draft.mixedDesign?JSON.parse(JSON.stringify(ensureEyeProducts())):null;syncPrimary();const result=oldCreate&&oldCreate.apply(this,arguments);const created=(orders||[]).find(item=>!before.has(String(item.id)));if(created&&snapshot){created.mixedDesign=true;created.eyeProducts=snapshot;save();render()}return result};
-  function mixedEyeProductText(order,eye){const item=order?.eyeProducts?.[eye]||{},category=String(item.product||''),prefix=['monofocal','bifocal'].includes(norm(category))?category+' ':'';return eyeNames[eye]+' '+[prefix+displayProductName(item.design||''),item.index,item.material,item.materialColor,item.treatment].filter(value=>String(value||'').trim()).join(' ')}
+  function mixedEyeProductText(order,eye){const item=order?.eyeProducts?.[eye]||{},category=String(item.product||'').trim(),prefix=category?category+' ':'';return eyeNames[eye]+' '+[prefix+displayProductName(item.design||''),item.index,item.material,item.materialColor,item.treatment].filter(value=>String(value||'').trim()).join(' ')}
   const oldSummary=window.productSummary;window.productSummary=function(order){if(order?.mixedDesign&&order.eyeProducts)return ['od','os'].map(eye=>mixedEyeProductText(order,eye)).join('\n');return oldSummary?oldSummary(order):''};
   function renderMixedProductRows(){document.querySelectorAll('#ordersListBox tbody tr').forEach(row=>{const code=String(row.cells?.[0]?.textContent||'').trim(),order=(orders||[]).find(item=>String(item.code||'').trim()===code);if(!order?.mixedDesign||!order.eyeProducts||!row.cells?.[3])return;row.cells[3].innerHTML='<div class="product-line mixed-eye-product-line">'+esc(mixedEyeProductText(order,'od'))+'</div><div class="product-line mixed-eye-product-line">'+esc(mixedEyeProductText(order,'os'))+'</div>'})}
   const oldRender=window.render;window.render=function(){const result=oldRender&&oldRender.apply(this,arguments);renderMixedProductRows();return result};
@@ -9594,5 +9607,10 @@ html>.sphera-edit-popup.modal.open>.wizard{
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncPageActions);else syncPageActions();
 })();
 </script>
+<style id="sphera-v115-confirmation-summary-style">
+.confirmation-product-row{display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;gap:5px!important;align-items:start!important;margin:16px 0!important}
+.confirmation-product-line{display:block!important;line-height:1.45!important;overflow-wrap:anywhere!important}
+@media(max-width:560px){.confirmation-product-row{grid-template-columns:1fr!important;gap:3px!important}}
+</style>
 </body>
 </html>
