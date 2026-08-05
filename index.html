@@ -2809,7 +2809,7 @@ function renderDeletedOrders(){
   const orderId=String(item.orderId||order.id||'');
   const restoreAction=isAdmin()?`<button class="icon-btn primary deleted-history-row-restore" onclick="restoreDeletedOrder('${esc(orderId)}')" title="Restabilește comanda" aria-label="Restabilește comanda"><svg aria-hidden="true" fill="none" viewBox="0 0 24 24"><path d="M4 9V4m0 0h5M4 4l4 4a7 7 0 1 1-2 7"></path></svg></button>`:'';
   const deleteAction=isAdmin()?`<button class="icon-btn red deleted-history-row-delete" onclick="clearDeletedOrderHistoryItem('${esc(orderId)}')" title="Elimină din istoric" aria-label="Elimină din istoric"><svg aria-hidden="true" fill="none" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"></path></svg></button>`:'';
-  return `<tr class="clickable" onclick="showDeletedOrderDetails('${esc(orderId)}')"><td><b>${esc(order.code||orderId)}</b></td><td>${esc(formatDateRO(order.date||''))}</td><td>${esc(order.client?.name||'')}</td><td>${deletedOrderProductCell(order)}</td><td>${esc(processingCenterLabel(order))}</td><td>${esc(formatDeletedDateTime(item.deletedAt))}</td><td>${esc(item.deletedBy||'Utilizator')}</td><td class="deleted-history-row-action" onclick="event.stopPropagation()">${restoreAction}</td><td class="deleted-history-row-action" onclick="event.stopPropagation()">${deleteAction}</td></tr>`;
+  return `<tr class="clickable" onclick="showDeletedOrderDetails('${esc(orderId)}')"><td><b>${esc(order.code||orderId)}</b></td><td>${esc(formatDateRO(order.date||''))}</td><td class="deleted-client-cell"><div class="deleted-client-name">${esc(order.client?.name||'')}</div></td><td>${deletedOrderProductCell(order)}</td><td>${esc(processingCenterLabel(order))}</td><td>${esc(formatDeletedDateTime(item.deletedAt))}</td><td>${esc(item.deletedBy||'Utilizator')}</td><td class="deleted-history-row-action" onclick="event.stopPropagation()">${restoreAction}</td><td class="deleted-history-row-action" onclick="event.stopPropagation()">${deleteAction}</td></tr>`;
  }).join('')||'<tr><td colspan="9" class="muted">Nu există comenzi șterse.</td></tr>';
 }
 function showDeletedOrderDetails(orderId){
@@ -8519,6 +8519,8 @@ html>.sphera-edit-popup.modal.open>.wizard{
 #deletedOrdersListBox th:nth-child(1),#deletedOrdersListBox td:nth-child(1){width:13%;}
 #deletedOrdersListBox th:nth-child(2),#deletedOrdersListBox td:nth-child(2){width:8%;}
 #deletedOrdersListBox th:nth-child(3),#deletedOrdersListBox td:nth-child(3){width:14.5%;}
+#deletedOrdersListBox .deleted-client-cell{overflow:hidden!important;white-space:normal!important;vertical-align:middle!important;}
+#deletedOrdersListBox .deleted-client-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:normal;line-height:1.35;max-height:2.7em;}
 #deletedOrdersListBox th:nth-child(4),#deletedOrdersListBox td:nth-child(4){width:23%;}
 #deletedOrdersListBox th:nth-child(4),#deletedOrdersListBox td:nth-child(4){text-align:left;}
 #deletedOrdersListBox .product-line{display:block;white-space:nowrap;text-align:left;}
