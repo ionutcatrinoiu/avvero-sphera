@@ -2789,6 +2789,10 @@ function formatDeletedDateTime(value){
 }
 function deletedOrderProductCell(order){
  const text=productSummary(order);
+ if(order?.mixedDesign&&order?.eyeProducts){
+  const rows=String(text||'').split(/\r?\n/).map(value=>value.trim()).filter(Boolean).slice(0,2);
+  return rows.map(value=>`<div class="product-line deleted-mixed-product-line" title="${esc(value)}">${esc(value)}</div>`).join('');
+ }
  const design=String(order?.product||'').trim();
  const designPrefix=['monofocal','bifocal'].includes(norm(design))?design+' ':'';
  const indexMatch=text.match(/\b\d\.\d{2}\b/);
@@ -8528,7 +8532,8 @@ html>.sphera-edit-popup.modal.open>.wizard{
 #deletedOrdersListBox .deleted-client-name{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;word-break:normal;line-height:1.35;max-height:2.7em;}
 #deletedOrdersListBox th:nth-child(4),#deletedOrdersListBox td:nth-child(4){width:23%;}
 #deletedOrdersListBox th:nth-child(4),#deletedOrdersListBox td:nth-child(4){text-align:left;}
-#deletedOrdersListBox .product-line{display:block;white-space:nowrap;text-align:left;}
+#deletedOrdersListBox .product-line{display:block;white-space:nowrap;text-align:left;overflow:hidden!important;text-overflow:clip;max-width:100%;}
+#deletedOrdersListBox .deleted-mixed-product-line{line-height:1.35;min-height:1.35em;}
 #deletedOrdersListBox th:nth-child(5),#deletedOrdersListBox td:nth-child(5){width:10%;}
 #deletedOrdersListBox th:nth-child(6),#deletedOrdersListBox td:nth-child(6){width:13%;}
 #deletedOrdersListBox th:nth-child(7),#deletedOrdersListBox td:nth-child(7){width:12%;}
