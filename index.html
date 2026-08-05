@@ -9549,5 +9549,46 @@ html>.sphera-edit-popup.modal.open>.wizard{
   new MutationObserver(refresh).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
+<script id="sphera-v114-page-action-visibility">
+(function(){
+  'use strict';
+  function allowed(checkName,fallback){
+    try{return typeof window[checkName]==='function'?!!window[checkName]():fallback}catch(_){return fallback}
+  }
+  function syncPageActions(){
+    const active=document.querySelector('.page:not(.hide)')?.id||'dashboard';
+    const orderButton=document.getElementById('newOrderBtn');
+    const clientButton=document.getElementById('newClientBtn');
+    if(orderButton){
+      const visible=active==='dashboard'&&allowed('canCreateOrders',true);
+      orderButton.classList.toggle('hide',!visible);
+      orderButton.setAttribute('aria-hidden',String(!visible));
+    }
+    if(clientButton){
+      const visible=(active==='dashboard'||active==='clientsPage')&&allowed('canManageClients',true);
+      clientButton.classList.toggle('hide',!visible);
+      clientButton.setAttribute('aria-hidden',String(!visible));
+    }
+  }
+  const previousShowPage=window.showPage;
+  if(typeof previousShowPage==='function'){
+    window.showPage=function(){
+      const result=previousShowPage.apply(this,arguments);
+      syncPageActions();
+      return result;
+    };
+  }
+  const previousApplyPermissions=window.applyPermissions;
+  if(typeof previousApplyPermissions==='function'){
+    window.applyPermissions=function(){
+      const result=previousApplyPermissions.apply(this,arguments);
+      syncPageActions();
+      return result;
+    };
+  }
+  window.syncPageActions=syncPageActions;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncPageActions);else syncPageActions();
+})();
+</script>
 </body>
 </html>
