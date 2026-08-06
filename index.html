@@ -4246,18 +4246,26 @@ cursor:pointer;
 })();
 </script>
 <script>
-/* SPHERA fix final: livrare administrator + drepturi operator dupa Check-out */
+/* SPHERA fix final: livrare în toate centrele + drepturi operator după Check-out */
 (function(){
+  function canChooseAnyDeliveryDestination(){
+    if(!currentUser)return false;
+    const role=String(currentUser.role||'').trim().toLowerCase();
+    if(typeof isAdmin==='function'&&isAdmin())return true;
+    if(role==='operator')return true;
+    return role==='iasi'&&norm(currentUser.center)==='iasi';
+  }
+
   const previousDrawStep=window.drawStep;
   window.drawStep=function(resetErr=true){
     const result=previousDrawStep.call(this,resetErr);
-    if(step===5 && isAdmin()){
+    if(step===5 && canChooseAnyDeliveryDestination()){
       const select=document.getElementById('deliveryDestinationSelect');
       if(select){
         const centers=orderedProcessingCenters();
         const currentRaw=String(draft.deliveryDestination||'');
         const selectedCenter=currentRaw.startsWith('center:')?currentRaw.slice(7):(draft.deliveryCenter||draft.center||centers[0]||'');
-        select.innerHTML=centers.map(c=>`<option value="center:${esc(c)}" ${norm(c)===norm(selectedCenter)?'selected':''}>${esc(c)}</option>`).join('')+`<option value="client" ${currentRaw==='client'?'selected':''}>${esc(draft.client?.name||'Client')}</option>`;
+        select.innerHTML=centers.map(c=>`<option value="center:${esc(c)}" ${norm(c)===norm(selectedCenter)?'selected':''}>${esc(c)}</option>`).join('')+`<option value="client" ${currentRaw==='client'?'selected':''}>La client · ${esc(draft.client?.name||'Client')}</option>`;
         select.onchange=function(){
           draft.deliveryDestination=this.value;
           if(String(this.value).startsWith('center:'))draft.deliveryCenter=String(this.value).slice(7);
@@ -4275,7 +4283,7 @@ cursor:pointer;
 
   const previousValidateStep=window.validateStep;
   window.validateStep=function(silent){
-    if(step===5 && isAdmin()){
+    if(step===5 && canChooseAnyDeliveryDestination()){
       const v=String(draft.deliveryDestination||'');
       if(v==='client'||v.startsWith('center:'))return true;
     }
@@ -7898,7 +7906,8 @@ Modification history
   const protectedDelete=window.deleteOrder;
   window.deleteOrder=function(id){
     const order=(orders||[]).find(item=>String(item.id)===String(id));
-    if(!strictOrderOwner(order)) return false;
+    const groupedAdmin=order?.shippingGroupId&&['admin','administrator'].includes(String(currentUser?.role||'').trim().toLowerCase());
+    if(!strictOrderOwner(order)&&!groupedAdmin) return false;
     return protectedDelete ? protectedDelete.apply(this,arguments) : false;
   };
 
@@ -7911,7 +7920,8 @@ Modification history
 
       const code=String(codeCell.textContent||'').trim();
       const order=(orders||[]).find(item=>String(item.code||'').trim()===code);
-      if(!strictOrderOwner(order)){
+      const groupedAdmin=order?.shippingGroupId&&['admin','administrator'].includes(String(currentUser?.role||'').trim().toLowerCase());
+      if(!strictOrderOwner(order)&&!groupedAdmin){
         deleteCell.innerHTML='';
       }
     });
@@ -8844,7 +8854,27 @@ html>.sphera-edit-popup.modal.open>.wizard{
   };
   window.openBugImage=function(id){const bug=readBugs().find(x=>String(x.id)===String(id));if(!bug?.screenshot)return;document.querySelector('.bug-image-viewer')?.remove();const modal=document.createElement('div');modal.className='modal open bug-image-viewer';modal.innerHTML='<div class="bug-viewer-panel"><button class="icon-btn red bug-viewer-close" type="button" title="Închide">×</button><img alt="Printscreen bug"></div>';modal.querySelector('img').src=bug.screenshot;modal.querySelector('.bug-viewer-close').onclick=()=>modal.remove();modal.onclick=e=>{if(e.target===modal)modal.remove()};document.body.appendChild(modal)};
   window.toggleBugSelection=function(id,checked){if(checked)selectedBugs.add(String(id));else selectedBugs.delete(String(id));const count=document.getElementById('selectedBugCount');if(count)count.textContent=String(selectedBugs.size);const btn=document.getElementById('deleteSelectedBugs');if(btn)btn.disabled=!selectedBugs.size};
-  window.deleteSelectedBugReports=function(){if(!selectedBugs.size)return;showAppConfirm({title:'Ștergere bug-uri',text:'Ștergi cele '+selectedBugs.size+' raportări selectate?',confirmText:'Șterge',cancelText:'Anulează',danger:true,onConfirm:async()=>{const ids=[...selectedBugs],next=readBugs().filter(x=>!selectedBugs.has(String(x.id)));try{localStorage.setItem(BUG_KEY,JSON.stringify(next))}catch(_){}if(window.SPHERA_DB){for(const id of ids){try{await window.SPHERA_DB.collection('bugReports').doc(id).delete()}catch(e){console.error(e)}}}selectedBugs.clear();renderBugReports()}})};
+  function purgeDeletedBugImages(ids,reports){
+    const deleted=new Set(ids.map(String));
+    const sources=new Set(reports.filter(item=>deleted.has(String(item.id))).map(item=>item.screenshot).filter(Boolean));
+    document.querySelectorAll('.bug-image-viewer img,.bug-screenshot-thumb').forEach(image=>{
+      if(sources.has(image.src)||sources.has(image.getAttribute('src'))){image.removeAttribute('src')}
+    });
+    document.querySelector('.bug-image-viewer')?.remove()
+  }
+  window.deleteSelectedBugReports=function(){
+    if(!selectedBugs.size)return;
+    showAppConfirm({title:'Ștergere bug-uri',text:'Ștergi cele '+selectedBugs.size+' raportări selectate?',confirmText:'Șterge',cancelText:'Anulează',danger:true,onConfirm:async()=>{
+      const ids=[...selectedBugs],reports=readBugs(),next=reports.filter(item=>!selectedBugs.has(String(item.id)));
+      purgeDeletedBugImages(ids,reports);
+      try{localStorage.setItem(BUG_KEY,JSON.stringify(next))}catch(_){}
+      selectedBugs.clear();
+      renderBugReports();
+      if(window.SPHERA_DB){
+        for(const id of ids){try{await window.SPHERA_DB.collection('bugReports').doc(id).delete()}catch(error){console.error(error)}}
+      }
+    }});
+  };
   window.renderBugReports=function(){const box=document.getElementById('bugReportsList');if(!box)return;const list=readBugs(),count=document.getElementById('bugReportsCount');if(count)count.textContent=String(list.length);let toolbar=document.querySelector('#bugReportsCard .bug-report-toolbar');if(!toolbar){toolbar=document.createElement('div');toolbar.className='bug-report-toolbar';toolbar.innerHTML='<span class="muted">Selectate: <b id="selectedBugCount">0</b></span><button class="btn red" id="deleteSelectedBugs" onclick="deleteSelectedBugReports()" disabled>Șterge selectate</button>';box.before(toolbar)}const selectedCount=document.getElementById('selectedBugCount');if(selectedCount)selectedCount.textContent=String(selectedBugs.size);const deleteBtn=document.getElementById('deleteSelectedBugs');if(deleteBtn)deleteBtn.disabled=!selectedBugs.size;box.innerHTML=list.map(x=>'<div class="bug-report"><input class="bug-report-select" type="checkbox" '+(selectedBugs.has(String(x.id))?'checked':'')+' onchange="toggleBugSelection(\''+esc(String(x.id))+'\',this.checked)" aria-label="Selectează raportarea"><div class="bug-report-content"><div class="bug-report-meta">'+esc(new Date(x.createdAt).toLocaleString('ro-RO'))+' · '+esc(x.userName)+' · '+esc(x.center||x.role)+'</div><div class="bug-report-text">'+esc(x.description)+'</div>'+(x.screenshot?'<button class="bug-image-button" type="button" onclick="openBugImage(\''+esc(String(x.id))+'\')" title="Deschide imaginea"><img class="bug-screenshot-thumb" src="'+x.screenshot+'" alt="Printscreen bug"></button>':'')+'</div></div>').join('')||'<div class="muted">Nu există bug-uri raportate.</div>'};
   const oldRender=window.render;window.render=function(){const result=oldRender&&oldRender.apply(this,arguments);installLadybug();return result};
   const observer=new MutationObserver(()=>installLadybug());observer.observe(document.body,{childList:true,subtree:true});installLadybug();
@@ -9673,9 +9703,58 @@ html>.sphera-edit-popup.modal.open>.wizard{
     });
   }
 
+  function isRemoteQuotaError(error){
+    const code=String(error?.code||'').toLowerCase();
+    return code.includes('resource-exhausted')||code.includes('quota')||/quota exceeded|resource exhausted/i.test(String(error?.message||''));
+  }
+
+  function allocateFallbackSequence(){
+    let deleted=[];
+    try{deleted=JSON.parse(localStorage.getItem('sphera_deleted_orders_history')||'[]')}catch(_){}
+    const maximum=[...(orders||[]),...(Array.isArray(deleted)?deleted:[])].reduce((value,order)=>{
+      const sequence=Number(String(order?.seq||'').replace(/\D/g,''));
+      return Number.isSafeInteger(sequence)?Math.max(value,sequence):value
+    },0);
+    let stored=0;
+    try{stored=Number(localStorage.getItem('sphera_fallback_global_sequence')||0)}catch(_){}
+    const next=Math.max(maximum,Number.isSafeInteger(stored)?stored:0)+1;
+    try{localStorage.setItem('sphera_fallback_global_sequence',String(next))}catch(_){}
+    return String(next).padStart(5,'0').slice(-5)
+  }
+
   function creationError(message){
     if(typeof showAppConfirm==='function')showAppConfirm({title:'Comanda nu a fost creată',text:message,confirmText:'OK'});
     else alert(message);
+  }
+
+  function isStorageQuotaError(error){
+    return error?.name==='QuotaExceededError'||error?.name==='NS_ERROR_DOM_QUOTA_REACHED'||/quota/i.test(String(error?.message||''));
+  }
+
+  function compactLocalBugReports(){
+    const key='sphera_bug_reports_v1';
+    try{
+      const list=JSON.parse(localStorage.getItem(key)||'[]');
+      if(!Array.isArray(list))return;
+      const compact=list.slice(0,200).map((item,index)=>{
+        if(index<3||!item?.screenshot)return item;
+        const copy={...item};delete copy.screenshot;return copy
+      });
+      localStorage.setItem(key,JSON.stringify(compact))
+    }catch(_){localStorage.removeItem(key)}
+  }
+
+  function saveOrderWithRecovery(){
+    try{save();return}
+    catch(error){
+      if(!isStorageQuotaError(error))throw error;
+      compactLocalBugReports();
+      try{save();return}
+      catch(secondError){
+        if(isStorageQuotaError(secondError))throw new Error('Spațiul local este plin. Șterge raportările de bug vechi din Setări și încearcă din nou.');
+        throw secondError
+      }
+    }
   }
 
   window.createOrder=async function(){
@@ -9683,7 +9762,13 @@ html>.sphera-edit-popup.modal.open>.wizard{
     orderCreationPending=true;
     try{
       resolveMountStep();
-      const sequence=await allocateGlobalSequence();
+      let sequence;
+      try{sequence=await allocateGlobalSequence()}
+      catch(error){
+        if(!isRemoteQuotaError(error))throw error;
+        sequence=allocateFallbackSequence();
+        console.warn('Contorul global a atins limita. Se folosește secvența locală sincronizată.',error)
+      }
       const codeDate=nextWorkingDate();
       const day=String(codeDate.getDate()).padStart(2,'0');
       const month=String(codeDate.getMonth()+1).padStart(2,'0');
@@ -9702,7 +9787,12 @@ html>.sphera-edit-popup.modal.open>.wizard{
         rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||'',prismEnabled:draft.prismEnabled===true,odPrism:draft.odPrism||'',odBase:draft.odBase||'',osPrism:draft.osPrism||'',osBase:draft.osBase||''}
       };
       orders.unshift(order);
-      save();
+      try{saveOrderWithRecovery()}
+      catch(error){
+        const index=orders.findIndex(item=>String(item.id)===String(order.id));
+        if(index>=0)orders.splice(index,1);
+        throw error
+      }
       closeWizard();
       render();
       showGeneratedCode(code);
@@ -9717,7 +9807,10 @@ html>.sphera-edit-popup.modal.open>.wizard{
   window.regenerateRepeatedOrderCode=async function(created){
     if(!created)return '';
     try{
-      const sequence=await allocateGlobalSequence(),date=nextWorkingDate();
+      let sequence;
+      try{sequence=await allocateGlobalSequence()}
+      catch(error){if(!isRemoteQuotaError(error))throw error;sequence=allocateFallbackSequence()}
+      const date=nextWorkingDate();
       const operatorCode=currentOperatorCode();
       const clientCode=String(created.client?.code||'').replace(/\D/g,'').padStart(3,'0').slice(-3);
       const code=String(date.getDate()).padStart(2,'0')+String(date.getMonth()+1).padStart(2,'0')+operatorCode+sequence+clientCode;
@@ -9727,6 +9820,200 @@ html>.sphera-edit-popup.modal.open>.wizard{
       return code;
     }catch(error){creationError(error?.message||'Nu am putut rezerva următorul număr global.');return ''}
   };
+})();
+</script>
+<style id="sphera-v117-shipping-groups-style">
+.shipping-group-panel{margin-top:16px;padding:15px;border:1px solid #c7d7ff;border-radius:16px;background:#f8fbff}
+.shipping-group-panel h3{margin:0 0 12px;font-size:15px}.shipping-group-list{display:grid;gap:8px;margin-top:10px;max-height:180px;overflow:auto}
+.shipping-group-choice{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #e4e7ec;border-radius:12px;background:#fff;cursor:pointer}
+.shipping-group-choice input{width:auto!important;margin-top:2px}.shipping-group-choice b{display:block}.shipping-group-choice small{color:#667085}
+#ordersListBox .table-wrap{position:relative}
+#ordersListBox .table-wrap>table{position:relative;z-index:1}
+.shipping-group-row,.shipping-group-row:hover{background:transparent !important}
+.shipping-group-row td{background:transparent !important;border-bottom-color:transparent !important;transition:background-color .14s ease}
+.shipping-group-row:hover td{background:rgba(255,255,255,.34) !important}
+.shipping-group-start td:first-child{border-top-left-radius:14px}
+.shipping-group-start td:last-child{border-top-right-radius:14px}
+.shipping-group-end td:first-child{border-bottom-left-radius:14px}
+.shipping-group-end td:last-child{border-bottom-right-radius:14px}
+.shipping-group-glass-frame{
+  position:absolute;
+  z-index:0;
+  pointer-events:none;
+  border:1px solid rgba(255,255,255,.82);
+  border-radius:14px;
+  background:linear-gradient(145deg,rgba(246,255,229,.76),rgba(229,250,198,.56));
+  backdrop-filter:blur(16px) saturate(145%);
+  -webkit-backdrop-filter:blur(16px) saturate(145%);
+  box-shadow:0 5px 18px rgba(72,104,31,.08),inset 0 1px rgba(255,255,255,.92),inset 0 -1px rgba(137,178,70,.10);
+}
+.shipping-group-code-field{margin-top:10px}.shipping-group-match{display:flex;gap:10px;align-items:flex-start;margin-top:10px;padding:10px;border:1px solid #b8ccff;border-radius:12px;background:#fff;color:#101828}.shipping-group-match svg{width:18px;height:18px;flex:0 0 auto;fill:none;stroke:#165dff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.shipping-group-match b{display:block}.shipping-group-match small{display:block;margin-top:2px;color:#667085}.shipping-group-match.invalid{border-color:#fda29b;background:#fff6f5;color:#b42318}.shipping-group-match.invalid svg{stroke:#f04438}
+.shipping-group-detail{margin-top:16px;padding:14px;border:1px solid #c7d7ff;border-radius:16px;background:#f8fbff}.shipping-group-detail-title{display:flex;align-items:center;gap:7px;font-weight:900;margin-bottom:8px}.shipping-group-detail-title svg{width:18px;height:18px;fill:none;stroke:#165dff;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.shipping-group-detail-code{display:block;padding:5px 0;color:#165dff;font-weight:800}
+.shipping-group-manage{margin-right:auto}.shipping-group-modal .shipping-group-list{max-height:300px;text-align:left}
+.shipping-group-modal .shipping-group-match{text-align:left;justify-content:flex-start}
+.shipping-group-modal .shipping-group-match>span:first-child:nth-last-child(2){flex:0 0 18px}
+.shipping-group-modal .shipping-group-match>span:nth-child(2){flex:1;min-width:0;text-align:left}
+.shipping-group-modal .shipping-group-match>span:only-child{flex:1;width:100%;text-align:left}
+.shipping-group-modal .alert-actions{margin-top:20px;align-items:center}
+.shipping-group-modal .alert-actions .btn{min-width:112px}
+</style>
+<script id="sphera-v117-shipping-groups-script">
+(function(){
+  'use strict';
+  const GROUP_MODES={previous:'Cu comanda anterioară',code:'După cod'};
+  const LINK_ICON='<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"></path></svg>';
+  const clean=v=>String(v||'').trim();
+  const clientCode=order=>clean(order?.client?.code);
+  const activeOrder=order=>norm(order?.workflowStatus||order?.status||'')!=='livrata';
+  const groupMembers=id=>(orders||[]).filter(order=>clean(order.shippingGroupId)===clean(id));
+  const groupIdFor=()=>'G'+Date.now()+Math.random().toString(36).slice(2,7);
+  const deliveryKey=order=>{
+    const destination=clean(order?.deliveryDestination||'center');
+    return destination==='client'?'client:'+clientCode(order):'center:'+norm(order?.deliveryCenter||order?.center||'');
+  };
+  const sameDelivery=(left,right)=>clientCode(left)===clientCode(right)&&deliveryKey(left)===deliveryKey(right);
+  const normalizedRxCode=value=>{
+    const digits=clean(value).replace(/\D/g,'');
+    return digits.length===15?digits.slice(1):digits;
+  };
+  const findOrderByCode=value=>{
+    const code=normalizedRxCode(value);
+    return (orders||[]).find(order=>normalizedRxCode(order.code)===code);
+  };
+  const latestOrder=excludeId=>(orders||[]).find(order=>String(order.id)!==String(excludeId||'')&&activeOrder(order));
+  const previousOrderFor=order=>{
+    const index=(orders||[]).findIndex(item=>String(item.id)===String(order?.id));
+    return index>-1?(orders||[]).slice(index+1).find(activeOrder):null;
+  };
+  function nextGroupNumber(){
+    const maximum=(orders||[]).reduce((value,order)=>Math.max(value,Number(order.shippingGroupNumber)||0),0);
+    return maximum+1;
+  }
+  function groupNumberFor(order){
+    const members=groupMembers(order?.shippingGroupId),existing=members.map(item=>Number(item.shippingGroupNumber)||0).find(Boolean);
+    if(existing)return existing;
+    const number=nextGroupNumber();members.forEach(item=>item.shippingGroupNumber=number);return number;
+  }
+  const groupLabel=order=>'Grup '+String(groupNumberFor(order)).padStart(2,'0');
+
+  function targetValidation(source,target){
+    if(!target)return 'Comanda nu a fost găsită.';
+    if(!activeOrder(target))return 'Comanda este deja livrată.';
+    if(source?.id&&String(source.id)===String(target.id))return 'Alege o altă comandă.';
+    if(source?.shippingGroupId)return 'Comanda este deja grupată. Separă mai întâi comenzile.';
+    if(target.shippingGroupId)return 'Comanda selectată este deja grupată cu altă comandă.';
+    if(clientCode(source)!==clientCode(target))return 'Comenzile trebuie să aparțină aceluiași client.';
+    if(deliveryKey(source)!==deliveryKey(target))return 'Comenzile trebuie să aibă aceeași destinație de livrare.';
+    return '';
+  }
+  function draftSource(){return {client:draft.client,deliveryDestination:draft.deliveryDestination,deliveryCenter:draft.deliveryCenter||draft.center,center:draft.center}}
+  function selectedDraftTarget(){return draft.shippingGroupMode==='previous'?latestOrder():findOrderByCode(draft.shippingGroupCode)}
+  window.setDraftShippingGroupMode=function(value){draft.shippingGroupMode=GROUP_MODES[value]?value:'';draft.shippingGroupCode='';drawStep(false)};
+  window.setDraftShippingGroupCode=function(value){draft.shippingGroupCode=value;renderDraftGroupMatch()};
+  window.renderDraftGroupMatch=function(){
+    const holder=document.getElementById('shippingGroupMatch');if(!holder)return;
+    const target=selectedDraftTarget(),error=targetValidation(draftSource(),target),hasInput=draft.shippingGroupMode==='previous'||clean(draft.shippingGroupCode);
+    if(!hasInput){holder.innerHTML='';return}
+    holder.innerHTML='<div class="shipping-group-match '+(error?'invalid':'')+'"><span>'+LINK_ICON+'</span><span>'+(error?'<b>'+esc(error)+'</b>':'<b>'+esc(target.code||'')+'</b><small>'+esc(target.patient||'Fără nume pacient')+' · '+esc(target.workflowStatus||target.status||'Lansată')+'</small>')+'</span></div>';
+  };
+
+  function injectCreationGroupPanel(){
+    if(typeof step==='undefined'||step!==7||!window.stepBox||stepBox.querySelector('.shipping-group-panel')||!draft.client)return;
+    const panel=document.createElement('div');panel.className='shipping-group-panel';
+    panel.innerHTML='<h3>Grupează pentru livrare</h3><div class="field"><label>Tip grupare</label><select onchange="setDraftShippingGroupMode(this.value)"><option value="">Fără grupare</option><option value="previous" '+(draft.shippingGroupMode==='previous'?'selected':'')+'>Cu comanda anterioară</option><option value="code" '+(draft.shippingGroupMode==='code'?'selected':'')+'>Cu o comandă specificată prin cod</option></select></div>'+(draft.shippingGroupMode==='code'?'<div class="field shipping-group-code-field"><label>Cod comandă</label><input value="'+esc(draft.shippingGroupCode||'')+'" inputmode="numeric" autocomplete="off" placeholder="Introdu codul RX" oninput="setDraftShippingGroupCode(this.value)"></div>':'')+'<div id="shippingGroupMatch"></div>';
+    stepBox.appendChild(panel);renderDraftGroupMatch()
+  }
+  const priorDraw=window.drawStep;window.drawStep=function(){const result=priorDraw&&priorDraw.apply(this,arguments);injectCreationGroupPanel();return result};
+
+  const priorCreate=window.createOrder;
+  window.createOrder=async function(){
+    const mode=draft.shippingGroupMode,target=selectedDraftTarget(),validation=mode?targetValidation(draftSource(),target):'';
+    if(mode&&validation){showAppConfirm({title:'Gruparea nu este posibilă',text:validation,confirmText:'OK'});return}
+    const before=new Set((orders||[]).map(order=>String(order.id))),result=await priorCreate.apply(this,arguments);
+    const created=(orders||[]).find(order=>!before.has(String(order.id)));
+    if(!created||!mode||!target)return result;
+    const groupId=clean(target.shippingGroupId)||groupIdFor(),number=Number(target.shippingGroupNumber)||nextGroupNumber();
+    [created,target].forEach(order=>{order.shippingGroupId=groupId;order.shippingGroupNumber=number;order.shippingGroupMode=mode});save();render();return result
+  };
+
+  function decorateDashboardGroups(){
+    const body=document.getElementById('orderRows');if(!body)return;
+    const table=body.closest('table'),wrap=table?.closest('.table-wrap');
+    wrap?.querySelectorAll('.shipping-group-glass-frame').forEach(frame=>frame.remove());
+    const rows=[...body.rows];
+    rows.forEach(row=>{
+      row.classList.remove('shipping-group-row','shipping-group-start','shipping-group-end','shipping-group-tone-0','shipping-group-tone-1','shipping-group-tone-2');
+      row.removeAttribute('data-shipping-group');
+      if(!row.cells.length||row.cells[0].hasAttribute('colspan'))return;
+      const code=clean(row.cells[0].textContent),order=(orders||[]).find(item=>clean(item.code)===code);if(!order?.shippingGroupId)return;
+      row.classList.add('shipping-group-row');
+      row.dataset.shippingGroup=clean(order.shippingGroupId);
+      const deleteCell=row.cells[row.cells.length-1],admin=typeof isAdmin==='function'&&isAdmin()||['admin','administrator'].includes(clean(currentUser?.role).toLowerCase());
+      if(deleteCell&&!deleteCell.querySelector('button')&&(admin||typeof canDeleteOrder==='function'&&canDeleteOrder(order))){
+        deleteCell.innerHTML='<button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder(\''+esc(String(order.id))+'\')" title="Șterge comanda">'+ICON_TRASH+'</button>'
+      }
+    });
+    rows.forEach((row,index)=>{
+      const id=row.dataset.shippingGroup;if(!id)return;
+      const previous=rows[index-1]?.dataset.shippingGroup||'',next=rows[index+1]?.dataset.shippingGroup||'';
+      if(previous!==id)row.classList.add('shipping-group-start');
+      if(next!==id)row.classList.add('shipping-group-end')
+    });
+    if(!wrap||!table)return;
+    const wrapRect=wrap.getBoundingClientRect();
+    [...new Set(rows.map(row=>row.dataset.shippingGroup).filter(Boolean))].forEach(id=>{
+      const members=rows.filter(row=>row.dataset.shippingGroup===id);if(members.length!==2)return;
+      const firstRect=members[0].getBoundingClientRect(),lastRect=members[1].getBoundingClientRect();
+      const frame=document.createElement('div');frame.className='shipping-group-glass-frame';frame.dataset.shippingGroup=id;
+      frame.style.left=(firstRect.left-wrapRect.left+wrap.scrollLeft)+'px';
+      frame.style.top=(firstRect.top-wrapRect.top+wrap.scrollTop)+'px';
+      frame.style.width=firstRect.width+'px';
+      frame.style.height=(lastRect.bottom-firstRect.top)+'px';
+      wrap.insertBefore(frame,table)
+    })
+  }
+  function normalizePairGroups(){
+    const ids=[...new Set((orders||[]).map(order=>clean(order.shippingGroupId)).filter(Boolean))];let changed=false;
+    ids.forEach(id=>{const members=groupMembers(id);if(members.length!==2){members.forEach(item=>{delete item.shippingGroupId;delete item.shippingGroupType;delete item.shippingGroupMode;delete item.shippingGroupNumber});changed=true}});
+    if(changed)save()
+  }
+  const priorRender=window.render;window.render=function(){normalizePairGroups();const result=priorRender&&priorRender.apply(this,arguments);decorateDashboardGroups();return result};
+
+  function addDetailsGroup(order){
+    const modal=[...document.querySelectorAll('.order-details-modal')].pop();if(!modal)return;
+    const card=modal.querySelector('.order-details-card'),actions=modal.querySelector('.order-details-actions');if(!card||!actions)return;
+    if(order.shippingGroupId){
+      const members=groupMembers(order.shippingGroupId),box=document.createElement('div');box.className='shipping-group-detail';box.innerHTML='<div class="shipping-group-detail-title">'+LINK_ICON+' '+esc(groupLabel(order))+' · '+members.length+' comenzi</div>'+members.map(item=>'<span class="shipping-group-detail-code">'+esc(item.code||'')+' · '+esc(item.patient||'Fără nume pacient')+'</span>').join('');actions.before(box)
+    }
+    if(typeof canEditOrder!=='function'||canEditOrder(order)||String(currentUser?.role)==='admin'){
+      const button=document.createElement('button');button.type='button';button.className='btn ghost shipping-group-manage';button.textContent='Grupează comenzi';button.onclick=()=>openShippingGroupManager(order.id);actions.prepend(button)
+    }
+  }
+  const priorDetails=window.showOrderDetails;window.showOrderDetails=function(id){const result=priorDetails&&priorDetails.apply(this,arguments),order=(orders||[]).find(item=>String(item.id)===String(id));setTimeout(()=>order&&addDetailsGroup(order),0);return result};
+
+  window.openShippingGroupManager=function(orderId){
+    const order=(orders||[]).find(item=>String(item.id)===String(orderId));if(!order)return;
+    document.querySelector('.order-details-modal')?.remove();const modal=document.createElement('div');modal.className='modal open shipping-group-modal';
+    modal.innerHTML='<div class="wizard alert-card" style="max-width:600px"><div class="alert-title">Grupează comenzi</div>'+(order.shippingGroupId?'<div class="shipping-group-match"><span><b>Comanda este deja grupată.</b><small>Pentru o altă asociere, separă mai întâi comenzile.</small></span></div>':'<div class="field" style="text-align:left"><label>Tip grupare</label><select id="shippingGroupMode"><option value="previous">Cu comanda anterioară</option><option value="code">Cu o comandă specificată prin cod</option></select></div><div class="field shipping-group-code-field" id="shippingGroupManagerCodeField" style="text-align:left;display:none"><label>Cod comandă</label><input id="shippingGroupCode" inputmode="numeric" autocomplete="off" placeholder="Introdu codul RX"></div><div id="shippingManagerMatch"></div>')+'<div class="alert-actions"><button class="btn cancel">Anulează</button>'+(order.shippingGroupId?'<button class="btn danger ungroup">Separă</button>':'<button class="btn ok">Salvează</button>')+'</div></div>';document.body.appendChild(modal);modal.querySelector('.cancel').onclick=()=>modal.remove();
+    const removeGroup=()=>{const id=order.shippingGroupId;if(id)groupMembers(id).forEach(item=>{delete item.shippingGroupId;delete item.shippingGroupType;delete item.shippingGroupMode;delete item.shippingGroupNumber});save();render();modal.remove()};modal.querySelector('.ungroup')?.addEventListener('click',removeGroup);
+    if(order.shippingGroupId)return;
+    const mode=modal.querySelector('#shippingGroupMode'),field=modal.querySelector('#shippingGroupManagerCodeField'),input=modal.querySelector('#shippingGroupCode'),match=modal.querySelector('#shippingManagerMatch');let selected=null;
+    const update=()=>{selected=mode.value==='previous'?previousOrderFor(order):findOrderByCode(input.value);const hasValue=mode.value==='previous'||clean(input.value),error=hasValue?targetValidation(order,selected):'';match.innerHTML=!hasValue?'':'<div class="shipping-group-match '+(error?'invalid':'')+'"><span>'+LINK_ICON+'</span><span>'+(error?'<b>'+esc(error)+'</b>':'<b>'+esc(selected.code||'')+'</b><small>'+esc(selected.patient||'Fără nume pacient')+'</small>')+'</span></div>'};
+    mode.onchange=()=>{field.style.display=mode.value==='code'?'block':'none';input.value='';update();if(mode.value==='code')setTimeout(()=>input.focus(),20)};input.oninput=update;update();
+    modal.querySelector('.ok').onclick=()=>{const error=targetValidation(order,selected);if(error){showAppConfirm({title:'Gruparea nu este posibilă',text:error,confirmText:'OK'});return}const groupId=groupIdFor(),number=nextGroupNumber();[order,selected].forEach(item=>{item.shippingGroupId=groupId;item.shippingGroupNumber=number;item.shippingGroupMode=mode.value});save();render();modal.remove()}
+  };
+
+  const priorStatus=window.setWorkflowStatus;let groupStatusRunning=false;
+  window.setWorkflowStatus=function(id,status){
+    const order=(orders||[]).find(item=>String(item.id)===String(id)),members=order?.shippingGroupId?groupMembers(order.shippingGroupId):[];
+    if(groupStatusRunning||members.length<2)return priorStatus&&priorStatus.apply(this,arguments);
+    if(norm(status)==='livrata'){
+      const blocked=members.filter(item=>typeof canSetWorkflowStep==='function'&&!canSetWorkflowStep(status,item));
+      if(blocked.length){showAppConfirm({title:'Grupul nu este pregătit',text:'Comanda '+String(blocked[0].code||'')+' nu poate fi marcată încă drept Livrată.',confirmText:'OK'});return false}
+    }
+    showAppConfirm({title:'Actualizează grupul',text:'Actualizezi toate cele '+members.length+' comenzi din '+groupLabel(order)+' la statusul '+status+'?',confirmText:'Actualizează grupul',cancelText:'Anulează',onConfirm:()=>{groupStatusRunning=true;try{members.forEach(item=>{if(typeof canSetWorkflowStep!=='function'||canSetWorkflowStep(status,item))priorStatus.call(window,item.id,status)})}finally{groupStatusRunning=false}save();render()}});return false
+  };
+  setTimeout(decorateDashboardGroups,0)
 })();
 </script>
 </body>
