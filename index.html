@@ -2324,14 +2324,6 @@ function wizardKey(e){
   const fields=[...stepBox.querySelectorAll('.rx-field')].filter(el=>!el.disabled && el.offsetParent!==null);
   const idx=fields.indexOf(document.activeElement);
   if(idx>=0){
-    e.preventDefault();
-    const cols=addRequired(draft.product)?4:3;
-    let next=idx;
-    if(e.key==='ArrowRight') next=idx+1;
-    if(e.key==='ArrowLeft') next=idx-1;
-    if(e.key==='ArrowDown') next=idx+cols;
-    if(e.key==='ArrowUp') next=idx-cols;
-    if(fields[next]){fields[next].focus(); fields[next].select&&fields[next].select();}
     return;
   }
  }
@@ -8350,7 +8342,8 @@ html>.sphera-edit-popup.modal.open>.wizard::-webkit-scrollbar{display:none!impor
     const modal=modals[modals.length-1];
     if(!modal)return;
     const desktopWizard=window.matchMedia('(min-width:761px)').matches&&modal.id==='modal'&&modal.querySelector('#stepBox');
-    if(desktopWizard&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){
+    const editableTarget=event.target?.matches?.('input, textarea, select, [contenteditable="true"]');
+    if(desktopWizard&&!editableTarget&&(event.key==='ArrowLeft'||event.key==='ArrowRight')){
       event.preventDefault();
       event.stopImmediatePropagation();
       if(event.key==='ArrowRight'&&typeof nextStep==='function')nextStep();
@@ -9146,16 +9139,16 @@ html>.sphera-edit-popup.modal.open>.wizard{
 <script id="sphera-v103-script">
 (function(){
   'use strict';
-  function prismProductEligible(){const product=norm(draft?.product||''),design=norm(draft?.design||'');return product==='monofocal'&&(design.includes('attraction')||design==='senso id'||design.includes('senso id'))}
+  function prismProductEligible(){return norm(draft?.product||'')==='monofocal'}
   window.togglePrismFields=function(){draft.prismEnabled=!draft.prismEnabled;if(!draft.prismEnabled){draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase=''}drawStep(false)};
   window.prismValueInput=function(input,key){let value=String(input.value||'').replace(',','.').replace(/[^0-9.]/g,'');const parts=value.split('.');if(parts.length>2)value=parts.shift()+'.'+parts.join('');draft[key]=value;input.value=value};
   window.prismValueBlur=function(input,key){const raw=String(input.value||'').trim();if(!raw){draft[key]='';input.value='';return}const value=Number(raw);if(Number.isFinite(value)&&value>=0&&value<=10){draft[key]=String(Number(value.toFixed(2)));input.value=draft[key]}}
   window.prismBaseInput=function(input,key){const value=String(input.value||'').toUpperCase().replace(/[^0-9A-ZĂÂÎȘȚ\- ]/g,'').slice(0,12);draft[key]=value;input.value=value};
   function enhancePrescriptionStep(){
     if(step!==2)return;if(!prismProductEligible()){draft.prismEnabled=false;draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase='';return}const grid=stepBox.querySelector('.rx-grid');if(!grid||stepBox.querySelector('.prism-toggle-row'))return;
-    const row=document.createElement('div');row.className='prism-toggle-row';row.innerHTML='<label class="prism-checkbox"><input id="prismEnabledCheckbox" type="checkbox" '+(draft.prismEnabled?'checked':'')+'><span>Prismă</span></label>';const checkbox=row.querySelector('#prismEnabledCheckbox');checkbox.addEventListener('change',event=>{event.stopPropagation();draft.prismEnabled=event.currentTarget.checked;if(!draft.prismEnabled){draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase=''}drawStep(false)});grid.before(row);if(!draft.prismEnabled)return;
+    const row=document.createElement('div');row.className='prism-toggle-row';row.innerHTML='<label class="prism-checkbox"><input id="prismEnabledCheckbox" type="checkbox"><span>Prismă</span></label>';const checkbox=row.querySelector('#prismEnabledCheckbox');checkbox.checked=draft.prismEnabled===true;checkbox.addEventListener('click',event=>{event.preventDefault();event.stopImmediatePropagation();draft.prismEnabled=!draft.prismEnabled;if(!draft.prismEnabled){draft.odPrism='';draft.odBase='';draft.osPrism='';draft.osBase=''}drawStep(false)});grid.before(row);if(!draft.prismEnabled)return;
     grid.classList.add('prism-active');const axisHead=[...grid.querySelectorAll('.rx-head')].find(head=>norm(head.textContent)==='ax');if(axisHead){const prismHead=document.createElement('div');prismHead.className='rx-head';prismHead.textContent='PRISMĂ';const baseHead=document.createElement('div');baseHead.className='rx-head';baseHead.textContent='BAZĂ';axisHead.after(prismHead,baseHead)}
-    ['od','os'].forEach(eye=>{const axis=grid.querySelector('.rx-axis-field[data-eye="'+eye+'"]');if(!axis)return;const active=draft[eye+'Active']!==false;const prism=document.createElement('input');prism.className='rx-field prism-field prism-value';prism.inputMode='decimal';prism.value=draft[eye+'Prism']||'';prism.disabled=!active;prism.oninput=()=>prismValueInput(prism,eye+'Prism');prism.onblur=()=>prismValueBlur(prism,eye+'Prism');const base=document.createElement('input');base.className='rx-field prism-field';base.value=draft[eye+'Base']||'';base.disabled=!active;base.oninput=()=>prismBaseInput(base,eye+'Base');axis.after(prism,base)})
+    ['od','os'].forEach(eye=>{const axis=grid.querySelector('.rx-axis-field[data-eye="'+eye+'"]');if(!axis)return;const active=draft[eye+'Active']!==false;const prism=document.createElement('input');prism.type='text';prism.className='rx-field prism-field prism-value';prism.inputMode='decimal';prism.autocomplete='off';prism.value=draft[eye+'Prism']||'';prism.disabled=!active;prism.readOnly=false;prism.addEventListener('input',function(){window.prismValueInput(this,eye+'Prism')});prism.addEventListener('blur',function(){window.prismValueBlur(this,eye+'Prism')});const base=document.createElement('input');base.type='text';base.className='rx-field prism-field';base.autocomplete='off';base.value=draft[eye+'Base']||'';base.disabled=!active;base.readOnly=false;base.addEventListener('input',function(){window.prismBaseInput(this,eye+'Base')});axis.after(prism,base)})
   }
   const previousDrawStep=window.drawStep;window.drawStep=function(){const result=previousDrawStep&&previousDrawStep.apply(this,arguments);enhancePrescriptionStep();return result};
   const previousValidate=window.validateStep;window.validateStep=function(silent){const valid=previousValidate?previousValidate.call(this,silent):true;if(!valid||step!==2||!prismProductEligible()||!draft.prismEnabled)return valid;const eyes=['od','os'].filter(eye=>draft[eye+'Active']!==false);let error='',completed=0;for(const eye of eyes){const prism=String(draft[eye+'Prism']||'').trim(),base=String(draft[eye+'Base']||'').trim();if(!prism&&!base)continue;if(!prism||!base){error='Completează împreună Prisma și Baza pentru fiecare ochi.';break}const value=Number(prism);if(!Number.isFinite(value)||value<0||value>10){error='Prisma trebuie să aibă o valoare între 0 și 10.';break}if(!/^[0-9A-ZĂÂÎȘȚ\- ]+$/i.test(base)){error='Baza acceptă doar litere și cifre.';break}completed++}if(!error&&!completed)error='Completează Prisma și Baza pentru cel puțin un ochi sau elimină opțiunea.';if(error&&!silent)stepErr.textContent=error;return !error};
@@ -9612,5 +9605,33 @@ html>.sphera-edit-popup.modal.open>.wizard{
 .confirmation-product-line{display:block!important;line-height:1.45!important;overflow-wrap:anywhere!important}
 @media(max-width:560px){.confirmation-product-row{grid-template-columns:1fr!important;gap:3px!important}}
 </style>
+
+<script id="sphera-v106-prescription-input-fix">
+(function(){
+  'use strict';
+  function protectPrescriptionInputs(){
+    if(typeof step==='undefined'||step!==2||!window.stepBox)return;
+    stepBox.querySelectorAll('.rx-field:not([disabled])').forEach(function(input){
+      input.readOnly=false;
+      input.removeAttribute('readonly');
+      input.style.pointerEvents='auto';
+      input.style.userSelect='text';
+    });
+  }
+  const previousDrawStep=window.drawStep;
+  window.drawStep=function(){
+    const result=previousDrawStep&&previousDrawStep.apply(this,arguments);
+    protectPrescriptionInputs();
+    return result;
+  };
+  document.addEventListener('focusin',function(event){
+    if(event.target?.matches?.('#stepBox .rx-field')){
+      event.target.readOnly=false;
+      event.target.removeAttribute('readonly');
+    }
+  });
+  protectPrescriptionInputs();
+})();
+</script>
 </body>
 </html>
