@@ -8903,6 +8903,14 @@ html>.sphera-edit-popup.modal.open>.wizard{
   const circleRepeatIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10a8 8 0 0 0-14.8-3.8L4 10"/><path d="M4 5v5h5"/><path d="M4 14a8 8 0 0 0 14.8 3.8L20 14"/><path d="M20 19v-5h-5"/></svg>';
   function detailStatus(order){try{const steps=orderWorkflowSteps(order);return steps[orderWorkflowIndex(order)]||order.workflowStatus||order.status||'Lansată'}catch(_){return order.workflowStatus||order.status||'Lansată'}}
   function detailRow(label,value){return '<div class="order-detail-label">'+esc(label)+'</div><div class="order-detail-value">'+esc(value||'')+'</div>'}
+  function launchTime(order){
+    const saved=String(order?.createdTime||'').trim();
+    if(saved&&!/^ora nu este disponibila$/i.test(saved.normalize('NFD').replace(/[\u0300-\u036f]/g,'')))return saved;
+    const fromId=Number(String(order?.id||'').replace(/^RX/,''));
+    const timestamp=Number(order?.createdTimestamp||order?.createdAt||fromId||0);
+    if(Number.isFinite(timestamp)&&timestamp>1000000000000)return new Date(timestamp).toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    return 'Ora nu este disponibilă';
+  }
   function findDetailOrder(id){let order;try{order=(orders||[]).find(x=>String(x.id)===String(id))}catch(_){}return order}
   function isAdministratorHistory(entry){
     const role=String(entry?.role||'').trim().toLowerCase();
@@ -8921,7 +8929,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
     const lastVisibleChange=history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0];
     const firstGroup=[
       ['Data',formatDateRO(order.date)],
-      ['Ora lansării',order.createdTime||'Ora nu este disponibilă'],
+      ['Ora lansării',launchTime(order)],
       ['Client',(order.client?.name||'')+' · '+(order.client?.city||'')+' · cod '+(order.client?.code||'')],
       ['Produs',productSummary(order)],
       ['OD',odText(order)+(order.rx?.odAdd?' add '+order.rx.odAdd:'')+(order.rx?.odPrism?' prismă '+order.rx.odPrism+(order.rx?.odBase?' bază '+order.rx.odBase:''):'')],
@@ -9631,6 +9639,94 @@ html>.sphera-edit-popup.modal.open>.wizard{
     }
   });
   protectPrescriptionInputs();
+})();
+</script>
+<script id="sphera-v116-global-order-sequence">
+(function(){
+  'use strict';
+  const COUNTER_REF_PATH=['appData','globalOrderSequenceV3'];
+  let orderCreationPending=false;
+
+  function nextWorkingDate(){
+    const now=new Date(),date=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+    if(now.getDay()===0||now.getDay()===6||now.getHours()>=14)date.setDate(date.getDate()+1);
+    while(date.getDay()===0||date.getDay()===6)date.setDate(date.getDate()+1);
+    return date;
+  }
+
+  function currentOperatorCode(){
+    const username=String(currentUser?.username||'').trim().toLowerCase();
+    const account=(USERS||[]).find(user=>username&&String(user.username||'').trim().toLowerCase()===username)||currentUser||{};
+    return String(account.operatorCode||account.code||'00').replace(/\D/g,'').padStart(2,'0').slice(-2);
+  }
+
+  async function allocateGlobalSequence(){
+    if(!window.SPHERA_DB||!window.SPHERA_AUTH?.currentUser)throw new Error('Conexiunea la baza comună nu este disponibilă.');
+    const ref=window.SPHERA_DB.collection(COUNTER_REF_PATH[0]).doc(COUNTER_REF_PATH[1]);
+    return window.SPHERA_DB.runTransaction(async transaction=>{
+      const snapshot=await transaction.get(ref);
+      const current=snapshot.exists?Number(snapshot.data()?.value||0):0;
+      const next=current+1;
+      if(!Number.isSafeInteger(next)||next<1)throw new Error('Contorul global nu mai poate fi incrementat.');
+      transaction.set(ref,{value:next,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      return String(next).padStart(5,'0');
+    });
+  }
+
+  function creationError(message){
+    if(typeof showAppConfirm==='function')showAppConfirm({title:'Comanda nu a fost creată',text:message,confirmText:'OK'});
+    else alert(message);
+  }
+
+  window.createOrder=async function(){
+    if(orderCreationPending||!canCreateOrders())return;
+    orderCreationPending=true;
+    try{
+      resolveMountStep();
+      const sequence=await allocateGlobalSequence();
+      const codeDate=nextWorkingDate();
+      const day=String(codeDate.getDate()).padStart(2,'0');
+      const month=String(codeDate.getMonth()+1).padStart(2,'0');
+      const operatorCode=currentOperatorCode();
+      const clientCode=String(draft.client?.code||'').replace(/\D/g,'').padStart(3,'0').slice(-3);
+      const code=day+month+operatorCode+sequence+clientCode;
+      const createdTime=new Date().toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+      const order={
+        id:'RX'+Date.now(),code,seq:sequence,date:draft.date,codeDate:codeDate.toISOString().slice(0,10),createdTime,
+        client:draft.client,product:draft.product,design:draft.design,index:draft.index,geometry:draft.geometry,
+        material:draft.material,materialColor:draft.materialColor||'',treatment:draft.treatment,patient:draft.patient,
+        hasMount:draft.hasMount===true,mount:draft.hasMount===true?(draft.mount||''):'',
+        deliveryDestination:String(draft.deliveryDestination||'center').startsWith('center:')?'center':(draft.deliveryDestination||'center'),
+        deliveryCenter:String(draft.deliveryDestination||'').startsWith('center:')?String(draft.deliveryDestination).slice(7):(draft.deliveryCenter||draft.center||''),
+        center:draft.center,operator:draft.operator,operatorCode,notes:draft.notes,status:'Lansată',workflowStatus:'Lansată',
+        rx:{odActive:draft.odActive!==false,osActive:draft.osActive!==false,odSph:draft.odSph||'',odCyl:draft.odCyl||'',odAx:draft.odAx||'',odAdd:draft.odAdd||'',osSph:draft.osSph||'',osCyl:draft.osCyl||'',osAx:draft.osAx||'',osAdd:draft.osAdd||'',prismEnabled:draft.prismEnabled===true,odPrism:draft.odPrism||'',odBase:draft.odBase||'',osPrism:draft.osPrism||'',osBase:draft.osBase||''}
+      };
+      orders.unshift(order);
+      save();
+      closeWizard();
+      render();
+      showGeneratedCode(code);
+    }catch(error){
+      console.error('Global order sequence',error);
+      creationError(error?.message||'Nu am putut rezerva următorul număr global. Încearcă din nou.');
+    }finally{
+      orderCreationPending=false;
+    }
+  };
+
+  window.regenerateRepeatedOrderCode=async function(created){
+    if(!created)return '';
+    try{
+      const sequence=await allocateGlobalSequence(),date=nextWorkingDate();
+      const operatorCode=currentOperatorCode();
+      const clientCode=String(created.client?.code||'').replace(/\D/g,'').padStart(3,'0').slice(-3);
+      const code=String(date.getDate()).padStart(2,'0')+String(date.getMonth()+1).padStart(2,'0')+operatorCode+sequence+clientCode;
+      created.seq=sequence;created.code=code;created.operatorCode=operatorCode;created.codeDate=date.toISOString().slice(0,10);
+      save();render();
+      const input=document.getElementById('generatedCodeInput');if(input)input.value=code;
+      return code;
+    }catch(error){creationError(error?.message||'Nu am putut rezerva următorul număr global.');return ''}
+  };
 })();
 </script>
 </body>
