@@ -9676,6 +9676,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
   'use strict';
   const COUNTER_REF_PATH=['appData','globalOrderSequenceV3'];
   let orderCreationPending=false;
+  let preparedSequenceTask=null;
 
   function nextWorkingDate(){
     const now=new Date(),date=new Date(now.getFullYear(),now.getMonth(),now.getDate());
@@ -9722,6 +9723,35 @@ html>.sphera-edit-popup.modal.open>.wizard{
     return String(next).padStart(5,'0').slice(-5)
   }
 
+  function prepareOrderSequence(){
+    if(preparedSequenceTask)return preparedSequenceTask;
+    preparedSequenceTask=(async()=>{
+      try{return {sequence:await allocateGlobalSequence()}}
+      catch(error){
+        if(isRemoteQuotaError(error)){
+          console.warn('Contorul global a atins limita. Se pregătește secvența locală sincronizată.',error);
+          return {sequence:allocateFallbackSequence()}
+        }
+        return {error}
+      }
+    })();
+    return preparedSequenceTask
+  }
+
+  async function consumePreparedSequence(){
+    const result=await prepareOrderSequence();
+    preparedSequenceTask=null;
+    if(result.error)throw result.error;
+    return result.sequence
+  }
+
+  const sequenceDrawStep=window.drawStep;
+  window.drawStep=function(){
+    const result=sequenceDrawStep&&sequenceDrawStep.apply(this,arguments);
+    if(typeof step!=='undefined'&&step===7)prepareOrderSequence();
+    return result
+  };
+
   function creationError(message){
     if(typeof showAppConfirm==='function')showAppConfirm({title:'Comanda nu a fost creată',text:message,confirmText:'OK'});
     else alert(message);
@@ -9760,15 +9790,13 @@ html>.sphera-edit-popup.modal.open>.wizard{
   window.createOrder=async function(){
     if(orderCreationPending||!canCreateOrders())return;
     orderCreationPending=true;
+    const generateButton=document.getElementById('wizardNextArrow');
+    const generateArrow=generateButton?.querySelector('.arrow');
+    if(generateButton)generateButton.disabled=true;
+    if(generateArrow)generateArrow.textContent='…';
     try{
       resolveMountStep();
-      let sequence;
-      try{sequence=await allocateGlobalSequence()}
-      catch(error){
-        if(!isRemoteQuotaError(error))throw error;
-        sequence=allocateFallbackSequence();
-        console.warn('Contorul global a atins limita. Se folosește secvența locală sincronizată.',error)
-      }
+      const sequence=await consumePreparedSequence();
       const codeDate=nextWorkingDate();
       const day=String(codeDate.getDate()).padStart(2,'0');
       const month=String(codeDate.getMonth()+1).padStart(2,'0');
@@ -9801,6 +9829,8 @@ html>.sphera-edit-popup.modal.open>.wizard{
       creationError(error?.message||'Nu am putut rezerva următorul număr global. Încearcă din nou.');
     }finally{
       orderCreationPending=false;
+      if(generateButton?.isConnected)generateButton.disabled=false;
+      if(generateArrow?.isConnected)generateArrow.textContent='›'
     }
   };
 
