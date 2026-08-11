@@ -8955,7 +8955,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
   }
   window.showOrderDetails=function(id){
     const order=findDetailOrder(id);if(!order)return;
-    const history=(Array.isArray(order.modificationHistory)?order.modificationHistory:[]).filter(entry=>!isAdministratorHistory(entry));
+    const history=Array.isArray(order.modificationHistory)?order.modificationHistory:[];
     const lastVisibleChange=history.slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0))[0];
     const firstGroup=[
       ['Data',formatDateRO(order.date)],
