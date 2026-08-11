@@ -2573,7 +2573,7 @@ function render(){
  kToday.textContent=scoped.filter(o=>o.date===new Date().toISOString().slice(0,10)).length;
  const ko=document.getElementById('kOpen'); if(ko) ko.textContent=scoped.filter(o=>o.status!=='Livrată').length;
  const kd=document.getElementById('kDelivered'); if(kd) kd.textContent=scoped.filter(o=>o.status==='Livrată').length;
- const kdelay=document.getElementById('kDelayed'); if(kdelay) kdelay.textContent=scoped.filter(isDelayedOrder).length; const ktransit=document.getElementById('kTransit'); if(ktransit) ktransit.textContent=scoped.filter(o=>workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out')).length;
+ const kdelay=document.getElementById('kDelayed'); if(kdelay) kdelay.textContent=scoped.filter(isDelayedOrder).length; const ktransit=document.getElementById('kTransit'); if(ktransit) ktransit.textContent=scoped.filter(o=>{if(currentUser?.role!=='partner')return workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out');const flow=typeof orderWorkflowSteps==='function'?orderWorkflowSteps(o):WORKFLOW_STEPS;const pos=typeof orderWorkflowIndex==='function'?orderWorkflowIndex(o):workflowIndex(o);return pos===flow.length-2}).length;
  const rawQuery=String(document.getElementById('q')?.value||'').trim();
  const queryVariants=rxQueryVariants(rawQuery);
  const isPlainCodeQuery=/^\d+$/.test(rawQuery);
@@ -2587,7 +2587,7 @@ function render(){
    if(orderViewMode==='today') ok=o.date===new Date().toISOString().slice(0,10);
    if(orderViewMode==='open') ok=o.status!=='Livrată';
    if(orderViewMode==='delivered') ok=o.status==='Livrată';
-   if(orderViewMode==='delayed') ok=isDelayedOrder(o); if(orderViewMode==='transit') ok=workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out');
+   if(orderViewMode==='delayed') ok=isDelayedOrder(o); if(orderViewMode==='transit'){if(currentUser?.role==='partner'){const flow=typeof orderWorkflowSteps==='function'?orderWorkflowSteps(o):WORKFLOW_STEPS;const pos=typeof orderWorkflowIndex==='function'?orderWorkflowIndex(o):workflowIndex(o);ok=pos===flow.length-2}else ok=workflowIndex(o)===WORKFLOW_STEPS.indexOf('Check-out')}
    const values=[processingCenterLabel(o),o.code,o.client.name,o.patient,productSummary(o),odText(o),osText(o),addText(o),o?.rx?.odSph,o?.rx?.odCyl,o?.rx?.odAx,o?.rx?.odAdd,o?.rx?.osSph,o?.rx?.osCyl,o?.rx?.osAx,o?.rx?.osAdd];
    const haystack=norm(values.join(' '));
    const rxAliases=values.flatMap(v=>rxQueryVariants(v)).join(' ');
@@ -2762,8 +2762,17 @@ function clearOrders(){if(!isAdmin())return;showAppConfirm({title:'Ștergere com
 function deletedTimestamp(value){
  if(value&&typeof value.toDate==='function')return value.toDate().getTime();
  if(value&&typeof value.seconds==='number')return value.seconds*1000+Math.floor(Number(value.nanoseconds||0)/1000000);
+ if(value&&typeof value._seconds==='number')return value._seconds*1000+Math.floor(Number(value._nanoseconds||0)/1000000);
+ if(typeof value==='number'&&Number.isFinite(value))return value<100000000000?value*1000:value;
+ if(typeof value==='string'&&/^\d+$/.test(value.trim())){
+  const numeric=Number(value);
+  return numeric<100000000000?numeric*1000:numeric;
+ }
  const parsed=Date.parse(value||'');
  return Number.isFinite(parsed)?parsed:0;
+}
+function deletedOrderSortTime(item){
+ return Math.max(deletedTimestamp(item?.deletedAtMs),deletedTimestamp(item?.deletedAt));
 }
 function archiveDeletedOrderLocally(order,details={}){
  if(!order)return;
@@ -2771,6 +2780,7 @@ function archiveDeletedOrderLocally(order,details={}){
   order:JSON.parse(JSON.stringify(order)),
   orderId:String(order.id||''),
   deletedAt:details.deletedAt||new Date().toISOString(),
+  deletedAtMs:details.deletedAtMs||Date.now(),
   deletedBy:details.deletedBy||currentUser?.name||currentUser?.username||'Utilizator',
   deletedByUid:details.deletedByUid||currentUser?.uid||''
  };
@@ -2815,7 +2825,11 @@ function renderDeletedOrders(){
  if(clearButton)clearButton.classList.toggle('hide',!isAdmin());
  const card=document.getElementById('deletedOrdersCard');
  if(card)card.classList.toggle('admin-history',isAdmin());
- const list=(deletedOrders||[]).filter(item=>item?.order&&canViewDeletedOrder(item.order)).sort((a,b)=>deletedTimestamp(b.deletedAt)-deletedTimestamp(a.deletedAt));
+ const list=(deletedOrders||[]).filter(item=>item?.order&&canViewDeletedOrder(item.order)).sort((a,b)=>{
+  const timeDifference=deletedOrderSortTime(b)-deletedOrderSortTime(a);
+  if(timeDifference)return timeDifference;
+  return String(b.orderId||b.order?.id||'').localeCompare(String(a.orderId||a.order?.id||''),'ro',{numeric:true});
+ });
  const count=document.getElementById('deletedOrdersCount');
  if(count)count.textContent=String(list.length);
  body.innerHTML=list.map(item=>{
@@ -4398,6 +4412,16 @@ cursor:pointer;
     if (to !== from + 1) return false;
     if (typeof isAdmin === 'function' && isAdmin()) return true;
 
+    if (currentUser.role === 'partner') {
+      const username = String(currentUser.username || '').trim().toLowerCase();
+      const account = (USERS || []).find(user => String(user.username || '').trim().toLowerCase() === username) || currentUser;
+      const creator = [order.createdByUsername, order.creatorUsername, order.createdByAccount]
+        .some(value => String(value || '').trim().toLowerCase() === username);
+      const sameClient = String(order.client?.code || '').trim() === String(account.clientCode || '').trim();
+      const ownOrder = creator || sameClient;
+      return ownOrder && to === steps.length - 1 && from === steps.length - 2;
+    }
+
     if (isMaster()) {
       if (norm(order.center) === 'iasi') return true;
       return status === 'Check-out' && from === 0;
@@ -4506,7 +4530,11 @@ cursor:pointer;
         : '';
 
       let message = '';
-      if (isMaster() && norm(order.center) !== 'iasi') {
+      if (currentUser?.role === 'partner') {
+        message = index === steps.length - 2
+          ? '<div class="workflow-readonly">Comanda este în drum spre tine. O poți marca drept Livrată.</div>'
+          : '<div class="workflow-readonly">Poți modifica doar statusul final Livrată.</div>';
+      } else if (isMaster() && norm(order.center) !== 'iasi') {
         message = index === 0
           ? '<div class="workflow-readonly">Poți confirma doar etapa Check-out pentru comenzile din afara centrului Iași.</div>'
           : '<div class="workflow-readonly">Etapele următoare sunt gestionate de operatorii centrului respectiv.</div>';
@@ -4601,7 +4629,8 @@ cursor:pointer;
   const CLOUD_KEYS=['sphera_user_clients','sphera_v19_centers','sphera_v19_indices','sphera_v19_materials','sphera_v19_products','sphera_v19_treatments'];
   let cloudReady=false, applyingRemote=false, saveTimer=null, unsubscribeShared=null, unsubscribeUsers=null;
   let unsubscribeOrders=null, unsubscribeDeletedOrders=null, applyingOrdersRemote=false, ordersReady=false, ordersInitializing=false;
-  let ordersSaveTimer=null, ordersPendingSave=false, lastLocalOrderIds=new Set(), deletedOrderIds=new Set();
+  let ordersSaveTimer=null, ordersPendingSave=false, lastLocalOrderIds=new Set(), lastLocalOrdersById=new Map(), deletedOrderIds=new Set(), pendingDeletedOrderIds=new Set(), cloudDeletedOrderIds=new Set(), sharedDeletedOrderIds=new Set(), orderTombstoneIds=new Set();
+  function refreshDeletedOrderIds(){deletedOrderIds=new Set([...cloudDeletedOrderIds,...sharedDeletedOrderIds,...orderTombstoneIds,...pendingDeletedOrderIds])}
 
   function setCloudStatus(text,type){
     let el=document.getElementById('spheraCloudStatus');
@@ -4633,6 +4662,7 @@ cursor:pointer;
     if(r==='admin'||r==='administrator')return 'admin';
     if(r==='iasi'||r==='operator-master'||r==='operator master'||r==='master')return 'iasi';
     if(r==='viewer'||r==='operator export'||r==='operator-export'||r==='export')return 'viewer';
+    if(r==='partner'||r==='partener')return 'partner';
     return 'operator';
   }
   async function findProfile(user,username){
@@ -4654,6 +4684,10 @@ cursor:pointer;
       role:normalizeRole(profile?.role),
       center:profile?.center||profile?.centru||'',
       warehouses:Array.isArray(profile?.warehouses)?profile.warehouses:[],
+      clientId:profile?.clientId||profile?.client_id||'',
+      clientCode:String(profile?.clientCode||profile?.client_code||''),
+      clientName:profile?.clientName||profile?.client_name||'',
+      mountCenter:profile?.mountCenter||profile?.mount_center||profile?.responsibleCenter||'',
       operatorCode:String(profile?.operatorCode||profile?.code||'00').padStart(2,'0'),
       active:profile?.active!==false
     };
@@ -4687,6 +4721,27 @@ cursor:pointer;
   function applyShared(data){
     applyingRemote=true;
     try{
+      if(Array.isArray(data.deletedOrdersHistory)){
+        const merged=new Map((Array.isArray(deletedOrders)?deletedOrders:[]).map(item=>[
+          String(item.orderId||item.order?.id||''),item
+        ]));
+        data.deletedOrdersHistory.forEach(item=>{
+          const orderId=String(item?.orderId||item?.order?.id||'');
+          if(orderId&&item?.order)merged.set(orderId,{...(merged.get(orderId)||{}),...item,orderId});
+        });
+        deletedOrders=[...merged.values()].filter(item=>item?.order);
+        sharedDeletedOrderIds=new Set(data.deletedOrdersHistory.map(item=>String(item?.orderId||item?.order?.id||'')).filter(Boolean));
+        refreshDeletedOrderIds();
+        const filteredOrders=(Array.isArray(orders)?orders:[]).filter(order=>!deletedOrderIds.has(String(order?.id||'')));
+        if(filteredOrders.length!==orders.length){
+          orders=filteredOrders;
+          lastLocalOrderIds=new Set(orders.map(order=>String(order.id)));
+          lastLocalOrdersById=new Map(orders.map(order=>[String(order.id),cleanOrderForCloud(order)]));
+          originalSetItem('rx_orders',JSON.stringify(orders));
+        }
+        originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
+        if(typeof renderDeletedOrders==='function')renderDeletedOrders();
+      }
       if(Array.isArray(data.clients)){
         USER_CLIENTS=data.clients.map(c=>({...c}));
         localStorage.setItem('sphera_user_clients',JSON.stringify(USER_CLIENTS));
@@ -4724,14 +4779,48 @@ cursor:pointer;
     if(!clean.id)clean.id='ord_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
     return clean;
   }
+  function sharedDeletedHistoryEntry(order,details={}){
+    if(!order)return null;
+    return {
+      orderId:String(order.id||''),
+      order:cleanOrderForCloud(order),
+      deletedAt:details.deletedAt||new Date().toISOString(),
+      deletedAtMs:details.deletedAtMs||Date.now(),
+      deletedBy:details.deletedBy||currentUser?.name||currentUser?.username||'Utilizator',
+      deletedByUid:details.deletedByUid||auth.currentUser?.uid||''
+    };
+  }
+  async function saveSharedDeletedHistory(order,details={}){
+    const entry=sharedDeletedHistoryEntry(order,details);
+    if(!entry?.orderId)return;
+    await db.runTransaction(async transaction=>{
+      const snapshot=await transaction.get(SHARED_REF);
+      const list=Array.isArray(snapshot.data()?.deletedOrdersHistory)?snapshot.data().deletedOrdersHistory:[];
+      const next=[entry,...list.filter(item=>String(item?.orderId||item?.order?.id||'')!==entry.orderId)].slice(0,300);
+      transaction.set(SHARED_REF,{deletedOrdersHistory:next},{merge:true});
+    });
+  }
+  async function removeSharedDeletedHistory(orderId){
+    const id=String(orderId||'');
+    if(!id)return;
+    await db.runTransaction(async transaction=>{
+      const snapshot=await transaction.get(SHARED_REF);
+      const list=Array.isArray(snapshot.data()?.deletedOrdersHistory)?snapshot.data().deletedOrdersHistory:[];
+      transaction.set(SHARED_REF,{deletedOrdersHistory:list.filter(item=>String(item?.orderId||item?.order?.id||'')!==id)},{merge:true});
+    });
+  }
   function orderDocId(order){
     return encodeURIComponent(String(order?.id||'')).replace(/%/g,'_').slice(0,900);
   }
   function applyOrdersFromCloud(list){
     applyingOrdersRemote=true;
     try{
-      orders=(Array.isArray(list)?list:[])
-        .filter(order=>!deletedOrderIds.has(String(order?.id||'')))
+      const cloudList=Array.isArray(list)?list:[];
+      orderTombstoneIds=new Set(cloudList.filter(order=>order?._deleted===true).map(order=>String(order?.id||'')).filter(Boolean));
+      orderTombstoneIds.forEach(id=>pendingDeletedOrderIds.delete(id));
+      refreshDeletedOrderIds();
+      orders=cloudList
+        .filter(order=>order?._deleted!==true&&!deletedOrderIds.has(String(order?.id||'')))
         .map((order,index)=>({order,index}))
         .sort((a,b)=>{
           const timeOf=item=>{
@@ -4744,6 +4833,7 @@ cursor:pointer;
         })
         .map(item=>item.order);
       lastLocalOrderIds=new Set(orders.map(o=>String(o.id)));
+      lastLocalOrdersById=new Map(orders.map(order=>[String(order.id),cleanOrderForCloud(order)]));
       originalSetItem('rx_orders',JSON.stringify(orders));
       if(typeof render==='function')render();
       if(typeof renderProcessingOrders==='function')renderProcessingOrders();
@@ -4787,23 +4877,40 @@ cursor:pointer;
       }
       for(const id of deletedIds){
         const docId=encodeURIComponent(String(id)).replace(/%/g,'_').slice(0,900);
-        batch.delete(ORDERS_COL.doc(docId));
+        const deletedOrder=lastLocalOrdersById.get(String(id))||null;
+        batch.set(ORDERS_COL.doc(docId),{
+          id:String(id),
+          _deleted:true,
+          deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
+          deletedAtMs:Date.now(),
+          deletedBy:auth.currentUser.uid
+        },{merge:false});
         batch.set(DELETED_ORDERS_COL.doc(docId),{
           orderId:String(id),
+          order:deletedOrder,
           deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
-          deletedBy:auth.currentUser.uid
+          deletedAtMs:Date.now(),
+          deletedBy:auth.currentUser.uid,
+          deletedByName:currentUser?.name||currentUser?.username||'Utilizator'
         },{merge:true});
         deletedOrderIds.add(String(id));
+        pendingDeletedOrderIds.add(String(id));
+        refreshDeletedOrderIds();
         operations+=2;
         if(operations>=398)flush();
       }
       flush();
       await Promise.all(commits);
+      for(const id of deletedIds){
+        const deletedOrder=lastLocalOrdersById.get(String(id));
+        if(deletedOrder){try{await saveSharedDeletedHistory(deletedOrder)}catch(error){console.warn('SPHERA shared deleted history fallback',error)}}
+      }
       await ORDERS_STATE_REF.set({
         initialized:true,
         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       },{merge:true});
       lastLocalOrderIds=currentIds;
+      lastLocalOrdersById=new Map(current.map(order=>[String(order.id),cleanOrderForCloud(order)]));
       ordersPendingSave=false;
       setCloudStatus('Cloud: sincronizat','ok');
     }catch(e){
@@ -4854,15 +4961,30 @@ cursor:pointer;
   function startDeletedOrdersSync(){
     if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();
     unsubscribeDeletedOrders=DELETED_ORDERS_COL.onSnapshot(snap=>{
-      deletedOrders=snap.docs.map(doc=>doc.data()||{}).filter(item=>item.order).map(item=>({
-        ...item,
-        orderId:String(item.orderId||item.order?.id||''),
-        deletedBy:item.deletedByName||item.deletedBy||'Utilizator'
-      }));
+      const localArchive=new Map((Array.isArray(deletedOrders)?deletedOrders:[]).map(item=>[
+        String(item.orderId||item.order?.id||''),item
+      ]));
+      snap.docs.forEach(doc=>{
+        const item=doc.data()||{};
+        const orderId=String(item.orderId||item.order?.id||'');
+        const localItem=localArchive.get(orderId)||{};
+        if(!item.order){
+          if(orderId)localArchive.delete(orderId);
+          return;
+        }
+        localArchive.set(orderId,{
+          ...localItem,
+          ...item,
+          orderId,
+          order:item.order||localItem.order||null,
+          deletedBy:item.deletedByName||item.deletedBy||localItem.deletedBy||'Utilizator'
+        });
+      });
+      deletedOrders=[...localArchive.values()].filter(item=>item?.order);
       originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
-      deletedOrderIds=new Set(
-        snap.docs.map(doc=>String(doc.data()?.orderId||'')).filter(Boolean)
-      );
+      cloudDeletedOrderIds=new Set(snap.docs.map(doc=>String(doc.data()?.orderId||'')).filter(Boolean));
+      cloudDeletedOrderIds.forEach(id=>pendingDeletedOrderIds.delete(id));
+      refreshDeletedOrderIds();
       const filtered=(Array.isArray(orders)?orders:[]).filter(
         order=>!deletedOrderIds.has(String(order?.id||''))
       );
@@ -4870,6 +4992,7 @@ cursor:pointer;
         applyingOrdersRemote=true;
         orders=filtered;
         lastLocalOrderIds=new Set(orders.map(order=>String(order.id)));
+        lastLocalOrdersById=new Map(orders.map(order=>[String(order.id),cleanOrderForCloud(order)]));
         originalSetItem('rx_orders',JSON.stringify(orders));
         if(typeof render==='function')render();
         if(typeof renderProcessingOrders==='function')renderProcessingOrders();
@@ -4892,6 +5015,8 @@ cursor:pointer;
     if(deletedOrder)archiveDeletedOrderLocally(deletedOrder);
     orders=previousOrders.filter(order=>String(order?.id)!==orderId);
     deletedOrderIds.add(orderId);
+    pendingDeletedOrderIds.add(orderId);
+    refreshDeletedOrderIds();
     lastLocalOrderIds.delete(orderId);
     applyingOrdersRemote=true;
     originalSetItem('rx_orders',JSON.stringify(orders));
@@ -4909,11 +5034,18 @@ cursor:pointer;
     const docId=encodeURIComponent(orderId).replace(/%/g,'_').slice(0,900);
     try{
       const batch=db.batch();
-      batch.delete(ORDERS_COL.doc(docId));
+      batch.set(ORDERS_COL.doc(docId),{
+        id:orderId,
+        _deleted:true,
+        deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        deletedAtMs:Date.now(),
+        deletedBy:auth.currentUser.uid
+      },{merge:false});
       batch.set(DELETED_ORDERS_COL.doc(docId),{
         orderId,
         order:deletedOrder?cleanOrderForCloud(deletedOrder):null,
         deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
+        deletedAtMs:Date.now(),
         deletedBy:auth.currentUser.uid,
         deletedByName:currentUser?.name||currentUser?.username||'Utilizator'
       },{merge:true});
@@ -4922,6 +5054,14 @@ cursor:pointer;
         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       },{merge:true});
       await batch.commit();
+      if(deletedOrder){
+        try{
+          await saveSharedDeletedHistory(deletedOrder,{
+            deletedBy:currentUser?.name||currentUser?.username||'Utilizator',
+            deletedByUid:auth.currentUser.uid
+          });
+        }catch(error){console.warn('SPHERA shared deleted history fallback',error)}
+      }
       setCloudStatus('Cloud: comanda a fost ștearsă definitiv','ok');
       return true;
     }catch(error){
@@ -4930,7 +5070,10 @@ cursor:pointer;
       deletedOrders=previousDeletedOrders;
       originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
       deletedOrderIds.delete(orderId);
+      pendingDeletedOrderIds.delete(orderId);
+      refreshDeletedOrderIds();
       lastLocalOrderIds=new Set(orders.map(order=>String(order.id)));
+      lastLocalOrdersById=new Map(orders.map(order=>[String(order.id),cleanOrderForCloud(order)]));
       applyingOrdersRemote=true;
       originalSetItem('rx_orders',JSON.stringify(orders));
       applyingOrdersRemote=false;
@@ -4964,10 +5107,17 @@ cursor:pointer;
         updatedAt:firebase.firestore.FieldValue.serverTimestamp()
       },{merge:true});
       await batch.commit();
+      try{await removeSharedDeletedHistory(id)}catch(error){console.warn('SPHERA shared deleted history cleanup',error)}
       deletedOrderIds.delete(id);
+      pendingDeletedOrderIds.delete(id);
+      cloudDeletedOrderIds.delete(id);
+      sharedDeletedOrderIds.delete(id);
+      orderTombstoneIds.delete(id);
+      refreshDeletedOrderIds();
       deletedOrders=deletedOrders.filter(item=>String(item.orderId||item.order?.id||'')!==id);
       if(!orders.some(order=>String(order.id)===id))orders.unshift(restoredOrder);
       lastLocalOrderIds.add(id);
+      lastLocalOrdersById.set(id,cleanOrderForCloud(restoredOrder));
       originalSetItem('rx_orders',JSON.stringify(orders));
       originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
       if(typeof render==='function')render();
@@ -4996,6 +5146,7 @@ cursor:pointer;
         historyClearedAt:firebase.firestore.FieldValue.serverTimestamp(),
         historyClearedBy:auth.currentUser.uid
       },{merge:true});
+      try{await removeSharedDeletedHistory(id)}catch(error){console.warn('SPHERA shared deleted history cleanup',error)}
       deletedOrders=deletedOrders.filter(item=>String(item.orderId||item.order?.id||'')!==id);
       originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
       if(typeof renderDeletedOrders==='function')renderDeletedOrders();
@@ -5034,6 +5185,7 @@ cursor:pointer;
       });
       flush();
       await Promise.all(commits);
+      try{await SHARED_REF.set({deletedOrdersHistory:[]},{merge:true})}catch(error){console.warn('SPHERA shared deleted history cleanup',error)}
       deletedOrders=[];
       originalSetItem('sphera_deleted_orders_history','[]');
       if(typeof renderDeletedOrders==='function')renderDeletedOrders();
@@ -5107,6 +5259,10 @@ cursor:pointer;
           role:normalizeRole(x.role||localUser?.role),
           center:x.center||x.centru||localUser?.center||'',
           warehouses:Array.isArray(x.warehouses)?x.warehouses:(Array.isArray(localUser?.warehouses)?localUser.warehouses:[]),
+          clientId:x.clientId||x.client_id||localUser?.clientId||'',
+          clientCode:String(x.clientCode||x.client_code||localUser?.clientCode||''),
+          clientName:x.clientName||x.client_name||localUser?.clientName||'',
+          mountCenter:x.mountCenter||x.mount_center||x.responsibleCenter||localUser?.mountCenter||'',
           operatorCode:String(x.operatorCode||x.code||localUser?.operatorCode||'00').padStart(2,'0'),
           active:x.active!==false,
           email:x.email||'',
@@ -5546,6 +5702,17 @@ cursor:pointer;
     const first=raw?capWords(raw.split(/\s+/)[0]):firstNameFromUsername(currentUser.username||'');
     const center=userCenterName()||'centrul tău';
     who.className='muted dashboard-identity';
+    if(String(currentUser.role||'').trim().toLowerCase()==='partner'){
+      const username=String(currentUser.username||'').trim().toLowerCase();
+      const account=(USERS||[]).find(user=>String(user.username||'').trim().toLowerCase()===username)||currentUser;
+      const client=(CLIENTS||[]).find(item=>String(item.code||'').trim()===String(account.clientCode||'').trim())
+        ||(CLIENTS||[]).find(item=>norm(item.name)===norm(account.clientName||''));
+      const opticName=client?.name||account.clientName||'Client neasociat';
+      who.innerHTML=`<div class="welcome-line">Bun venit, ${esc(first)}</div><div class="partner-optic-line">Optică: ${esc(opticName)}</div>`;
+      const badge=document.getElementById('accountBadge');
+      if(badge){badge.textContent=roleLabel(currentUser.role);badge.classList.remove('hide');}
+      return;
+    }
     const weatherLine=isAdmin()?'':`<div class="weather-line">Cum e vremea în ${esc(center)}?</div>`;
     who.innerHTML=`<div class="welcome-line">Bun venit, ${esc(first)}</div>${weatherLine}`;
     const badge=document.getElementById('accountBadge');
@@ -9087,7 +9254,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
 })();
 </script>
 <style id="sphera-v97-style">
-.admin-status-reset{display:inline-flex;align-items:center;gap:7px;margin-left:10px;border:1px solid #fdb022;background:#fffaeb;color:#b54708;border-radius:10px;padding:6px 9px;font-size:12px;font-weight:900;cursor:pointer;vertical-align:middle}.admin-status-reset:hover{background:#fef0c7}.admin-status-reset svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.admin-status-reset{width:46px!important;min-width:46px!important;height:46px!important;padding:0!important;margin:0!important;border-radius:999px!important;display:inline-flex!important;align-items:center!important;justify-content:center!important}.admin-status-reset svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .status-reset-card{max-width:460px!important}.status-reset-card select{margin-top:8px}
 </style>
 <script id="sphera-v97-script">
@@ -9102,12 +9269,13 @@ html>.sphera-edit-popup.modal.open>.wizard{
   const previousSaveEdit=window.saveOrderEdit;
   window.saveOrderEdit=function(id){const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order||isDeliveredOrder(order))return;return previousSaveEdit&&previousSaveEdit.apply(this,arguments)};
   window.openAdminStatusReset=function(id){
-    if(!isAdminAccount())return;const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order||!isDeliveredOrder(order))return;
-    document.querySelector('.status-reset-modal')?.remove();let steps;try{steps=orderWorkflowSteps(order).filter(step=>norm(step)!=='livrata')}catch(_){steps=['Lansată','Check-out','Recepție','La montaj','Facturată']}
+    if(!isAdminAccount())return;const order=(orders||[]).find(item=>String(item.id)===String(id));if(!order)return;
+    document.querySelector('.status-reset-modal')?.remove();let steps;try{const workflow=orderWorkflowSteps(order),current=Math.max(0,orderWorkflowIndex(order));steps=workflow.slice(0,Math.max(1,current)).filter(step=>norm(step)!=='livrata')}catch(_){steps=['Lansată']}
+    if(!steps.length)steps=['Lansată'];
     const modal=document.createElement('div');modal.className='modal open status-reset-modal';modal.style.zIndex='130';modal.innerHTML='<div class="wizard alert-card status-reset-card"><div class="alert-icon" style="background:#fffaeb;color:#b54708">↶</div><div class="alert-title">Resetează statusul</div><div class="alert-text">Alege etapa la care revine comanda '+esc(order.code||'')+'.</div><div class="field" style="text-align:left"><label>Etapă</label><select id="resetOrderStatus">'+steps.map(step=>'<option value="'+esc(step)+'" '+(step==='Lansată'?'selected':'')+'>'+esc(step)+'</option>').join('')+'</select></div><div class="alert-actions"><button class="btn cancel" type="button">Anulează</button><button class="btn ok" type="button">Resetează</button></div></div>';document.body.appendChild(modal);modal.querySelector('.cancel').onclick=()=>modal.remove();modal.querySelector('.ok').onclick=()=>{const target=modal.querySelector('#resetOrderStatus').value;order.workflowStatus=target;order.status='Lansată';delete order.deliveredAt;delete order.deliveredDate;delete order.deliveredTime;delete order.deliveredBy;if(typeof clearDeliveryEvent==='function')clearDeliveryEvent(order);save();render();modal.remove();document.querySelector('.order-details-modal')?.remove();setTimeout(()=>showOrderDetails(id),0)};setTimeout(()=>modal.querySelector('#resetOrderStatus')?.focus(),30)
   };
   function addAdminReset(orderId){
-    if(!isAdminAccount())return;const order=(orders||[]).find(item=>String(item.id)===String(orderId));if(!order||!isDeliveredOrder(order))return;const modal=[...document.querySelectorAll('.order-details-modal.open')].pop();if(!modal||modal.querySelector('.admin-status-reset'))return;const labels=[...modal.querySelectorAll('.order-detail-label')],label=labels.find(item=>norm(item.textContent)==='status');const value=label?.nextElementSibling;if(!value)return;const button=document.createElement('button');button.type='button';button.className='admin-status-reset';button.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v6h6"/></svg><span>Resetează statusul</span>';button.onclick=()=>openAdminStatusReset(orderId);value.appendChild(button)
+    if(!isAdminAccount())return;const order=(orders||[]).find(item=>String(item.id)===String(orderId));if(!order)return;const modal=[...document.querySelectorAll('.order-details-modal.open')].pop();if(!modal||modal.querySelector('.admin-status-reset'))return;const actions=modal.querySelector('.order-details-actions');if(!actions)return;const button=document.createElement('button');button.type='button';button.className='icon-btn primary admin-status-reset';button.title='Resetează statusul';button.setAttribute('aria-label','Resetează statusul');button.innerHTML='<svg viewBox="0 0 24 24"><path d="M9 7l-5 5 5 5"/><path d="M4 12h9a7 7 0 0 1 7 7"/></svg>';button.onclick=()=>openAdminStatusReset(orderId);actions.prepend(button)
   }
   const previousDetails=window.showOrderDetails;
   window.showOrderDetails=function(id){const result=previousDetails&&previousDetails.apply(this,arguments);setTimeout(()=>addAdminReset(id),0);return result};
@@ -10132,6 +10300,392 @@ html>.sphera-edit-popup.modal.open>.wizard{
       loaderActive=false;
     }
   };
+})();
+</script>
+<style id="sphera-partner-role-style">
+body.partner-account #menuClients,
+body.partner-account #menuNomenclators,
+body.partner-account #menuSettings,
+body.partner-account #newClientBtn,
+body.partner-account #recentClientsBox,
+body.partner-account #dashboardClientsCard,
+body.partner-account #deletedOrdersCard{display:none!important}
+body.partner-account #recentClientsBox{display:none!important}
+.partner-optic-line{margin-top:7px;color:#344054;font-size:15px;font-weight:700}
+.partner-fixed-mount{padding:14px 16px;border:1px solid #b8ccff;border-radius:14px;background:#f8fbff;color:#101828;font-weight:800;box-shadow:0 8px 22px rgba(36,87,255,.08)}
+.partner-client-field{grid-column:1/-1}
+.partner-client-summary{margin-top:8px;padding:10px 12px;border:1px solid #c7d7ff;border-radius:12px;background:#f8fbff;color:#344054;font-size:13px;font-weight:700}
+</style>
+<script id="sphera-partner-role-script">
+(function(){
+  'use strict';
+  const PARTNER_ROLE='partner';
+  const roleKey=value=>String(value||'').trim().toLowerCase();
+  const isPartner=user=>roleKey((user||currentUser)?.role)===PARTNER_ROLE;
+  const clean=value=>String(value||'').trim();
+  const partnerAccount=()=>{
+    const username=clean(currentUser?.username).toLowerCase();
+    return (USERS||[]).find(user=>clean(user.username).toLowerCase()===username)||currentUser||{};
+  };
+  const clientByCode=code=>(CLIENTS||[]).find(client=>clean(client.code)===clean(code));
+  const partnerClient=user=>{
+    const account=user||partnerAccount();
+    return clientByCode(account.clientCode)||
+      (CLIENTS||[]).find(client=>clean(client.id)===clean(account.clientId))||
+      (CLIENTS||[]).find(client=>norm(client.name)===norm(account.clientName));
+  };
+  const partnerMountCenter=user=>{
+    const account=user||partnerAccount();
+    const configured=clean(account.mountCenter||account.responsibleCenter||account.processingCenter||account.warehouse);
+    if(configured)return configured;
+    const accountCenter=clean(account.center||currentUser?.center);
+    return norm(accountCenter)==='extern'?'Iasi':accountCenter;
+  };
+  const orderResponsibleCenter=order=>{
+    const configured=clean(order?.mountCenter||order?.responsibleMountCenter||order?.responsibleCenter);
+    if(configured&&norm(configured)!=='extern')return configured;
+    const mounted=clean(order?.mount);
+    if(mounted&&norm(mounted)!=='extern')return mounted;
+    const center=clean(order?.center||order?.createdByCenter);
+    return norm(center)==='extern'?'Iasi':center;
+  };
+  const creatorMatches=(order,user=currentUser)=>{
+    if(!order||!user)return false;
+    const username=clean(user.username).toLowerCase();
+    const uid=clean(user.uid||user.id);
+    return !!(
+      uid&&[order.createdById,order.createdByUid,order.creatorUid,order.userId].some(value=>clean(value)===uid)||
+      username&&[order.createdByUsername,order.creatorUsername,order.createdByAccount].some(value=>clean(value).toLowerCase()===username)
+    );
+  };
+  const permissions=()=>({
+    canCreateOrder:!!currentUser,
+    canChooseClient:false,
+    canViewAllClients:false,
+    canEditOwnOrder:false,
+    canDeleteOwnOrder:false,
+    canChangeStatus:false,
+    canMarkDelivered:true,
+    canManageCatalogs:false,
+    canManageUsers:false
+  });
+  window.partnerPermissions=permissions;
+  window.isPartner=isPartner;
+
+  const baseRoleLabel=window.roleLabel||roleLabel;
+  window.roleLabel=function(role){return roleKey(role)===PARTNER_ROLE?'Partener':baseRoleLabel(role)};
+
+  const baseVisibleOrders=window.visibleOrders;
+  window.visibleOrders=function(){
+    if(!isPartner())return baseVisibleOrders.apply(this,arguments);
+    return (orders||[]).filter(order=>creatorMatches(order));
+  };
+  const baseProcessingVisibleOrders=window.processingVisibleOrders;
+  window.processingVisibleOrders=function(){
+    if(isPartner())return visibleOrders();
+    const base=baseProcessingVisibleOrders?baseProcessingVisibleOrders.apply(this,arguments):visibleOrders();
+    if(roleKey(currentUser?.role)!=='operator')return base;
+    const ids=new Set(base.map(order=>String(order.id)));
+    const partnerOrders=(orders||[]).filter(order=>partnerCreatedOrder(order)&&norm(orderResponsibleCenter(order))===norm(currentUser?.center)&&!ids.has(String(order.id)));
+    return base.concat(partnerOrders);
+  };
+  const baseCanCreateOrders=window.canCreateOrders;
+  window.canCreateOrders=function(){return isPartner()?!!permissions().canCreateOrder:baseCanCreateOrders.apply(this,arguments)};
+  const baseCanManageClients=window.canManageClients;
+  window.canManageClients=function(){return isPartner()?false:baseCanManageClients.apply(this,arguments)};
+  const baseCanEditOrder=window.canEditOrder;
+  window.canEditOrder=function(order){return isPartner()?false:baseCanEditOrder.apply(this,arguments)};
+  const baseCanDeleteOrder=window.canDeleteOrder;
+  window.canDeleteOrder=function(order){return isPartner()?false:baseCanDeleteOrder.apply(this,arguments)};
+  const baseCanSetWorkflowStep=window.canSetWorkflowStep;
+  const partnerCreatedOrder=order=>roleKey(order?.createdByRole)==='partner'||roleKey(order?.launchedByType)==='partener'||!!order?.partnerClientCode;
+  const baseProcessingCenterLabel=window.processingCenterLabel;
+  window.processingCenterLabel=function(order){
+    if(!partnerCreatedOrder(order))return baseProcessingCenterLabel.apply(this,arguments);
+    let code=String(order?.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(!code||code==='00'){
+      const username=clean(order?.createdByUsername||order?.createdByAccount).toLowerCase();
+      const creator=(USERS||[]).find(user=>username&&clean(user.username).toLowerCase()===username)
+        ||(USERS||[]).find(user=>norm(user.name||'')===norm(order?.createdByName||order?.operator||''));
+      code=String(creator?.operatorCode||creator?.code||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    }
+    return [code&&code!=='00'?code:'','Extern'].filter(Boolean).join(' · ')
+  };
+  const workflowFor=order=>typeof orderWorkflowSteps==='function'?orderWorkflowSteps(order):WORKFLOW_STEPS;
+  const workflowPosition=order=>typeof orderWorkflowIndex==='function'?orderWorkflowIndex(order):workflowIndex(order);
+  const isPenultimateStatus=order=>{
+    const workflow=workflowFor(order),current=workflowPosition(order);
+    return current===workflow.length-2;
+  };
+  window.isPartnerTransitOrder=function(order){return isPartner()?isPenultimateStatus(order):workflowIndex(order)===WORKFLOW_STEPS.indexOf('Check-out')};
+  window.canSetWorkflowStep=function(status,order){
+    if(isPartner()){
+      if(!creatorMatches(order))return false;
+      const workflow=workflowFor(order),current=workflowPosition(order);
+      return status===workflow[workflow.length-1]&&current===workflow.length-2;
+    }
+    if(partnerCreatedOrder(order)&&['operator','iasi'].includes(roleKey(currentUser?.role))){
+      const responsible=orderResponsibleCenter(order);
+      const master=roleKey(currentUser?.role)==='iasi';
+      if(!master&&norm(currentUser?.center)!==norm(responsible))return false;
+      const workflow=typeof orderWorkflowSteps==='function'?orderWorkflowSteps(order):WORKFLOW_STEPS;
+      const current=typeof orderWorkflowIndex==='function'?orderWorkflowIndex(order):workflowIndex(order);
+      return workflow.indexOf(status)===current+1;
+    }
+    return baseCanSetWorkflowStep.apply(this,arguments)
+  };
+  const baseSetWorkflowStatus=window.setWorkflowStatus;
+  window.setWorkflowStatus=function(id,status){
+    if(isPartner()){
+      const order=(orders||[]).find(item=>String(item.id)===String(id));
+      if(!canSetWorkflowStep(status,order))return false;
+    }
+    return baseSetWorkflowStatus&&baseSetWorkflowStatus.apply(this,arguments)
+  };
+  const baseToggleOrderStatus=window.toggleOrderStatus;
+  window.toggleOrderStatus=function(){if(isPartner())return false;return baseToggleOrderStatus&&baseToggleOrderStatus.apply(this,arguments)};
+
+  function enforcePartnerUI(){
+    const partner=isPartner();
+    document.body.classList.toggle('partner-account',partner);
+    ['menuClients','menuNomenclators','menuSettings'].forEach(id=>{
+      const element=document.getElementById(id);
+      if(element)element.style.setProperty('display',partner?'none':'','important');
+    });
+    const statusMenu=document.getElementById('menuProcessing');
+    if(statusMenu)statusMenu.style.setProperty('display',partner?'flex':'','important');
+    const badge=document.getElementById('accountBadge');
+    if(partner&&badge){badge.textContent='Partener';badge.classList.remove('hide')}
+    const recent=document.getElementById('dashboardClientsCard');
+    if(recent)recent.style.setProperty('display',partner?'none':'','important');
+    const who=document.getElementById('who');
+    if(partner&&who){
+      who.querySelector('.weather-line')?.remove();
+      let optic=who.querySelector('.partner-optic-line');
+      if(!optic){optic=document.createElement('div');optic.className='partner-optic-line';who.appendChild(optic)}
+      optic.textContent='Optică: '+(partnerClient()?.name||partnerAccount().clientName||'Client neasociat');
+    }else who?.querySelector('.partner-optic-line')?.remove();
+    if(partner){
+      document.querySelectorAll('#dashboard button[title*="Edite"],#dashboard button[title^="Șterge comanda"],.order-details-modal button[title*="Edite"],.order-details-modal button[title^="Șterge comanda"]').forEach(button=>button.remove());
+    }
+  }
+  const baseApplyPermissions=window.applyPermissions;
+  window.applyPermissions=function(){const result=baseApplyPermissions&&baseApplyPermissions.apply(this,arguments);enforcePartnerUI();return result};
+  const baseRender=window.render;
+  window.render=function(){
+    const result=baseRender&&baseRender.apply(this,arguments);enforcePartnerUI();
+    if(isPartner()){
+      const transit=document.getElementById('kTransit');
+      if(transit)transit.textContent=String(visibleOrders().filter(isPenultimateStatus).length);
+    }
+    return result
+  };
+  const baseShowOrdersList=window.showOrdersList;
+  window.showOrdersList=function(mode){return baseShowOrdersList.apply(this,arguments)};
+  const baseShowPage=window.showPage;
+  window.showPage=function(id,button){
+    if(isPartner()&&!['dashboard','processingPage'].includes(id))return baseShowPage.call(this,'dashboard',document.getElementById('menuDashboard'));
+    return baseShowPage.apply(this,arguments);
+  };
+
+  function ensurePartnerUserFields(){
+    const role=document.getElementById('newUserRole');
+    if(role&&!role.querySelector('option[value="partner"]'))role.insertAdjacentHTML('beforeend','<option value="partner">Partener</option>');
+    const centerField=document.getElementById('newUserCenterField');
+    if(centerField&&!document.getElementById('newUserPartnerClientField')){
+      centerField.insertAdjacentHTML('beforebegin','<div class="field partner-client-field hide" id="newUserPartnerClientField"><label>Client asociat</label><select id="newUserPartnerClient"></select><div class="partner-client-summary" id="newUserPartnerClientSummary"></div></div>');
+    }
+    const select=document.getElementById('newUserPartnerClient');
+    if(select&&!select.options.length){
+      const clients=[...(CLIENTS||[])].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'ro'));
+      select.innerHTML='<option value="">Selectează clientul</option>'+clients.map(client=>'<option value="'+esc(client.code||'')+'">'+esc(client.name||'')+' · '+esc(client.city||'')+' · '+esc(client.code||'')+'</option>').join('');
+      select.addEventListener('change',syncPartnerClientSummary);
+    }
+  }
+  function syncPartnerClientSummary(){
+    const code=document.getElementById('newUserPartnerClient')?.value;
+    const client=clientByCode(code),summary=document.getElementById('newUserPartnerClientSummary');
+    if(summary)summary.textContent=client?'Cod client: '+client.code+' · Localitate: '+(client.city||'Nespecificată'):'Selectează clientul din baza existentă.';
+  }
+  const baseSyncUserCenterField=window.syncUserCenterField;
+  window.syncUserCenterField=function(){
+    ensurePartnerUserFields();
+    const partner=document.getElementById('newUserRole')?.value===PARTNER_ROLE;
+    const result=baseSyncUserCenterField&&baseSyncUserCenterField.apply(this,arguments);
+    document.getElementById('newUserPartnerClientField')?.classList.toggle('hide',!partner);
+    const center=document.getElementById('newUserCenter');
+    if(partner&&center)center.disabled=false;
+    syncPartnerClientSummary();
+    return result;
+  };
+  const baseOpenUserDialog=window.openUserDialog;
+  window.openUserDialog=function(){const result=baseOpenUserDialog&&baseOpenUserDialog.apply(this,arguments);ensurePartnerUserFields();syncUserCenterField();return result};
+
+  const baseAddUserAccount=window.addUserAccount;
+  window.addUserAccount=function(){
+    if(document.getElementById('newUserRole')?.value!==PARTNER_ROLE)return baseAddUserAccount.apply(this,arguments);
+    if(!guardAdmin())return;
+    const name=capWords(cleanVal('newUserFullName'));
+    const parts=name.split(/\s+/).filter(Boolean);
+    const username=parts.length>=2?slug(parts[0])+'.'+slug(parts[1]):slug(cleanVal('newUsername'));
+    const pass=cleanVal('newUserPassword')||generateUserPassword(username);
+    const center=cleanVal('newUserCenter');
+    const client=clientByCode(document.getElementById('newUserPartnerClient')?.value);
+    if(!name||parts.length<2||!username||!center||!client){showAppConfirm({title:'Date incomplete',text:'Completează numele, clientul asociat și centrul responsabil.',confirmText:'OK'});return}
+    if(USERS.some(user=>slug(user.username)===username)){showAppConfirm({title:'Utilizator existent',text:'Există deja contul '+username+'.',confirmText:'OK'});return}
+    const mountCenter=norm(center)==='extern'?'Iasi':center;
+    const responsibleOperator=(CENTERS||[]).find(item=>norm(item.center)===norm(mountCenter));
+    USERS.unshift({name,username,pass,role:PARTNER_ROLE,center,mountCenter,clientId:client.id||client.code,clientCode:client.code,clientName:client.name,operatorCode:String(responsibleOperator?.operatorCode||'00').padStart(2,'0').slice(-2),createdAt:Date.now()});
+    saveUsers();renderUsersAdmin();closeUserDialog();
+    showAppConfirm({title:'Utilizator creat',text:'Utilizator: '+username+'\nParolă: '+pass+'\nClient: '+client.name+' · '+client.code,confirmText:'OK'});
+  };
+
+  const baseRenderUsersAdmin=window.renderUsersAdmin;
+  window.renderUsersAdmin=function(){
+    const result=baseRenderUsersAdmin&&baseRenderUsersAdmin.apply(this,arguments);
+    ensurePartnerUserFields();
+    const rows=document.querySelectorAll('#usersAdminList .user-row');
+    rows.forEach(row=>{
+      const name=row.querySelector('b')?.textContent||'';
+      const account=(USERS||[]).find(user=>norm(user.name)===norm(name));
+      const roleSelect=[...row.querySelectorAll('select')].find(select=>select.querySelector('option[value="operator"]'));
+      if(roleSelect&&!roleSelect.querySelector('option[value="partner"]'))roleSelect.insertAdjacentHTML('beforeend','<option value="partner">Partener</option>');
+      if(roleSelect&&account)roleSelect.value=account.role;
+      if(account?.role===PARTNER_ROLE&&!row.querySelector('.partner-client-summary')){
+        const client=partnerClient(account);
+        const info=document.createElement('div');info.className='partner-client-summary';info.textContent=client?'Client: '+client.name+' · '+client.code:'Client neasociat';row.appendChild(info);
+      }
+    });
+    return result;
+  };
+
+  const baseOpenWizard=window.openWizard;
+  window.openWizard=function(){
+    if(!isPartner())return baseOpenWizard.apply(this,arguments);
+    const account=partnerAccount(),client=partnerClient(account);
+    if(!client){showAppConfirm({title:'Client neasociat',text:'Administratorul trebuie să asocieze contul cu un client existent.',confirmText:'OK'});return}
+    baseOpenWizard.apply(this,arguments);
+    draft.client={...client};
+    draft.clientQuery=client.name;
+    draft.center=partnerMountCenter(account);
+    draft.mount=draft.center;
+    draft.deliveryDestination='client';
+    draft.deliveryCenter='';
+    draft.operator=currentUser.name||currentUser.username||'';
+    step=1;
+    drawStep();
+  };
+  const basePrevStep=window.prevStep;
+  window.prevStep=function(){
+    if(isPartner()&&step<=1)return;
+    if(isPartner()&&step===6){step=4;drawStep();return}
+    return basePrevStep.apply(this,arguments)
+  };
+  const baseNextStep=window.nextStep;
+  window.nextStep=function(){
+    if(isPartner()&&step===4){
+      const account=partnerAccount();
+      draft.center=partnerMountCenter(account);
+      if(draft.hasMount===true)draft.mount=draft.center;
+      draft.deliveryDestination='client';draft.deliveryCenter='';
+      if(!validateStep(false))return;
+      step=6;drawStep();return
+    }
+    return baseNextStep.apply(this,arguments)
+  };
+  const baseDrawStep=window.drawStep;
+  window.drawStep=function(){
+    if(isPartner()){
+      const account=partnerAccount();
+      draft.center=partnerMountCenter(account);
+      draft.deliveryDestination='client';draft.deliveryCenter='';
+      if(step===4&&draft.hasMount===true)draft.mount=draft.center;
+    }
+    const result=baseDrawStep.apply(this,arguments);
+    if(isPartner()){
+      const visibleSteps={1:1,2:2,3:3,4:4,6:5,7:6};
+      const visible=visibleSteps[step]||1,total=6;
+      if(window.stepNo)stepNo.textContent='Pas '+visible+' din '+total;
+      if(window.bar)bar.style.width=(visible/total*100)+'%';
+      if(step===4&&draft.hasMount===true){
+        const responsible=partnerMountCenter(partnerAccount());
+        draft.mount=responsible;
+        const input=document.getElementById('mountInput');
+        if(input){
+          const wrap=input.closest('.mount-center-wrap');
+          const label=wrap?.querySelector('label');if(label)label.textContent='Centru montaj';
+          const fixed=document.createElement('div');fixed.id='mountInput';fixed.className='partner-fixed-mount';fixed.textContent=responsible;
+          input.replaceWith(fixed)
+        }
+      }
+    }
+    return result
+  };
+
+  const baseCreateOrder=window.createOrder;
+  window.createOrder=async function(){
+    if(isPartner()){
+      const account=partnerAccount(),client=partnerClient(account);
+      if(!client)return;
+      draft.client={...client};draft.center=partnerMountCenter(account);draft.operator=currentUser.name||currentUser.username||'';
+      draft.deliveryDestination='client';draft.deliveryCenter='';
+      if(draft.hasMount===true)draft.mount=draft.center;
+    }
+    const before=new Set((orders||[]).map(order=>String(order.id)));
+    const result=await baseCreateOrder.apply(this,arguments);
+    const created=(orders||[]).find(order=>!before.has(String(order.id)));
+    if(created&&isPartner()){
+      const account=partnerAccount(),client=partnerClient(account);
+      Object.assign(created,{
+        client:{...client},center:partnerMountCenter(account)||created.center,
+        createdById:currentUser.uid||currentUser.id||'',createdByUid:currentUser.uid||'',
+        createdByUsername:currentUser.username||'',createdByAccount:currentUser.username||'',
+        createdByName:currentUser.name||currentUser.username||'',createdByRole:PARTNER_ROLE,
+        createdByCenter:account.center||currentUser.center||'',launchedByType:'Partener',
+        responsibleCenter:partnerMountCenter(account),responsibleMountCenter:partnerMountCenter(account),mountCenter:partnerMountCenter(account),partnerClientCode:client?.code||''
+      });
+      save();render();
+    }
+    return result;
+  };
+
+  const baseDeleteOrder=window.deleteOrder;
+  window.deleteOrder=function(id){
+    if(isPartner()){
+      const order=(orders||[]).find(item=>String(item.id)===String(id));
+      if(!order||!window.canDeleteOrder(order))return;
+    }
+    return baseDeleteOrder&&baseDeleteOrder.apply(this,arguments);
+  };
+
+  const baseCheckpoint=window.SPHERA_applyCheckpoint;
+  window.SPHERA_applyCheckpoint=function(event,orderId,status){
+    const order=(orders||[]).find(item=>String(item.id)===String(orderId));
+    if(partnerCreatedOrder(order)&&canSetWorkflowStep(status,order)){
+      event?.preventDefault?.();event?.stopPropagation?.();event?.stopImmediatePropagation?.();
+      setWorkflowStatus(orderId,status);return false
+    }
+    return baseCheckpoint&&baseCheckpoint.apply(this,arguments)
+  };
+  const baseStatusRender=window.SPHERA_renderStatusOrders;
+  window.SPHERA_renderStatusOrders=function(){
+    const result=baseStatusRender&&baseStatusRender.apply(this,arguments);
+    document.querySelectorAll('[data-checkpoint-order][data-checkpoint-status]').forEach(button=>{
+      const order=(orders||[]).find(item=>String(item.id)===String(button.dataset.checkpointOrder));
+      if(partnerCreatedOrder(order)&&canSetWorkflowStep(button.dataset.checkpointStatus,order)){
+        button.disabled=false;button.title='Setează '+button.dataset.checkpointStatus;
+        const message=button.closest('.workflow-order')?.querySelector('.workflow-readonly');
+        if(message)message.textContent='Poți modifica următoarea etapă disponibilă.'
+      }
+    });
+    return result
+  };
+  window.renderProcessingOrders=function(){return window.SPHERA_renderStatusOrders()};
+
+  const baseDashboardExport=window.dashboardOrdersForExport;
+  if(typeof baseDashboardExport==='function')window.dashboardOrdersForExport=function(){const list=baseDashboardExport.apply(this,arguments);return isPartner()?list.filter(order=>creatorMatches(order)):list};
+  ensurePartnerUserFields();
+  enforcePartnerUI();
 })();
 </script>
 </body>
