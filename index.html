@@ -8967,7 +8967,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
       ['Nume pacient',order.patient||'']
     ];
     const secondGroup=[
-      ['Operator',order.operator||order.createdByName||''],
+      ['Operator',order.createdByName||order.operator||''],
       ['Centru',order.center||''],
       ['Montaj',order.hasMount===false?'Fără montaj':(order.mount||'Fără montaj')],
       ['Livrare',order.deliveryDestination==='client'?(order.client?.name||'Client'):(order.deliveryCenter||order.center||'')]
