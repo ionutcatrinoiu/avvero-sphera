@@ -10424,22 +10424,23 @@ body.partner-account #recentClientsBox{display:none!important}
       const workflow=workflowFor(order),current=workflowPosition(order);
       return status===workflow[workflow.length-1]&&current===workflow.length-2;
     }
-    if(partnerCreatedOrder(order)&&['operator','iasi'].includes(roleKey(currentUser?.role))){
-      const responsible=orderResponsibleCenter(order);
-      const master=roleKey(currentUser?.role)==='iasi';
-      if(!master&&norm(currentUser?.center)!==norm(responsible))return false;
+    if(partnerCreatedOrder(order)){
       const workflow=typeof orderWorkflowSteps==='function'?orderWorkflowSteps(order):WORKFLOW_STEPS;
       const current=typeof orderWorkflowIndex==='function'?orderWorkflowIndex(order):workflowIndex(order);
-      return workflow.indexOf(status)===current+1;
+      const target=workflow.indexOf(status);
+      const finalStep=workflow.length-1;
+      if(target===finalStep)return false;
+      if(!['operator','iasi'].includes(roleKey(currentUser?.role)))return baseCanSetWorkflowStep.apply(this,arguments);
+      const responsible=orderResponsibleCenter(order);
+      if(norm(currentUser?.center)!==norm(responsible))return false;
+      return target===current+1&&target<finalStep;
     }
     return baseCanSetWorkflowStep.apply(this,arguments)
   };
   const baseSetWorkflowStatus=window.setWorkflowStatus;
   window.setWorkflowStatus=function(id,status){
-    if(isPartner()){
-      const order=(orders||[]).find(item=>String(item.id)===String(id));
-      if(!canSetWorkflowStep(status,order))return false;
-    }
+    const order=(orders||[]).find(item=>String(item.id)===String(id));
+    if(partnerCreatedOrder(order)&&!window.canSetWorkflowStep(status,order))return false;
     return baseSetWorkflowStatus&&baseSetWorkflowStatus.apply(this,arguments)
   };
   const baseToggleOrderStatus=window.toggleOrderStatus;
@@ -10661,9 +10662,10 @@ body.partner-account #recentClientsBox{display:none!important}
   const baseCheckpoint=window.SPHERA_applyCheckpoint;
   window.SPHERA_applyCheckpoint=function(event,orderId,status){
     const order=(orders||[]).find(item=>String(item.id)===String(orderId));
-    if(partnerCreatedOrder(order)&&canSetWorkflowStep(status,order)){
+    if(partnerCreatedOrder(order)){
       event?.preventDefault?.();event?.stopPropagation?.();event?.stopImmediatePropagation?.();
-      setWorkflowStatus(orderId,status);return false
+      if(window.canSetWorkflowStep(status,order))window.setWorkflowStatus(orderId,status);
+      return false
     }
     return baseCheckpoint&&baseCheckpoint.apply(this,arguments)
   };
@@ -10672,10 +10674,13 @@ body.partner-account #recentClientsBox{display:none!important}
     const result=baseStatusRender&&baseStatusRender.apply(this,arguments);
     document.querySelectorAll('[data-checkpoint-order][data-checkpoint-status]').forEach(button=>{
       const order=(orders||[]).find(item=>String(item.id)===String(button.dataset.checkpointOrder));
-      if(partnerCreatedOrder(order)&&canSetWorkflowStep(button.dataset.checkpointStatus,order)){
-        button.disabled=false;button.title='Setează '+button.dataset.checkpointStatus;
+      if(partnerCreatedOrder(order)){
+        const status=button.dataset.checkpointStatus;
+        const allowed=window.canSetWorkflowStep(status,order);
+        button.disabled=!allowed;
+        button.title=allowed?'Setează '+status:(status==='Livrată'?'Livrarea poate fi confirmată doar de partener.':'Status indisponibil.');
         const message=button.closest('.workflow-order')?.querySelector('.workflow-readonly');
-        if(message)message.textContent='Poți modifica următoarea etapă disponibilă.'
+        if(message)message.textContent=allowed?'Poți modifica următoarea etapă disponibilă.':'Livrarea poate fi confirmată doar de partener.'
       }
     });
     return result
