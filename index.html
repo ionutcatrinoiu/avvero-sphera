@@ -7667,7 +7667,16 @@ Modification history
   function canEditOrder(o){
     if(!o||currentIsViewer())return false;
     if(currentIsAdmin())return true;
-    return isOwnOrder(o)&&orderIsLaunched(o);
+    if(!orderIsLaunched(o)||!currentUser)return false;
+    const orderIds=[o.createdById,o.createdByUid,o.creatorUid,o.userId].filter(Boolean).map(v=>String(v).trim());
+    const userIds=[currentUser.uid,currentUser.id].filter(Boolean).map(v=>String(v).trim());
+    if(orderIds.length&&userIds.length&&orderIds.some(id=>userIds.includes(id)))return true;
+    const orderUsernames=[o.createdByUsername,o.creatorUsername].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+    const userUsernames=[currentUser.username].filter(Boolean).map(v=>String(v).trim().toLowerCase());
+    if(orderUsernames.length&&userUsernames.length&&orderUsernames.some(name=>userUsernames.includes(name)))return true;
+    const orderNames=[o.createdByName,o.operator].filter(Boolean).map(v=>norm(v));
+    const userNames=[currentUser.name,currentUser.displayName].filter(Boolean).map(v=>norm(v));
+    return orderNames.length>0&&userNames.length>0&&orderNames.some(name=>userNames.includes(name));
   }
   function canDeleteOrder(o){
     if(!o||currentIsViewer())return false;
@@ -8942,6 +8951,20 @@ html>.sphera-edit-popup.modal.open>.wizard{
     return 'Ora nu este disponibilă';
   }
   function findDetailOrder(id){let order;try{order=(orders||[]).find(x=>String(x.id)===String(id))}catch(_){}return order}
+  function detailOperatorText(order){
+    const name=String(order?.createdByName||order?.operator||'').trim();
+    let code=String(order?.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    if(!code||code==='00'){
+      const user=(USERS||[]).find(item=>
+        (order?.createdById&&String(item?.uid||item?.id||'')===String(order.createdById))||
+        (order?.createdByUsername&&String(item?.username||'').trim().toLowerCase()===String(order.createdByUsername).trim().toLowerCase())||
+        (name&&norm(item?.name||'')===norm(name))
+      );
+      const centerOperator=(CENTERS||[]).find(item=>name&&norm(item?.operator||'')===norm(name));
+      code=String(user?.operatorCode||user?.code||centerOperator?.operatorCode||'').replace(/\D/g,'').padStart(2,'0').slice(-2);
+    }
+    return (code&&code!=='00'?code+' ':'')+name;
+  }
   function isAdministratorHistory(entry){
     const role=String(entry?.role||'').trim().toLowerCase();
     if(role==='admin'||role==='administrator')return true;
@@ -8967,7 +8990,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
       ['Nume pacient',order.patient||'']
     ];
     const secondGroup=[
-      ['Operator',order.createdByName||order.operator||''],
+      ['Operator',detailOperatorText(order)],
       ['Centru',order.center||''],
       ['Montaj',order.hasMount===false?'Fără montaj':(order.mount||'Fără montaj')],
       ['Livrare',order.deliveryDestination==='client'?(order.client?.name||'Client'):(order.deliveryCenter||order.center||'')]
