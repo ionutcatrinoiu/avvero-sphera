@@ -4777,6 +4777,11 @@ cursor:pointer;
   function cleanOrderForCloud(order){
     const clean=JSON.parse(JSON.stringify(order||{}));
     if(!clean.id)clean.id='ord_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
+    const statusKey=norm(clean.workflowStatus||clean.status||'');
+    if(statusKey&&statusKey!=='lansata'&&!clean.workflowUpdatedAt){
+      const fallback=Number(clean.lastModifiedTimestamp||clean.createdTimestamp||0);
+      clean.workflowUpdatedAt=fallback?new Date(fallback).toISOString():new Date().toISOString();
+    }
     return clean;
   }
   function sharedDeletedHistoryEntry(order,details={}){
@@ -4812,16 +4817,54 @@ cursor:pointer;
   function orderDocId(order){
     return encodeURIComponent(String(order?.id||'')).replace(/%/g,'_').slice(0,900);
   }
+  function workflowStamp(order){
+    if(!order)return 0;
+    const numeric=Number(order.workflowUpdatedAtMs||order.statusUpdatedAtMs||order.lastModifiedTimestamp||0);
+    if(Number.isFinite(numeric)&&numeric>0)return numeric;
+    for(const key of ['workflowUpdatedAt','statusUpdatedAt','lastModifiedAt','updatedAt']){
+      const value=order[key];
+      if(value&&typeof value.toDate==='function')return value.toDate().getTime();
+      const parsed=Date.parse(value||'');
+      if(Number.isFinite(parsed))return parsed;
+    }
+    return 0;
+  }
+  function workflowRank(order){
+    const value=norm(order?.workflowStatus||(order?.status||''));
+    const dynamic=(typeof orderWorkflowSteps==='function'?orderWorkflowSteps(order):[]).map(norm);
+    let index=dynamic.indexOf(value);
+    if(index>=0)return index;
+    return ['lansata','check-out','receptie','la montaj','facturata','livrata'].indexOf(value);
+  }
+  function mergeWorkflowState(local,remote){
+    if(!local||!remote)return remote;
+    const localKey=norm(local.workflowStatus||local.status||'');
+    const remoteKey=norm(remote.workflowStatus||remote.status||'');
+    if(!localKey||localKey===remoteKey)return remote;
+    const localTime=workflowStamp(local);
+    const remoteTime=workflowStamp(remote);
+    const keepLocal=(localTime&&remoteTime&&localTime>remoteTime)||
+      (localTime&&!remoteTime)||
+      (!localTime&&!remoteTime&&workflowRank(local)>workflowRank(remote));
+    if(!keepLocal)return remote;
+    const merged={...remote};
+    ['workflowStatus','status','workflowUpdatedAt','workflowUpdatedAtMs','workflowUpdatedBy','deliveredAt','deliveredDate','deliveredTime','deliveredBy'].forEach(key=>{
+      if(Object.prototype.hasOwnProperty.call(local,key))merged[key]=local[key];
+      else delete merged[key];
+    });
+    return merged;
+  }
   function applyOrdersFromCloud(list){
     applyingOrdersRemote=true;
     try{
       const cloudList=Array.isArray(list)?list:[];
+      const localOrdersById=new Map((Array.isArray(orders)?orders:[]).map(order=>[String(order?.id||''),order]));
       orderTombstoneIds=new Set(cloudList.filter(order=>order?._deleted===true).map(order=>String(order?.id||'')).filter(Boolean));
       orderTombstoneIds.forEach(id=>pendingDeletedOrderIds.delete(id));
       refreshDeletedOrderIds();
       orders=cloudList
         .filter(order=>order?._deleted!==true&&!deletedOrderIds.has(String(order?.id||'')))
-        .map((order,index)=>({order,index}))
+        .map((order,index)=>({order:mergeWorkflowState(localOrdersById.get(String(order?.id||'')),order),index}))
         .sort((a,b)=>{
           const timeOf=item=>{
             const idMatch=String(item?.id||'').match(/(\d{10,})/);
@@ -4835,6 +4878,7 @@ cursor:pointer;
       lastLocalOrderIds=new Set(orders.map(o=>String(o.id)));
       lastLocalOrdersById=new Map(orders.map(order=>[String(order.id),cleanOrderForCloud(order)]));
       originalSetItem('rx_orders',JSON.stringify(orders));
+      if(typeof window.SPHERA_refreshWorkflowSyncBaseline==='function')window.SPHERA_refreshWorkflowSyncBaseline();
       if(typeof render==='function')render();
       if(typeof renderProcessingOrders==='function')renderProcessingOrders();
       if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
@@ -10691,6 +10735,47 @@ body.partner-account #recentClientsBox{display:none!important}
   if(typeof baseDashboardExport==='function')window.dashboardOrdersForExport=function(){const list=baseDashboardExport.apply(this,arguments);return isPartner()?list.filter(order=>creatorMatches(order)):list};
   ensurePartnerUserFields();
   enforcePartnerUI();
+})();
+</script>
+<script id="sphera-v118-workflow-sync-guard">
+(function(){
+  'use strict';
+
+  const baseline=new Map();
+
+  function statusKey(order){
+    return norm(order?.workflowStatus||(order?.status||''));
+  }
+
+  function stampWorkflow(order){
+    if(!order)return;
+    const now=new Date();
+    order.workflowUpdatedAt=now.toISOString();
+    order.workflowUpdatedAtMs=now.getTime();
+    order.workflowUpdatedBy=currentUser?.uid||currentUser?.username||currentUser?.name||'';
+  }
+
+  window.SPHERA_refreshWorkflowSyncBaseline=function(){
+    baseline.clear();
+    (orders||[]).forEach(order=>{
+      baseline.set(String(order?.id||''),statusKey(order));
+    });
+  };
+
+  window.SPHERA_refreshWorkflowSyncBaseline();
+
+  const baseSave=window.save;
+  window.save=function(){
+    (orders||[]).forEach(order=>{
+      const id=String(order?.id||'');
+      if(!id)return;
+      const current=statusKey(order);
+      const previous=baseline.get(id);
+      if(previous!==undefined&&previous!==current)stampWorkflow(order);
+      baseline.set(id,current);
+    });
+    return baseSave&&baseSave.apply(this,arguments);
+  };
 })();
 </script>
 </body>
