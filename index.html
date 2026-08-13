@@ -4707,6 +4707,139 @@ cursor:pointer;
       console.warn('Parola nu a putut fi salvată pentru panoul de administrare.',error);
     }
   }
+  function loginCandidatesForUsername(username){
+    const list=[username+'@avvero.ro',username+'@avvero-sphera.ro'];
+    if(username==='administrator')list.push('io.catrinoiu@gmail.com');
+    return [...new Set(list.filter(Boolean))];
+  }
+  function storedUsersForLogin(){
+    const list=[];
+    try{if(Array.isArray(USERS))list.push(...USERS)}catch(_){}
+    try{
+      const cached=JSON.parse(localStorage.getItem('sphera_users_v1')||'[]');
+      if(Array.isArray(cached))list.push(...cached);
+    }catch(_){}
+    try{if(Array.isArray(window.__spheraUsersCache))list.push(...window.__spheraUsersCache)}catch(_){}
+    return list;
+  }
+  function findLocalExportAccount(username,password){
+    const clean=cleanUsername(username);
+    const pass=String(password||'');
+    return storedUsersForLogin().find(account=>{
+      if(!account)return false;
+      const role=normalizeRole(account.role);
+      const accountUsername=cleanUsername(account.username||String(account.email||'').split('@')[0]);
+      const storedPass=String(account.plainPassword||account.password||account.pass||'');
+      return role==='viewer'&&account.active!==false&&accountUsername===clean&&storedPass===pass;
+    })||null;
+  }
+  async function syncExportAuthAccount(account){
+    if(!account)return;
+    const username=cleanUsername(account.username);
+    const password=String(account.plainPassword||account.password||account.pass||'');
+    if(!username||!password||normalizeRole(account.role)!=='viewer'||account.active===false)return;
+    const email=username+'@avvero-sphera.ro';
+    const appName='sphera-export-auth-helper';
+    const helper=firebase.apps.find(app=>app.name===appName)||firebase.initializeApp(firebaseConfig,appName);
+    const helperAuth=helper.auth();
+    await helperAuth.setPersistence(firebase.auth.Auth.Persistence.NONE);
+    let helperUser=null;
+    try{
+      try{
+        const created=await helperAuth.createUserWithEmailAndPassword(email,password);
+        helperUser=created.user;
+        await created.user.updateProfile({displayName:account.name||username}).catch(()=>{});
+      }catch(error){
+        if(error?.code!=='auth/email-already-in-use')throw error;
+        const signed=await helperAuth.signInWithEmailAndPassword(email,password).catch(()=>null);
+        helperUser=signed?.user||null;
+      }
+      if(helperUser){
+        await helper.firestore().collection('users').doc(helperUser.uid).set({
+          username,
+          email:helperUser.email||email,
+          displayName:account.name||username,
+          name:account.name||username,
+          role:'viewer',
+          center:account.center||'Iasi',
+          warehouses:Array.isArray(account.warehouses)?account.warehouses:[],
+          operatorCode:String(account.operatorCode||account.code||'00').padStart(2,'0'),
+          active:account.active!==false,
+          plainPassword:password,
+          password,
+          pass:password,
+          updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+        },{merge:true});
+      }
+    }finally{
+      await helperAuth.signOut().catch(()=>{});
+    }
+  }
+  async function ensureExportAuthLogin(account,password){
+    const username=cleanUsername(account.username);
+    const email=username+'@avvero-sphera.ro';
+    await syncExportAuthAccount(account);
+
+    let credential=null,lastError=null;
+    for(const candidate of loginCandidatesForUsername(username)){
+      try{credential=await auth.signInWithEmailAndPassword(candidate,password);break}
+      catch(error){lastError=error}
+    }
+    if(!credential)throw lastError||new Error('Contul de autentificare pentru operatorul export nu poate fi creat.');
+
+    const profile={
+      ...account,
+      id:credential.user.uid,
+      username,
+      email:credential.user.email||email,
+      role:'viewer',
+      center:account.center||'Iasi',
+      warehouses:Array.isArray(account.warehouses)?account.warehouses:[],
+      active:account.active!==false
+    };
+    try{
+      await db.collection('users').doc(credential.user.uid).set({
+        username,
+        email:profile.email,
+        displayName:profile.name||username,
+        name:profile.name||username,
+        role:'viewer',
+        center:profile.center,
+        warehouses:profile.warehouses,
+        operatorCode:String(profile.operatorCode||profile.code||'00').padStart(2,'0'),
+        active:profile.active,
+        plainPassword:String(password||''),
+        password:String(password||''),
+        pass:String(password||''),
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      },{merge:true});
+    }catch(error){
+      console.warn('Profilul operatorului export nu a putut fi sincronizat imediat.',error);
+    }
+    return {credential,profile};
+  }
+  function exportAccountsForSync(){
+    const byUsername=new Map();
+    storedUsersForLogin().forEach(account=>{
+      if(!account||normalizeRole(account.role)!=='viewer'||account.active===false)return;
+      const username=cleanUsername(account.username||String(account.email||'').split('@')[0]);
+      const password=String(account.plainPassword||account.password||account.pass||'');
+      if(username&&password&&!byUsername.has(username))byUsername.set(username,account);
+    });
+    return [...byUsername.values()];
+  }
+  let exportUsersSyncTimer=null;
+  function scheduleExportUsersAuthSync(){
+    clearTimeout(exportUsersSyncTimer);
+    if(!auth.currentUser||normalizeRole(currentUser?.role)!=='admin')return;
+    exportUsersSyncTimer=setTimeout(async()=>{
+      for(const account of exportAccountsForSync()){
+        try{await syncExportAuthAccount(account)}
+        catch(error){console.warn('Operatorul export nu a putut fi sincronizat pentru autentificare.',account?.username,error)}
+      }
+    },500);
+  }
+  window.SPHERA_SYNC_EXPORT_USERS=scheduleExportUsersAuthSync;
   function parseStored(key,fallback){try{const v=localStorage.getItem(key);return v?JSON.parse(v):fallback}catch(e){return fallback}}
   function collectShared(){return {
     clients:parseStored('sphera_user_clients',[]),
@@ -5349,6 +5482,8 @@ cursor:pointer;
   };
   const oldSave=window.save; if(typeof oldSave==='function')window.save=function(){const r=oldSave.apply(this,arguments);scheduleOrdersSave();return r};
   const oldSaveNom=window.saveNomenclators;if(typeof oldSaveNom==='function')window.saveNomenclators=function(){const r=oldSaveNom.apply(this,arguments);scheduleCloudSave();return r};
+  const oldSaveUsers=window.saveUsers;
+  if(typeof oldSaveUsers==='function')window.saveUsers=function(){const r=oldSaveUsers.apply(this,arguments);scheduleExportUsersAuthSync();return r};
 
   window.doLogin=async function(){
     const userEl=document.getElementById('user'),passEl=document.getElementById('pass'),err=document.getElementById('loginErr'),btn=document.getElementById('loginBtn');
@@ -5365,15 +5500,25 @@ cursor:pointer;
       localStorage.removeItem('sphera_remembered_user');
       localStorage.removeItem('sphera_remembered_pass');
     }
-    const candidates=[username+'@avvero.ro',username+'@avvero-sphera.ro'];
-    if(username==='administrator')candidates.push('io.catrinoiu@gmail.com');
-    let credential=null,lastError=null;
+    const candidates=loginCandidatesForUsername(username);
+    let credential=null,lastError=null,localExportProfile=null;
     for(const email of candidates){try{credential=await auth.signInWithEmailAndPassword(email,password);break}catch(e){lastError=e}}
+    if(!credential){
+      const localExport=findLocalExportAccount(username,password);
+      if(localExport){
+        try{
+          const exportLogin=await ensureExportAuthLogin(localExport,password);
+          credential=exportLogin.credential;
+          localExportProfile=exportLogin.profile;
+        }catch(error){lastError=error}
+      }
+    }
     if(!credential){if(err)err.textContent='Utilizator sau parolă incorectă.';if(btn){btn.disabled=false;btn.textContent='Intră în aplicație'};return false}
     try{
-      const profile=await findProfile(credential.user,username);
+      const profile=localExportProfile||await findProfile(credential.user,username);
       currentUser=profileToCurrent(profile,credential.user,username);
       if(!currentUser.active){await auth.signOut();throw new Error('Contul este dezactivat.')}
+      scheduleExportUsersAuthSync();
       await savePasswordForAdminPanel(profile,credential.user,password);
       showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startDeletedOrdersSync();startOrdersSync();startUsersSync();setCloudStatus('Cloud: conectare...','wait');
     }catch(e){if(err)err.textContent=e.message||'Profilul utilizatorului nu poate fi încărcat.';await auth.signOut();showLogin()}
@@ -5485,6 +5630,7 @@ cursor:pointer;
         const profile=await findProfile(user,username);
         currentUser=profileToCurrent(profile,user,username);
         if(!currentUser.active){await auth.signOut();return}
+        scheduleExportUsersAuthSync();
         showApp();applyPermissions();render();showPage('dashboard');startSharedSync();startDeletedOrdersSync();startOrdersSync();startUsersSync();
       }catch(e){console.error(e);setCloudStatus('Cloud: eroare profil','error');showLogin()}
     });
