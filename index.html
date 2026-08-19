@@ -10117,11 +10117,16 @@ html>.sphera-edit-popup.modal.open>.wizard{
       const list=snapshot.docs.map(doc=>({id:doc.id,...(doc.data()||{})}));
       try{localStorage.setItem(BUG_KEY,JSON.stringify(list))}catch(_){}
       if(['admin','administrator'].includes(clean(currentUser?.role))&&typeof renderBugReports==='function')renderBugReports();
-    },error=>console.error('SPHERA bug reports sync error',error));
+    },error=>{
+      console.error('SPHERA bug reports sync error',error);
+      unsubscribeBugs=null;
+      setTimeout(startBugSync,1500)
+    });
   }
   const previousRender=window.render;
   window.render=function(){
     recoverUserCenter();
+    if(window.SPHERA_AUTH?.currentUser&&!unsubscribeBugs)startBugSync();
     return previousRender&&previousRender.apply(this,arguments);
   };
   window.SPHERA_AUTH?.onAuthStateChanged(user=>{
@@ -10130,6 +10135,7 @@ html>.sphera-edit-popup.modal.open>.wizard{
     setTimeout(()=>{recoverUserCenter();startBugSync();if(typeof render==='function')render()},0);
   });
   recoverUserCenter();
+  setTimeout(startBugSync,500);
 })();
 </script>
 <style id="sphera-v110-deleted-orders-full-width-style">
@@ -10581,14 +10587,15 @@ html>.sphera-edit-popup.modal.open>.wizard{
   const LINK_ICON='<svg aria-hidden="true" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.1.1l2-2a5 5 0 0 0-7.1-7.1l-1.1 1.1"></path><path d="M14 11a5 5 0 0 0-7.1-.1l-2 2A5 5 0 0 0 12 20l1.1-1.1"></path></svg>';
   const clean=v=>String(v||'').trim();
   const clientCode=order=>clean(order?.client?.code);
+  const clientName=order=>norm(order?.client?.name||'');
   const activeOrder=order=>norm(order?.workflowStatus||order?.status||'')!=='livrata';
   const groupMembers=id=>(orders||[]).filter(order=>clean(order.shippingGroupId)===clean(id));
   const groupIdFor=()=>'G'+Date.now()+Math.random().toString(36).slice(2,7);
   const deliveryKey=order=>{
     const destination=clean(order?.deliveryDestination||'center');
-    return destination==='client'?'client:'+clientCode(order):'center:'+norm(order?.deliveryCenter||order?.center||'');
+    return destination==='client'?'client:'+clientName(order):'center:'+norm(order?.deliveryCenter||order?.center||'');
   };
-  const sameDelivery=(left,right)=>clientCode(left)===clientCode(right)&&deliveryKey(left)===deliveryKey(right);
+  const sameDelivery=(left,right)=>clientName(left)===clientName(right)&&deliveryKey(left)===deliveryKey(right);
   const normalizedRxCode=value=>{
     const digits=clean(value).replace(/\D/g,'');
     return digits.length===15?digits.slice(1):digits;
@@ -10597,10 +10604,10 @@ html>.sphera-edit-popup.modal.open>.wizard{
     const code=normalizedRxCode(value);
     return (orders||[]).find(order=>normalizedRxCode(order.code)===code);
   };
-  const latestOrder=excludeId=>(orders||[]).find(order=>String(order.id)!==String(excludeId||'')&&activeOrder(order));
+  const latestOrder=(source,excludeId)=>(orders||[]).find(order=>String(order.id)!==String(excludeId||'')&&activeOrder(order)&&clientName(order)===clientName(source));
   const previousOrderFor=order=>{
     const index=(orders||[]).findIndex(item=>String(item.id)===String(order?.id));
-    return index>-1?(orders||[]).slice(index+1).find(activeOrder):null;
+    return index>-1?(orders||[]).slice(index+1).find(item=>activeOrder(item)&&clientName(item)===clientName(order)):null;
   };
   function nextGroupNumber(){
     const maximum=(orders||[]).reduce((value,order)=>Math.max(value,Number(order.shippingGroupNumber)||0),0);
@@ -10619,12 +10626,12 @@ html>.sphera-edit-popup.modal.open>.wizard{
     if(source?.id&&String(source.id)===String(target.id))return 'Alege o altă comandă.';
     if(source?.shippingGroupId)return 'Comanda este deja grupată. Separă mai întâi comenzile.';
     if(target.shippingGroupId)return 'Comanda selectată este deja grupată cu altă comandă.';
-    if(clientCode(source)!==clientCode(target))return 'Comenzile trebuie să aparțină aceluiași client.';
+    if(!clientName(source)||clientName(source)!==clientName(target))return 'Comenzile trebuie să aparțină aceluiași client.';
     if(deliveryKey(source)!==deliveryKey(target))return 'Comenzile trebuie să aibă aceeași destinație de livrare.';
     return '';
   }
   function draftSource(){return {client:draft.client,deliveryDestination:draft.deliveryDestination,deliveryCenter:draft.deliveryCenter||draft.center,center:draft.center}}
-  function selectedDraftTarget(){return draft.shippingGroupMode==='previous'?latestOrder():findOrderByCode(draft.shippingGroupCode)}
+  function selectedDraftTarget(){return draft.shippingGroupMode==='previous'?latestOrder(draftSource()):findOrderByCode(draft.shippingGroupCode)}
   window.setDraftShippingGroupMode=function(value){draft.shippingGroupMode=GROUP_MODES[value]?value:'';draft.shippingGroupCode='';drawStep(false)};
   window.setDraftShippingGroupCode=function(value){draft.shippingGroupCode=value;renderDraftGroupMatch()};
   window.renderDraftGroupMatch=function(){
@@ -12292,7 +12299,8 @@ body.partner-account #recentClientsBox{display:none!important}
   };
 
   function decorateOrderWorkPoints(){
-    document.querySelectorAll('#orderRows tr').forEach(row=>{
+    /* Lista Dashboard este stabilizată o singură dată de corecția v146. */
+    false&&document.querySelectorAll('#orderRows tr').forEach(row=>{
       row.querySelectorAll('.order-client-workpoint').forEach(element=>element.remove());
       const code=text(row.cells?.[0]?.textContent).replace(/\D/g,''),order=(orders||[]).find(item=>String(item.code||'').replace(/\D/g,'')===code),workPoint=pointFor(order);
       if(!workPoint||!row.cells?.[2])return;
@@ -12370,7 +12378,8 @@ body.partner-account #recentClientsBox{display:none!important}
   };
 
   function decorateClientNames(){
-    document.querySelectorAll('#orderRows tr').forEach(row=>{
+    /* Evită o nouă parcurgere completă a listei la fiecare randare. */
+    false&&document.querySelectorAll('#orderRows tr').forEach(row=>{
       const code=text(row.cells?.[0]?.textContent).replace(/\D/g,''),order=(orders||[]).find(item=>String(item.code||'').replace(/\D/g,'')===code),workPoint=pointFor(order),cell=row.cells?.[2];
       if(!order||!cell)return;
       cell.querySelectorAll('.order-client-workpoint').forEach(element=>element.remove());
@@ -12479,7 +12488,8 @@ body.partner-account #recentClientsBox{display:none!important}
   if(typeof previousDetails==='function')window.showOrderDetails=function(){const result=previousDetails.apply(this,arguments);refreshOpenDetails();return result};
 
   function decorateWorkPoints(){
-    document.querySelectorAll('#orderRows tr').forEach(row=>{
+    /* Decorarea Dashboard este realizată de v146. */
+    false&&document.querySelectorAll('#orderRows tr').forEach(row=>{
       const code=text(row.cells?.[0]?.textContent).replace(/\D/g,''),order=(orders||[]).find(item=>String(item.code||'').replace(/\D/g,'')===code),cell=row.cells?.[2],workPoint=pointFor(order);
       if(!cell)return;cell.querySelectorAll('.order-client-workpoint').forEach(element=>element.remove());
       if(workPoint)cell.insertAdjacentHTML('beforeend','<span class="order-client-workpoint">Punct de lucru: '+esc(workPoint)+'</span>')
@@ -12591,11 +12601,7 @@ body.partner-account #recentClientsBox{display:none!important}
   function text(value){return String(value||'').trim()}
   function pointFor(order){return text(order?.clientWorkPoint||order?.client?.workPoint||order?.workPoint)}
   function decorateDashboardClients(){
-    document.querySelectorAll('#orderRows tr').forEach(row=>{
-      const code=text(row.cells?.[0]?.textContent).replace(/\D/g,''),order=(orders||[]).find(item=>String(item.code||'').replace(/\D/g,'')===code),cell=row.cells?.[2],workPoint=pointFor(order);
-      if(!cell)return;cell.querySelectorAll('.order-client-workpoint').forEach(element=>element.remove());
-      if(workPoint)cell.insertAdjacentHTML('beforeend','<span class="order-client-workpoint"> - '+esc(workPoint)+'</span>')
-    })
+    return
   }
   const previousRender=window.render;
   if(typeof previousRender==='function')window.render=function(){const result=previousRender.apply(this,arguments);decorateDashboardClients();return result};
@@ -12629,14 +12635,11 @@ body.partner-account #recentClientsBox{display:none!important}
     })
   }
   function enforceDashboardClient(){
-    document.querySelectorAll('#orderRows tr').forEach(row=>{
-      const code=text(row.cells?.[0]?.textContent).replace(/\D/g,''),order=(orders||[]).find(item=>String(item.code||'').replace(/\D/g,'')===code),cell=row.cells?.[2],point=pointFor(order);if(!order||!cell||!point)return;
-      const desired=text(order.client?.name)+' - '+point;if(text(cell.textContent)!==desired)cell.textContent=desired
-    })
+    return
   }
   let scheduled=0;
   function enforce(){cancelAnimationFrame(scheduled);scheduled=requestAnimationFrame(()=>{enforceDetailsChange();enforceDashboardClient()})}
-  new MutationObserver(enforce).observe(document.body,{childList:true,subtree:true});
+  /* Actualizarea continuă a întregului document a fost eliminată pentru performanță. */
   const previousDetails=window.showOrderDetails;
   if(typeof previousDetails==='function')window.showOrderDetails=function(){const result=previousDetails.apply(this,arguments);setTimeout(enforceDetailsChange,80);return result};
   const previousRender=window.render;
@@ -13694,6 +13697,154 @@ body.partner-account #recentClientsBox{display:none!important}
     return previousStatusRender.apply(this,arguments)
   };
   window.renderProcessingOrders=function(){return window.SPHERA_renderStatusOrders()}
+})();
+</script>
+<script id="sphera-v145-operator-own-orders-script">
+(function(){
+  'use strict';
+  const text=value=>String(value||'').trim();
+  const clean=value=>text(value).toLocaleLowerCase('ro-RO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  function account(){
+    if(!currentUser)return null;
+    const uid=text(currentUser.uid||currentUser.id),username=clean(currentUser.username);
+    return (USERS||[]).find(user=>uid&&text(user?.uid||user?.id)===uid)||(USERS||[]).find(user=>username&&clean(user?.username)===username)||currentUser
+  }
+  function role(){return clean(account()?.role||currentUser?.role||currentUser?.permissionTemplate)}
+  function operatorAccount(){return ['operator','iasi','master','operator master','operator-master','custom','personalizat'].includes(role())}
+  function administrator(){return ['admin','administrator'].includes(role())}
+  function restricted(){return ['partner','partener','viewer','export','operator export','operator-export'].includes(role())}
+  function code(value){const digits=text(value).replace(/\D/g,'');return digits?digits.padStart(2,'0').slice(-2):''}
+  function accountCode(){const user=account()||{};return code(user.operatorCode||user.code||currentUser?.operatorCode)}
+  function orderCode(order){
+    const explicit=code(order?.operatorCode||order?.createdByOperatorCode);
+    if(explicit)return explicit;
+    const rx=text(order?.code).replace(/\D/g,'');return rx.length>=6?rx.slice(4,6):''
+  }
+  function owns(order){
+    if(!order||!currentUser)return false;
+    const user=account()||currentUser,uid=text(user.uid||user.id||currentUser.uid||currentUser.id),username=clean(user.username||currentUser.username),name=clean(user.name||user.displayName||currentUser.name||currentUser.displayName);
+    if(uid&&[order.createdByUid,order.createdById,order.creatorUid,order.userId].some(value=>text(value)===uid))return true;
+    if(username&&[order.createdByUsername,order.createdByAccount,order.creatorUsername].some(value=>clean(value)===username))return true;
+    if(name&&[order.createdByName,order.operator].some(value=>clean(value)===name))return true;
+    const ownCode=accountCode(),savedCode=orderCode(order);
+    return !!ownCode&&!!savedCode&&ownCode===savedCode
+  }
+  function permission(key,fallback){
+    try{return typeof window.SPHERA_HAS_PERMISSION==='function'?window.SPHERA_HAS_PERMISSION(key):fallback}catch(_){return fallback}
+  }
+  function launched(order){
+    try{return typeof orderWorkflowIndex==='function'?orderWorkflowIndex(order)===0:clean(order?.workflowStatus||order?.status||'Lansată')==='lansata'}catch(_){return clean(order?.workflowStatus||order?.status||'Lansată')==='lansata'}
+  }
+  function stamp(order){
+    if(!order||!owns(order))return false;
+    const user=account()||currentUser,uid=text(user.uid||user.id||currentUser.uid||currentUser.id),username=text(user.username||currentUser.username),name=text(user.name||user.displayName||currentUser.name||currentUser.displayName||username),operatorCode=accountCode();
+    let changed=false;
+    const values={createdById:uid,createdByUid:uid,createdByUsername:username,createdByAccount:username,createdByName:name,createdByRole:role(),createdByCenter:text(user.center||currentUser.center),createdByOperatorCode:operatorCode,operatorCode:operatorCode};
+    Object.entries(values).forEach(([key,value])=>{if(value&&!text(order[key])){order[key]=value;changed=true}});
+    return changed
+  }
+  function repair(){
+    if(!operatorAccount())return false;
+    let changed=false;(orders||[]).forEach(order=>{if(stamp(order))changed=true});
+    return changed
+  }
+  window.SPHERA_ownsOrder=owns;
+  window.canEditOrder=function(order){
+    if(!order||restricted())return false;
+    if(administrator())return !clean(order.workflowStatus||order.status).includes('livrata');
+    return operatorAccount()&&permission('orders.editOwn',true)&&owns(order)&&launched(order)
+  };
+  window.canDeleteOrder=function(order){
+    if(!order||restricted())return false;
+    if(administrator())return true;
+    return operatorAccount()&&permission('orders.delete',true)&&owns(order)
+  };
+  const previousCreate=window.createOrder;
+  if(typeof previousCreate==='function')window.createOrder=async function(){
+    const before=new Set((orders||[]).map(order=>String(order.id))),result=await previousCreate.apply(this,arguments);
+    const created=(orders||[]).find(order=>!before.has(String(order.id)));
+    if(created){
+      const user=account()||currentUser,uid=text(user?.uid||user?.id||currentUser?.uid||currentUser?.id),username=text(user?.username||currentUser?.username),name=text(user?.name||user?.displayName||currentUser?.name||currentUser?.displayName||username),operatorCode=accountCode();
+      Object.assign(created,{createdById:uid,createdByUid:uid,createdByUsername:username,createdByAccount:username,createdByName:name,createdByRole:role(),createdByCenter:text(user?.center||currentUser?.center),createdByOperatorCode:operatorCode,operatorCode:operatorCode});
+      if(typeof save==='function')save();if(typeof render==='function')render()
+    }
+    return result
+  };
+  const previousOpenEdit=window.openOrderEdit;
+  if(typeof previousOpenEdit==='function')window.openOrderEdit=function(id){
+    const order=(orders||[]).find(item=>String(item.id)===String(id));
+    if(!window.canEditOrder(order))return false;
+    if(stamp(order)&&typeof save==='function')save();
+    return previousOpenEdit.apply(this,arguments)
+  };
+  const previousDelete=window.deleteOrder;
+  if(typeof previousDelete==='function')window.deleteOrder=function(id){
+    const order=(orders||[]).find(item=>String(item.id)===String(id));
+    if(!window.canDeleteOrder(order))return false;
+    if(stamp(order)&&typeof save==='function')save();
+    return previousDelete.apply(this,arguments)
+  };
+  const previousRender=window.render;
+  if(typeof previousRender==='function')window.render=function(){
+    const changed=repair(),result=previousRender.apply(this,arguments);
+    if(changed&&typeof save==='function')setTimeout(()=>save(),0);
+    return result
+  };
+  if(repair()&&typeof save==='function')save();
+  if(typeof render==='function')render()
+})();
+</script>
+<style id="sphera-v146-stable-dashboard-client-style">
+#orderRows td:nth-child(3){visibility:visible!important}
+</style>
+<script id="sphera-v146-stable-dashboard-client-script">
+(function(){
+  'use strict';
+  const text=value=>String(value||'').trim();
+  const clean=value=>text(value).toLocaleLowerCase('ro-RO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();
+  function pointFor(order){return text(order?.clientWorkPoint||order?.workPoint||order?.client?.workPoint)}
+  function canonicalClientName(order,clientsByCode){
+    const code=text(order?.client?.code),known=clientsByCode.get(code);
+    let name=text(known?.name||order?.client?.name),point=pointFor(order);
+    if(point&&clean(name).endsWith(' - '+clean(point)))name=name.slice(0,-(' - '+point).length).trim();
+    return name
+  }
+  function stabilizeDashboardClients(){
+    const ordersByCode=new Map((orders||[]).map(order=>[text(order?.code).replace(/\D/g,''),order]));
+    const clientsByCode=new Map((CLIENTS||[]).map(client=>[text(client?.code),client]));
+    document.querySelectorAll('#orderRows tr').forEach(row=>{
+      const rx=text(row?.cells?.[0]?.textContent).replace(/\D/g,''),order=ordersByCode.get(rx),cell=row.cells?.[2];
+      if(!order||!cell)return;
+      const name=canonicalClientName(order,clientsByCode),point=pointFor(order),desired=point?name+' - '+point:name;
+      if(text(cell.textContent)!==desired)cell.textContent=desired;
+      cell.dataset.clientDisplay=desired
+    })
+  }
+  document.addEventListener('input',event=>{
+    if(event.target?.id!=='clientWorkPoint')return;
+    const value=event.target.value;
+    queueMicrotask(()=>{
+      if(typeof draft==='undefined'||!draft)return;
+      draft.clientWorkPoint=value;
+      if(draft.client){const client={...draft.client};delete client.workPoint;draft.client=client}
+    })
+  },true);
+  let queued=false;
+  function queueStabilize(){
+    if(queued)return;queued=true;
+    queueMicrotask(()=>{queued=false;stabilizeDashboardClients()})
+  }
+  /* Lista se stabilizează sincron după render, fără observator permanent. */
+  const previousRender=window.render;
+  if(typeof previousRender==='function')window.render=function(){
+    const result=previousRender.apply(this,arguments);stabilizeDashboardClients();return result
+  };
+  const previousRenderOrders=window.renderOrders;
+  if(typeof previousRenderOrders==='function')window.renderOrders=function(){
+    const result=previousRenderOrders.apply(this,arguments);stabilizeDashboardClients();return result
+  };
+  document.addEventListener('DOMContentLoaded',()=>{stabilizeDashboardClients();setTimeout(stabilizeDashboardClients,120)});
+  stabilizeDashboardClients()
 })();
 </script>
 </body>
