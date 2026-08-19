@@ -13847,5 +13847,18 @@ body.partner-account #recentClientsBox{display:none!important}
   stabilizeDashboardClients()
 })();
 </script>
+<script id="sphera-ean-status-search-fix">
+(function(){
+  'use strict';
+
+  document.addEventListener('input',function(event){
+    const input=event.target;
+    if(input?.id!=='processingSearch')return;
+
+    const scannedValue=String(input.value||'').trim();
+    if(/^\d{15}$/.test(scannedValue))input.value=scannedValue.slice(1);
+  },true);
+})();
+</script>
 </body>
 </html>
