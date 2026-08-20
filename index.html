@@ -2629,13 +2629,28 @@ function render(){
    };
    rows=rows.map((o,i)=>({o,i,s:scoreOrder(o)})).sort((a,b)=>b.s-a.s||a.i-b.i).map(x=>x.o);
  }
- const cnt=document.getElementById('orderFilterCount'); if(cnt)cnt.textContent=String(rows.length);
+ const totalFilteredRows=rows.length;
+ const dashboardPageKey=orderViewMode+'|'+rawQuery;
+ const dashboardPageSize=25;
+ if(window.SPHERA_dashboardPageKey!==dashboardPageKey){window.SPHERA_dashboardPageKey=dashboardPageKey;window.SPHERA_dashboardPage=1}
+ const dashboardTotalPages=Math.max(1,Math.ceil(totalFilteredRows/dashboardPageSize));
+ const dashboardPage=Math.min(dashboardTotalPages,Math.max(1,Number(window.SPHERA_dashboardPage||1)));
+ window.SPHERA_dashboardPage=dashboardPage;
+ const dashboardStart=(dashboardPage-1)*dashboardPageSize;
+ rows=rows.slice(dashboardStart,dashboardStart+dashboardPageSize);
+ const cnt=document.getElementById('orderFilterCount'); if(cnt)cnt.textContent=String(totalFilteredRows);
  const hi=value=>rawQuery?highlightMatch(value,rawQuery):esc(value);
  const rxCell=value=>{const text=String(value||'');const marker=text.toLowerCase().lastIndexOf(' ax ');if(marker<0)return `<div class="rx-diopters">${hi(text)}</div>`;return `<div class="rx-diopters">${hi(text.slice(0,marker))}</div><div class="rx-axis">${hi(text.slice(marker+1))}</div>`};
  const addCell=value=>String(value||'').split(/\s*\/\s*/).filter(Boolean).map(v=>`<div class="add-value">${hi(v)}</div>`).join('');
  const productCell=o=>{const text=productSummary(o);const design=String(o.product||'').trim();const designPrefix=['monofocal','bifocal'].includes(norm(design))?design+' ':'';const indexMatch=text.match(/\b\d\.\d{2}\b/);if(!indexMatch||indexMatch.index===undefined)return `<div class="product-line product-name">${hi(designPrefix+text)}</div>`;const name=designPrefix+text.slice(0,indexMatch.index).trim();const details=text.slice(indexMatch.index).trim();return `<div class="product-line product-name">${hi(name)}</div><div class="product-line product-details">${hi(details)}</div>`};
  const html=rows.map(o=>`<tr class="clickable ${isDelayedOrder(o)?'delayed-order':''}" onclick="showOrderDetails('${o.id}')"><td><b>${hi(o.code)}</b></td><td><b>${hi(processingCenterLabel(o))}</b></td><td>${hi(o.client.name)}</td><td>${productCell(o)}</td><td>${rxCell(odText(o))}</td><td>${rxCell(osText(o))}</td><td>${addCell(addText(o))}</td><td>${hi(o.patient)}</td><td class="status-cell" onclick="event.stopPropagation()"><button class="icon-btn table-action status-toggle ${o.status==='Livrată'?'delivered':'primary'}" tabindex="-1" onclick="toggleOrderStatus('${o.id}')" title="Schimbă livrarea">${ICON_STATUS}</button></td><td class="delete-cell" onclick="event.stopPropagation()">${(typeof canDeleteOrder==='function'&&canDeleteOrder(o))?`<button class="icon-btn red table-action" tabindex="-1" onclick="deleteOrder('${o.id}')" title="Șterge comanda">${ICON_TRASH}</button>`:''}</td></tr>`).join('')||'<tr><td colspan="10" class="muted">Nu există comenzi.</td></tr>';
  const orderBody=document.getElementById('orderRows'); if(orderBody) orderBody.innerHTML=html;
+ let pager=document.getElementById('dashboardOrdersPager');
+ if(orderBody){
+   if(!pager){pager=document.createElement('div');pager.id='dashboardOrdersPager';pager.className='orders-pager';orderBody.closest('.table-wrap')?.after(pager)}
+   const dashboardEnd=Math.min(totalFilteredRows,dashboardStart+rows.length);
+   pager.innerHTML=`<span class="orders-page-range">Afișate ${totalFilteredRows?dashboardStart+1:0}–${dashboardEnd} din ${totalFilteredRows}</span><div class="orders-page-controls"><button type="button" class="orders-page-arrow" ${dashboardPage<=1?'disabled':''} onclick="window.SPHERA_dashboardPage=Math.max(1,Number(window.SPHERA_dashboardPage||1)-1);render()" aria-label="Pagina anterioară">‹</button><b>${dashboardPage} / ${dashboardTotalPages}</b><button type="button" class="orders-page-arrow" ${dashboardPage>=dashboardTotalPages?'disabled':''} onclick="window.SPHERA_dashboardPage=Math.min(${dashboardTotalPages},Number(window.SPHERA_dashboardPage||1)+1);render()" aria-label="Pagina următoare">›</button></div>`
+ }
  if(typeof prodList!=='undefined' && prodList){
  prodList.innerHTML=designKeys().map(p=>[p,PRODUCTS[p]]).map(([p,ds])=>{let id=btoa(unescape(encodeURIComponent(p))).replace(/=/g,'');return `<div class="item"><div class="item-row"><div><b>${p}</b><div class="chips">${(ds||[]).map(d=>`<span class="chip">${d}<button class="mini red" tabindex="-1" onclick="deleteDesign('${p.replace(/'/g,"\'")}','${d.replace(/'/g,"\'")}')">×</button></span>`).join('')||'<span class="muted">Fără produse</span>'}</div></div><button class="icon-btn red" tabindex="-1" title="Șterge design" onclick="deleteProduct('${p.replace(/'/g,"\'")}')">${ICON_TRASH}</button></div><div class="design-editor"><input id="design_${id}" placeholder="Produs nou pentru ${p}"><button class="mini" onclick="addDesign('${p.replace(/'/g,"\'")}')">Adaugă produs</button></div></div>`}).join('');
  idxList.innerHTML=INDICES.map(x=>`<div class="item item-row"><b>${x}</b><button class="icon-btn red" tabindex="-1" title="Șterge" onclick="deleteSimple('INDICES','${x}')">${ICON_TRASH}</button></div>`).join('');
@@ -2646,10 +2661,13 @@ function render(){
    opListEl.innerHTML=CENTERS.map((o,i)=>`<div class="item item-row"><div><b>${o.operator}</b><br><span class="muted">${o.center} · cod operator ${o.operatorCode} · cod centru ${o.centerCode}</span></div><button class="icon-btn red" tabindex="-1" title="Șterge operator" onclick="deleteOperator(${i})">${ICON_TRASH}</button></div>`).join('');
  }
  }
- renderClients();
- renderRecentClients();
- renderProcessingOrders();
- renderDeletedOrders();
+ const clientsPageVisible=!document.getElementById('clientsPage')?.classList.contains('hide');
+ const processingPageVisible=!document.getElementById('processingPage')?.classList.contains('hide');
+ const settingsPageVisible=!document.getElementById('settings')?.classList.contains('hide');
+ if(clientsPageVisible)renderClients();
+ if(!document.getElementById('dashboard')?.classList.contains('hide'))renderRecentClients();
+ if(processingPageVisible)renderProcessingOrders();
+ if(settingsPageVisible)renderDeletedOrders();
 }
 
 /* Păstrează randarea de bază înainte ca modulele ulterioare să o suprascrie. */
@@ -4534,6 +4552,16 @@ cursor:pointer;
     const count = document.getElementById('processingCount');
     if (count) count.textContent = String(list.length);
 
+    const totalStatusOrders=list.length;
+    const statusPageKey=query+'|'+String(currentUser?.uid||currentUser?.username||'');
+    const statusPageSize=25;
+    if(window.SPHERA_statusPageKey!==statusPageKey){window.SPHERA_statusPageKey=statusPageKey;window.SPHERA_statusPage=1}
+    const statusTotalPages=Math.max(1,Math.ceil(totalStatusOrders/statusPageSize));
+    const statusPage=Math.min(statusTotalPages,Math.max(1,Number(window.SPHERA_statusPage||1)));
+    window.SPHERA_statusPage=statusPage;
+    const statusStart=(statusPage-1)*statusPageSize;
+    list=list.slice(statusStart,statusStart+statusPageSize);
+
     box.innerHTML = list.map(order => {
       const steps = stepsFor(order);
       const index = currentIndex(order);
@@ -4599,6 +4627,10 @@ cursor:pointer;
           ${message}
         </div>`;
     }).join('') || '<div class="card muted">Nu există comenzi în lucru pentru filtrul selectat.</div>';
+    let pager=document.getElementById('statusOrdersPager');
+    if(!pager){pager=document.createElement('div');pager.id='statusOrdersPager';pager.className='orders-pager';box.after(pager)}
+    const statusEnd=Math.min(totalStatusOrders,statusStart+list.length);
+    pager.innerHTML=`<span class="orders-page-range">Afișate ${totalStatusOrders?statusStart+1:0}–${statusEnd} din ${totalStatusOrders}</span><div class="orders-page-controls"><button type="button" class="orders-page-arrow" ${statusPage<=1?'disabled':''} onclick="window.SPHERA_statusPage=Math.max(1,Number(window.SPHERA_statusPage||1)-1);window.SPHERA_renderStatusOrders()" aria-label="Pagina anterioară">‹</button><b>${statusPage} / ${statusTotalPages}</b><button type="button" class="orders-page-arrow" ${statusPage>=statusTotalPages?'disabled':''} onclick="window.SPHERA_statusPage=Math.min(${statusTotalPages},Number(window.SPHERA_statusPage||1)+1);window.SPHERA_renderStatusOrders()" aria-label="Pagina următoare">›</button></div>`;
   };
 
   /* Delegare în capture phase. Elimină întârzierile produse de clickul cardului părinte. */
@@ -5289,27 +5321,30 @@ cursor:pointer;
 
     const docId=encodeURIComponent(orderId).replace(/%/g,'_').slice(0,900);
     try{
-      const batch=db.batch();
-      batch.set(ORDERS_COL.doc(docId),{
+      /* Ștergerea comenzii este operația principală și nu depinde de istoricul auxiliar. */
+      await ORDERS_COL.doc(docId).set({
         id:orderId,
         _deleted:true,
         deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
         deletedAtMs:Date.now(),
         deletedBy:auth.currentUser.uid
       },{merge:false});
-      batch.set(DELETED_ORDERS_COL.doc(docId),{
-        orderId,
-        order:deletedOrder?cleanOrderForCloud(deletedOrder):null,
-        deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
-        deletedAtMs:Date.now(),
-        deletedBy:auth.currentUser.uid,
-        deletedByName:currentUser?.name||currentUser?.username||'Utilizator'
-      },{merge:true});
-      batch.set(ORDERS_STATE_REF,{
-        initialized:true,
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
-      },{merge:true});
-      await batch.commit();
+      orderTombstoneIds.add(orderId);
+      refreshDeletedOrderIds();
+
+      /* Istoricul și starea aplicației se salvează separat. Un drept auxiliar lipsă nu restaurează comanda. */
+      const auxiliaryResults=await Promise.allSettled([
+        DELETED_ORDERS_COL.doc(docId).set({
+          orderId,
+          order:deletedOrder?cleanOrderForCloud(deletedOrder):null,
+          deletedAt:firebase.firestore.FieldValue.serverTimestamp(),
+          deletedAtMs:Date.now(),
+          deletedBy:auth.currentUser.uid,
+          deletedByName:currentUser?.name||currentUser?.username||'Utilizator'
+        },{merge:true}),
+        ORDERS_STATE_REF.set({initialized:true,updatedAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})
+      ]);
+      auxiliaryResults.forEach(result=>{if(result.status==='rejected')console.warn('SPHERA delete auxiliary save',result.reason)});
       if(deletedOrder){
         try{
           await saveSharedDeletedHistory(deletedOrder,{
@@ -5458,8 +5493,12 @@ cursor:pointer;
     if(unsubscribeOrders)unsubscribeOrders();
     ordersReady=false;
     ordersInitializing=false;
-    unsubscribeOrders=ORDERS_COL.onSnapshot(async snap=>{
-      if(snap.empty&&!ordersInitializing&&!ordersReady){
+    const syncRole=normalizeRole(currentUser?.role||currentUser?.permissionTemplate);
+    const scopedCenter=String(currentUser?.center||'').trim();
+    const centerScoped=syncRole==='operator'&&!!scopedCenter;
+    const ordersSource=centerScoped?ORDERS_COL.where('center','==',scopedCenter):ORDERS_COL;
+    unsubscribeOrders=ordersSource.onSnapshot(async snap=>{
+      if(snap.empty&&!centerScoped&&!ordersInitializing&&!ordersReady){
         ordersInitializing=true;
         await migrateInitialOrders();
         ordersInitializing=false;
@@ -13915,5 +13954,17 @@ body.partner-account #recentClientsBox{display:none!important}
   },true);
 })();
 </script>
+<style id="sphera-performance-v2-pagination-style">
+.orders-pager{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 12px 8px;color:#667085;font-size:12px}
+.orders-page-range{font-weight:500}
+.orders-page-controls{display:flex;align-items:center;gap:12px;color:#101828}
+.orders-page-controls b{min-width:48px;text-align:center;font-size:13px;font-weight:800}
+.orders-page-arrow{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border:1px solid #dbe4f2;border-radius:10px;background:#fff;color:#165dff;font-size:22px;line-height:1;cursor:pointer}
+.orders-page-arrow:hover:not(:disabled){border-color:#9db8ff;background:#f5f8ff}
+.orders-page-arrow:disabled{color:#b8c2d1;background:#f8fafc;cursor:default;opacity:.7}
+@media(max-width:600px){.orders-pager{padding:12px 4px 4px}.orders-page-range{font-size:10px}.orders-page-controls{gap:7px}.orders-page-arrow{width:32px;height:32px}.orders-page-controls b{min-width:42px;font-size:11px}}
+#processingOrdersList{contain:layout style}
+#orderRows{contain:layout style}
+</style>
 </body>
 </html>
