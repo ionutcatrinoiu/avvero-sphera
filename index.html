@@ -5045,7 +5045,12 @@ cursor:pointer;
     });
     return merged;
   }
-  function applyOrdersFromCloud(list){
+  function workflowComparable(order){
+    const copy=JSON.parse(JSON.stringify(order||{}));
+    ['workflowStatus','status','workflowChecks','workflowResetAt','workflowUpdatedAt','workflowUpdatedAtMs','workflowUpdatedBy','workflowRevision','deliveredAt','deliveredDate','deliveredTime','deliveredBy'].forEach(key=>delete copy[key]);
+    return JSON.stringify(copy)
+  }
+  function applyOrdersFromCloud(list,cloudChanges=[]){
     applyingOrdersRemote=true;
     try{
       const cloudList=Array.isArray(list)?list:[];
@@ -5074,7 +5079,14 @@ cursor:pointer;
       const clientsPage=document.getElementById('clientsPage');
       const dashboardPage=document.getElementById('dashboard');
       if(processingPage&&!processingPage.classList.contains('hide')){
-        if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+        const workflowOnly=cloudChanges.length>0&&cloudChanges.length<=20&&cloudChanges.every(change=>{
+          if(change.type!=='modified')return false;
+          const id=String(change.id||''),before=localOrdersById.get(id),after=orders.find(order=>String(order.id)===id);
+          return before&&after&&workflowComparable(before)===workflowComparable(after)
+        });
+        if(workflowOnly&&typeof window.SPHERA_updateStatusCard==='function'){
+          cloudChanges.forEach(change=>window.SPHERA_updateStatusCard(orders.find(order=>String(order.id)===String(change.id))))
+        }else if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
       }else if(clientsPage&&!clientsPage.classList.contains('hide')){
         if(typeof renderClients==='function')renderClients();
       }else if(dashboardPage&&!dashboardPage.classList.contains('hide')){
@@ -5460,7 +5472,8 @@ cursor:pointer;
         delete value._cloudUpdatedBy;
         return value;
       });
-      applyOrdersFromCloud(list);
+      const cloudChanges=typeof snap.docChanges==='function'?snap.docChanges().map(change=>({type:change.type,id:String(change.doc.data()?.id||'')})):[];
+      applyOrdersFromCloud(list,cloudChanges);
       ordersReady=true;
       setCloudStatus('Cloud: conectat','ok');
       if(ordersPendingSave)scheduleOrdersSave();
@@ -13132,7 +13145,6 @@ body.partner-account #recentClientsBox{display:none!important}
   window.SPHERA_persistWorkflowState=async function(order){
     if(!order?.id)return false;
     const revision=nextRevision(order),database=window.SPHERA_DB;
-    if(typeof save==='function')save();
     if(!database)return false;
     const payload={
       workflowStatus:order.workflowStatus||'Lansată',status:order.status||'Lansată',
@@ -13141,6 +13153,9 @@ body.partner-account #recentClientsBox{display:none!important}
       workflowUpdatedAtMs:order.workflowUpdatedAtMs,workflowUpdatedBy:order.workflowUpdatedBy,
       workflowRevision:revision
     };
+    ['modificationHistory','lastModifiedById','lastModifiedBy','lastModifiedDate','lastModifiedTime','lastModifiedTimestamp'].forEach(key=>{
+      if(Object.prototype.hasOwnProperty.call(order,key))payload[key]=order[key]
+    });
     ['deliveredAt','deliveredDate','deliveredTime','deliveredBy'].forEach(key=>{if(Object.prototype.hasOwnProperty.call(order,key))payload[key]=order[key]});
     try{
       const ref=database.collection('orders').doc(documentId(order));
@@ -13523,7 +13538,6 @@ body.partner-account #recentClientsBox{display:none!important}
     order.workflowUpdatedAt=record.at||new Date().toISOString();
     order.workflowUpdatedBy=record.uid||record.username||record.name;
     if(typeof save==='function')save();
-    if(typeof window.SPHERA_persistWorkflowState==='function')window.SPHERA_persistWorkflowState(order);
     return true
   }
   function decorateStatusOperators(){
