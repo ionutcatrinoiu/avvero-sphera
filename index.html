@@ -14757,6 +14757,16 @@ body.partner-account #recentClientsBox{display:none!important}
       button.setAttribute('aria-expanded',String(!collapsed))
     }
   }
+  const interactiveCardTarget='button,input,select,textarea,a,label,[role="button"],[contenteditable="true"],[onclick]';
+  function bindCardSurfaceToggle(card,toggleCard){
+    if(!card||card.dataset.spheraCardToggleBound==='1')return;
+    card.dataset.spheraCardToggleBound='1';
+    card.classList.add('sphera-card-surface-toggle');
+    card.addEventListener('click',event=>{
+      if(event.target.closest(interactiveCardTarget))return;
+      toggleCard()
+    })
+  }
   function ensureCardCollapse(cardId,headSelector,movableSelector){
     const card=document.getElementById(cardId);
     if(!card)return;
@@ -14778,10 +14788,26 @@ body.partner-account #recentClientsBox{display:none!important}
       button.addEventListener('click',()=>setCardCollapsed(card,!card.classList.contains('sphera-settings-card-collapsed')));
       actions.appendChild(button)
     }
+    bindCardSurfaceToggle(card,()=>setCardCollapsed(card,!card.classList.contains('sphera-settings-card-collapsed')));
     if(card.dataset.defaultCollapseApplied!=='1'){
       card.dataset.defaultCollapseApplied='1';
       setCardCollapsed(card,true)
     }else setCardCollapsed(card,card.classList.contains('sphera-settings-card-collapsed'))
+  }
+  function ensureAdminUsersCardOpen(){
+    const body=document.getElementById('adminUsersBody');
+    const card=body?.closest('.admin-users-card');
+    const button=card?.querySelector('.nomen-toggle');
+    bindCardSurfaceToggle(card,()=>{
+      if(typeof window.toggleAdminUsers==='function')window.toggleAdminUsers(button)
+    })
+  }
+  function ensureAllCollapsibleCards(){
+    document.querySelectorAll('.card').forEach(card=>{
+      const button=[...card.querySelectorAll('.list-toggle,.nomen-toggle,.sphera-settings-card-collapse')]
+        .find(candidate=>candidate.closest('.card')===card);
+      if(button)bindCardSurfaceToggle(card,()=>button.click())
+    })
   }
   function positionIntegrityCard(){
     const settings=document.getElementById('settings');
@@ -14823,8 +14849,10 @@ body.partner-account #recentClientsBox{display:none!important}
   }
   function enhanceInterface(){
     positionIntegrityCard();
+    ensureAdminUsersCardOpen();
     ensureCardCollapse('permissionsCard','.permission-card-head','#permissionSummary');
     ensureCardCollapse('ordersIntegrityCard','.top','#ordersIntegrityAuditButton');
+    ensureAllCollapsibleCards();
     resetSearch(document.getElementById('q'));
     resetSearch(document.getElementById('processingSearch'));
     resetSearch(document.getElementById('deletedOrdersSearch'))
@@ -14863,6 +14891,7 @@ body.partner-account #recentClientsBox{display:none!important}
 #ordersIntegrityCard .sphera-settings-card-actions button:hover{background:#f8fbff!important;border-color:#bfd0e7!important}
 #permissionsCard.sphera-settings-card-collapsed .permission-layout,
 #ordersIntegrityCard.sphera-settings-card-collapsed .orders-integrity-result{display:none!important}
+.sphera-card-surface-toggle{cursor:pointer}
 #permissionsCard.sphera-settings-card-collapsed .permission-card-head{margin-bottom:0!important}
 #ordersIntegrityCard.sphera-settings-card-collapsed>.top{margin-bottom:0!important}
 .sphera-search-control{position:relative;min-width:0;flex:1;width:100%}
