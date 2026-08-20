@@ -4554,7 +4554,7 @@ cursor:pointer;
 
     const totalStatusOrders=list.length;
     const statusPageKey=query+'|'+String(currentUser?.uid||currentUser?.username||'');
-    const statusPageSize=25;
+    const statusPageSize=10;
     if(window.SPHERA_statusPageKey!==statusPageKey){window.SPHERA_statusPageKey=statusPageKey;window.SPHERA_statusPage=1}
     const statusTotalPages=Math.max(1,Math.ceil(totalStatusOrders/statusPageSize));
     const statusPage=Math.min(statusTotalPages,Math.max(1,Number(window.SPHERA_statusPage||1)));
@@ -4742,6 +4742,7 @@ cursor:pointer;
     return null;
   }
   function profileToCurrent(profile,user,username){
+    const configuredPermissions=profile?.permissions&&typeof profile.permissions==='object'&&Object.keys(profile.permissions).length>0;
     return {
       uid:user.uid,
       email:user.email||'',
@@ -4759,7 +4760,8 @@ cursor:pointer;
       permissionTemplate:profile?.permissionTemplate||profile?.permission_template||(profile?'':'custom'),
       permissions:profile?.permissions&&typeof profile.permissions==='object'?profile.permissions:(profile?null:{}),
       accessScope:profile?.accessScope&&typeof profile.accessScope==='object'?profile.accessScope:null,
-      profileMissing:!profile
+      permissionsConfigured:profile?.permissionsConfigured===true||configuredPermissions,
+      profileMissing:!profile||(profile?.profileMissing===true&&!configuredPermissions&&profile?.permissionsConfigured!==true)
     };
   }
   async function savePasswordForAdminPanel(profile,user,password){
@@ -5575,6 +5577,8 @@ cursor:pointer;
           permissionTemplate:x.permissionTemplate||x.permission_template||localUser?.permissionTemplate||'',
           permissions:x.permissions&&typeof x.permissions==='object'?x.permissions:(localUser?.permissions||null),
           accessScope:x.accessScope&&typeof x.accessScope==='object'?x.accessScope:(localUser?.accessScope||null),
+          permissionsConfigured:x.permissionsConfigured===true||!!(x.permissions&&typeof x.permissions==='object'&&Object.keys(x.permissions).length),
+          profileMissing:x.profileMissing===true&&!(x.permissions&&typeof x.permissions==='object'&&Object.keys(x.permissions).length),
           email:x.email||'',
           pass:savedPassword,
           password:savedPassword,
@@ -5584,6 +5588,20 @@ cursor:pointer;
 
       window.__spheraUsersCache=USERS.slice();
       localStorage.setItem('sphera_users_v1',JSON.stringify(USERS));
+
+      if(currentUser){
+        const currentUid=String(currentUser.uid||currentUser.id||''),currentUsername=cleanUsername(currentUser.username);
+        const synced=USERS.find(item=>(currentUid&&String(item.uid||item.id||'')===currentUid)||(currentUsername&&cleanUsername(item.username)===currentUsername));
+        if(synced){
+          Object.assign(currentUser,{
+            role:synced.role,center:synced.center,warehouses:[...(synced.warehouses||[])],active:synced.active!==false,
+            permissionTemplate:synced.permissionTemplate,permissions:synced.permissions&&typeof synced.permissions==='object'?{...synced.permissions}:null,
+            accessScope:synced.accessScope&&typeof synced.accessScope==='object'?{...synced.accessScope}:null,
+            permissionsConfigured:synced.permissionsConfigured===true,profileMissing:!!synced.profileMissing
+          });
+          if(typeof window.SPHERA_APPLY_PERMISSION_UI==='function')window.SPHERA_APPLY_PERMISSION_UI()
+        }
+      }
 
       if(missingPasswords.length){
         try{
@@ -5813,7 +5831,7 @@ cursor:pointer;
         }
       }
       currentUser=profileToCurrent(profile,credential.user,username);
-      currentUser.profileMissing=!!profile.profileMissing;
+      currentUser.profileMissing=!!currentUser.profileMissing;
       if(!currentUser.active)throw new Error('Contul este dezactivat.');
 
       if(remember){
@@ -11633,13 +11651,14 @@ body.partner-account #recentClientsBox{display:none!important}
         username:user.username||'',displayName:user.name||user.username||'',name:user.name||user.username||'',
         role:user.role||'custom',center:user.center||'',warehouses:Array.isArray(user.warehouses)?user.warehouses:[],
         operatorCode:String(user.operatorCode||'00').padStart(2,'0'),active:user.active!==false,
-        permissionTemplate:user.permissionTemplate,permissions:user.permissions,accessScope:user.accessScope
+        permissionTemplate:user.permissionTemplate,permissions:user.permissions,accessScope:user.accessScope,
+        profileMissing:false,permissionsConfigured:true
       };
       try{payload.permissionsUpdatedAt=firebase.firestore.FieldValue.serverTimestamp()}catch(_){}
       await window.SPHERA_DB.collection('users').doc(String(documentId)).set(payload,{merge:true})
     }
     const sameCurrent=currentUser&&(String(currentUser.uid||'')===String(documentId||'')||clean(currentUser.username)===clean(user.username));
-    if(sameCurrent){Object.assign(currentUser,{role:user.role,active:user.active,permissionTemplate:user.permissionTemplate,permissions:{...user.permissions},accessScope:{...user.accessScope},warehouses:[...(user.warehouses||[])],profileMissing:false});applyPermissionUI()}
+    if(sameCurrent){Object.assign(currentUser,{role:user.role,active:user.active,permissionTemplate:user.permissionTemplate,permissions:{...user.permissions},accessScope:{...user.accessScope},warehouses:[...(user.warehouses||[])],permissionsConfigured:true,profileMissing:false});applyPermissionUI()}
   }
   window.SPHERA_saveUserPermissions=async function(){
     const user=userByKey(selectedUserKey),button=document.getElementById('permissionSaveButton'),state=document.getElementById('permissionSaveState');if(!user||!draft)return;
@@ -11700,9 +11719,11 @@ body.partner-account #recentClientsBox{display:none!important}
     const bugReports=document.getElementById('bugReportsCard');if(bugReports)bugReports.classList.toggle('hide',!can('bugs.manage'));
     const rxExport=document.getElementById('rxExportCard');if(rxExport)rxExport.classList.toggle('hide',!can('orders.export'));
     let notice=document.getElementById('permissionProfileNotice');
-    if(currentUser.profileMissing){
+    const storedPermissions=currentUser.permissions&&typeof currentUser.permissions==='object'?currentUser.permissions:{};
+    const configured=Object.keys(storedPermissions).length>0||currentUser.permissionsConfigured===true||currentUser.profileMissing===false;
+    if(!configured){
       if(!notice){notice=document.createElement('div');notice.id='permissionProfileNotice';notice.className='permission-profile-alert';notice.textContent='Contul tău este autentificat, dar nu are încă drepturi configurate. Contactează administratorul.';document.querySelector('.main')?.insertBefore(notice,document.querySelector('.main')?.children?.[1]||null)}
-    }else notice?.remove()
+    }else{currentUser.profileMissing=false;notice?.remove()}
   }
   window.SPHERA_APPLY_PERMISSION_UI=applyPermissionUI;
   const baseApplyPermissions=window.applyPermissions;
