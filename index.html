@@ -1761,7 +1761,15 @@ function showPage(id,btn){
 function openClientsPage(){let b=[...document.querySelectorAll('.menu button')].find(x=>x.textContent.includes('Clienți')); showPage('clientsPage',b)}
 function showOrdersList(mode='all'){orderViewMode=mode||'all'; showPage('dashboard',document.querySelector('.menu button')); const box=document.getElementById('ordersListBox'); if(box)box.classList.remove('hide'); const btn=document.getElementById('toggleOrdersBtn'); if(btn){btn.innerHTML='<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>';btn.title='Ascunde lista';btn.setAttribute('aria-label','Ascunde lista');} const q=document.getElementById('q'); if(q){q.focus();} render();}
 function toggleOrdersList(){const box=document.getElementById('ordersListBox'); const btn=document.getElementById('toggleOrdersBtn'); if(!box)return; box.classList.toggle('hide'); if(btn){const hidden=box.classList.contains('hide');btn.innerHTML=hidden?'<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></span>':'<span class="toggle-chevron"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span>';btn.title=hidden?'Afișează lista':'Ascunde lista';btn.setAttribute('aria-label',btn.title);}}
-function save(){localStorage.setItem('rx_orders',JSON.stringify(orders))}
+let rxLocalSaveQueued=false;
+function save(){
+  if(rxLocalSaveQueued)return;
+  rxLocalSaveQueued=true;
+  queueMicrotask(()=>{
+    rxLocalSaveQueued=false;
+    localStorage.setItem('rx_orders',JSON.stringify(orders))
+  })
+}
 function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/ș/g,'s').replace(/ț/g,'t').trim()}
 function openWizard(){if(!canCreateOrders())return;step=0;draft={date:new Date().toISOString().slice(0,10),status:'Lansată',odActive:true,osActive:true,mount:isAdmin()?'':currentUser.center,center:isAdmin()?'':currentUser.center,operator:isAdmin()?'':currentUser.name};modal.classList.add('open');drawStep()}
 function closeWizard(){modal.classList.remove('open')}
@@ -4442,6 +4450,29 @@ cursor:pointer;
     return false;
   }
 
+  window.SPHERA_updateStatusCard = function(order){
+    if(!order?.id)return;
+    const button=document.querySelector('#processingOrdersList [data-checkpoint-order="'+CSS.escape(String(order.id))+'"]');
+    const card=button?.closest('.workflow-order');
+    if(!card)return;
+    const steps=stepsFor(order),index=currentIndex(order);
+    if(index===steps.length-1){
+      card.remove();
+      const count=document.getElementById('processingCount');
+      if(count)count.textContent=String(Math.max(0,Number(count.textContent||0)-1));
+      return
+    }
+    const progress=card.querySelector('.workflow-progress');
+    if(progress)progress.style.width=(index===0?0:(index/(steps.length-1))*88)+'%';
+    card.querySelectorAll('[data-checkpoint-status]').forEach((stepButton,i)=>{
+      stepButton.classList.toggle('done',i<index);
+      stepButton.classList.toggle('active',i===index);
+      const allowed=canAdvance(order,stepButton.dataset.checkpointStatus);
+      stepButton.disabled=!allowed;
+      stepButton.title=allowed?'Setează '+stepButton.dataset.checkpointStatus:'Etapă indisponibilă'
+    })
+  };
+
   window.SPHERA_applyCheckpoint = function (event, orderId, status) {
     if (event) {
       event.preventDefault();
@@ -4457,8 +4488,8 @@ cursor:pointer;
     order.status = status === 'Livrată' ? 'Livrată' : 'Lansată';
     order.workflowUpdatedAt = new Date().toISOString();
 
-    /* Randăm imediat secțiunea de status, fără să așteptăm sincronizarea. */
-    window.SPHERA_renderStatusOrders();
+    /* Actualizăm doar cardul apăsat. Lista completă nu se reconstruiește. */
+    window.SPHERA_updateStatusCard(order);
 
     /* Folosim funcția centrală de salvare pentru a păstra toate mecanismele de sync. */
     if (typeof window.save === 'function') {
@@ -4467,11 +4498,7 @@ cursor:pointer;
       localStorage.setItem('rx_orders', JSON.stringify(orders));
     }
 
-    /* Restul interfeței se actualizează după ce checkpointul este deja vizibil. */
-    requestAnimationFrame(function () {
-      if (typeof render === 'function') render();
-      window.SPHERA_renderStatusOrders();
-    });
+    /* Dashboardul se va actualiza la deschiderea lui. Evităm aici două randări complete. */
 
     return false;
   };
@@ -5043,9 +5070,16 @@ cursor:pointer;
       lastLocalOrdersById=new Map(orders.map(order=>[String(order.id),cleanOrderForCloud(order)]));
       originalSetItem('rx_orders',JSON.stringify(orders));
       if(typeof window.SPHERA_refreshWorkflowSyncBaseline==='function')window.SPHERA_refreshWorkflowSyncBaseline();
-      if(typeof render==='function')render();
-      if(typeof renderProcessingOrders==='function')renderProcessingOrders();
-      if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+      const processingPage=document.getElementById('processingPage');
+      const clientsPage=document.getElementById('clientsPage');
+      const dashboardPage=document.getElementById('dashboard');
+      if(processingPage&&!processingPage.classList.contains('hide')){
+        if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+      }else if(clientsPage&&!clientsPage.classList.contains('hide')){
+        if(typeof renderClients==='function')renderClients();
+      }else if(dashboardPage&&!dashboardPage.classList.contains('hide')){
+        if(typeof render==='function')render();
+      }
     }finally{
       setTimeout(()=>{applyingOrdersRemote=false},0);
     }
@@ -5074,6 +5108,8 @@ cursor:pointer;
         }
       };
       for(const order of current){
+        const previous=lastLocalOrdersById.get(String(order.id));
+        if(previous&&JSON.stringify(previous)===JSON.stringify(order))continue;
         const payload={
           ...order,
           _cloudUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),
@@ -6179,7 +6215,11 @@ cursor:pointer;
   const previousShow=window.showPage;
   window.showPage=function(){const result=previousShow&&previousShow.apply(this,arguments);setTimeout(updateDashboardIdentity,0);return result;};
   const previousRender=window.render;
-  window.render=function(){const result=previousRender&&previousRender.apply(this,arguments);renderClients();renderRecentClients();updateDashboardIdentity();return result;};
+  window.render=function(){
+    const result=previousRender&&previousRender.apply(this,arguments);
+    if(!document.getElementById('clientsPage')?.classList.contains('hide'))renderClients();
+    renderRecentClients();updateDashboardIdentity();return result
+  };
   document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>{renderClients();renderRecentClients();updateDashboardIdentity();},250));
 })();
 </script>
@@ -11175,8 +11215,9 @@ body.partner-account #recentClientsBox{display:none!important}
   const baseStatusRender=window.SPHERA_renderStatusOrders;
   window.SPHERA_renderStatusOrders=function(){
     const result=baseStatusRender&&baseStatusRender.apply(this,arguments);
+    const orderIndex=new Map((orders||[]).map(item=>[String(item.id),item]));
     document.querySelectorAll('[data-checkpoint-order][data-checkpoint-status]').forEach(button=>{
-      const order=(orders||[]).find(item=>String(item.id)===String(button.dataset.checkpointOrder));
+      const order=orderIndex.get(String(button.dataset.checkpointOrder));
       if(partnerCreatedOrder(order)){
         const status=button.dataset.checkpointStatus;
         const allowed=window.canSetWorkflowStep(status,order);
@@ -12796,14 +12837,14 @@ body.partner-account #recentClientsBox{display:none!important}
       if(typeof persistDeliveryEvent==='function')persistDeliveryEvent(order)
     }
     if(typeof save==='function')save();else localStorage.setItem('rx_orders',JSON.stringify(orders));
-    if(typeof render==='function')render();
-    if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+    if(typeof window.SPHERA_updateStatusCard==='function')window.SPHERA_updateStatusCard(order);
     return false
   };
 
   function decorateStatusOperators(){
+    const orderIndex=new Map((orders||[]).map(item=>[String(item.id),item]));
     document.querySelectorAll('#processingOrdersList [data-checkpoint-order][data-checkpoint-status]').forEach(button=>{
-      const order=(orders||[]).find(item=>String(item.id)===String(button.dataset.checkpointOrder)),status=button.dataset.checkpointStatus;
+      const order=orderIndex.get(String(button.dataset.checkpointOrder)),status=button.dataset.checkpointStatus;
       if(!order)return;
       if(canAdvanceAnyOrder(order,status)){
         button.disabled=false;button.title='Setează '+status
@@ -13486,9 +13527,10 @@ body.partner-account #recentClientsBox{display:none!important}
     return true
   }
   function decorateStatusOperators(){
+    const orderIndex=new Map((orders||[]).map(item=>[String(item.id),item]));
     document.querySelectorAll('#processingOrdersList [data-checkpoint-order][data-checkpoint-status]').forEach(button=>{
       button.querySelectorAll('.status-checked-by').forEach(item=>item.remove());
-      const order=(orders||[]).find(item=>String(item.id)===String(button.dataset.checkpointOrder));
+      const order=orderIndex.get(String(button.dataset.checkpointOrder));
       const record=order?.workflowChecks?.[button.dataset.checkpointStatus];
       if(record?.name){
         const label=document.createElement('span');
@@ -13500,14 +13542,14 @@ body.partner-account #recentClientsBox{display:none!important}
   if(typeof previousCheckpoint==='function')window.SPHERA_applyCheckpoint=function(event,id,status){
     const order=(orders||[]).find(item=>String(item.id)===String(id)),before=currentStatus(order);
     const result=previousCheckpoint.apply(this,arguments);
-    if(storeOperator(order,status,before))setTimeout(()=>{if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders()},0);
+    storeOperator(order,status,before);
     return result
   };
   const previousSetStatus=window.setWorkflowStatus;
   if(typeof previousSetStatus==='function')window.setWorkflowStatus=function(id,status){
     const order=(orders||[]).find(item=>String(item.id)===String(id)),before=currentStatus(order);
     const result=previousSetStatus.apply(this,arguments);
-    if(storeOperator(order,status,before))setTimeout(()=>{if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders()},0);
+    storeOperator(order,status,before);
     return result
   };
   const previousStatusRender=window.SPHERA_renderStatusOrders;
@@ -13570,8 +13612,7 @@ body.partner-account #recentClientsBox{display:none!important}
     const before=clean(order?.workflowStatus||order?.status);
     const result=previousCheckpoint.apply(this,arguments);
     if(order&&clean(order.workflowStatus||order.status)===clean(status)&&clean(status)!==before){
-      remember(order);stabilize();
-      if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders()
+      remember(order);stabilize()
     }
     return result
   };
