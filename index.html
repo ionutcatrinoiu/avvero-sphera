@@ -1334,16 +1334,16 @@ pointer-events:none;
 </div>
 </div>
 <div class="login-panel">
-<div class="login-card">
+<form autocomplete="on" class="login-card" id="loginForm">
 <div class="login-card-title">Autentificare</div>
 
 <p class="login-platform">Introdu datele pentru accesarea aplicației.</p>
-<input autocomplete="username" autofocus="" class="login-password login-username" id="user" placeholder="Utilizator"/>
-<input autocomplete="current-password" class="login-password" id="pass" placeholder="Parolă" type="password"/>
-<div class="remember-row"><input id="rememberMe" type="checkbox"/><label for="rememberMe">Ține-mă minte</label></div>
-<button class="login-enter-btn" id="loginBtn" onclick="doLogin()" type="button">Intră în aplicație</button>
+<input autocapitalize="none" autocomplete="username" autofocus="" class="login-password login-username" id="user" name="username" placeholder="Utilizator" spellcheck="false"/>
+<input autocomplete="current-password" class="login-password" id="pass" name="password" placeholder="Parolă" type="password"/>
+<div class="remember-row"><input id="rememberMe" name="remember" type="checkbox"/><label for="rememberMe">Ține-mă minte</label></div>
+<button class="login-enter-btn" id="loginBtn" type="submit">Intră în aplicație</button>
 <div class="login-note" id="loginErr"></div>
-</div>
+</form>
 </div>
 </section>
 <section class="app" id="appScreen" style="display:none">
@@ -2894,6 +2894,12 @@ function renderDeletedOrders(){
  });
  const integrityCount=document.getElementById('ordersIntegrityDeletedHistoryCount');
  if(integrityCount)integrityCount.textContent=String(availableList.length);
+ const integrityAbsolute=document.getElementById('ordersIntegrityAbsoluteCount');
+ if(integrityAbsolute){
+  const activeCount=Number(document.getElementById('ordersIntegrityActiveCount')?.textContent||0);
+  const accidentalCount=Number(document.getElementById('ordersIntegrityAccidentalCount')?.textContent||0);
+  integrityAbsolute.textContent=String(activeCount+availableList.length+accidentalCount)
+ }
  const query=norm(document.getElementById('deletedOrdersSearch')?.value||'');
  const list=availableList.filter(item=>{
   if(!query)return true;
@@ -6229,20 +6235,16 @@ cursor:pointer;
     if(user&&!user.value)user.value=remembered?(localStorage.getItem('sphera_remembered_user')||''):'';
     if(remember&&!remember.checked)remember.checked=remembered;
 
-    /* Păstrează aceleași elemente în DOM, astfel încât focusul și textul tastat să nu se piardă. */
+    /* Păstrează aceleași elemente în DOM, astfel încât focusul și completarea browserului să nu se piardă. */
+    const form=document.getElementById('loginForm');
     const btn=document.getElementById('loginBtn');
-    if(btn&&btn.dataset.spheraLoginBound!=='1'){
+    if(form&&form.dataset.spheraLoginBound!=='1'){
+      form.dataset.spheraLoginBound='1';
+      form.addEventListener('submit',event=>{event.preventDefault();window.doLogin()});
+    }else if(!form&&btn&&btn.dataset.spheraLoginBound!=='1'){
       btn.dataset.spheraLoginBound='1';
-      btn.removeAttribute('onclick');
       btn.addEventListener('click',event=>{event.preventDefault();window.doLogin()});
     }
-    [user,pass].filter(Boolean).forEach(input=>{
-      if(input.dataset.spheraLoginBound==='1')return;
-      input.dataset.spheraLoginBound='1';
-      input.addEventListener('keydown',event=>{
-        if(event.key==='Enter'){event.preventDefault();window.doLogin()}
-      });
-    });
   });
 })();
 </script>
@@ -14605,6 +14607,7 @@ body.partner-account #recentClientsBox{display:none!important}
     const dashboardDeletedCount=typeof window.SPHERA_currentDeletedHistoryEntries==='function'
       ?window.SPHERA_currentDeletedHistoryEntries().filter(item=>typeof canViewDeletedOrder!=='function'||canViewDeletedOrder(item.order)).length
       :Number(report.availableDeletedCount||0);
+    const absoluteOrdersCount=Number(report.activeCount||0)+dashboardDeletedCount+candidates;
     const conflictMessage=report.activeArchiveConflicts.length
       ?'<div class="orders-integrity-alert">Au fost găsite '+report.activeArchiveConflicts.length+' comenzi active cu marcaje vechi în arhivă. În această versiune, marcajele vechi nu mai ascund documentele active.</div>'
       :'';
@@ -14615,10 +14618,10 @@ body.partner-account #recentClientsBox{display:none!important}
       ?'<button class="btn primary" id="ordersIntegrityRestoreButton" type="button" onclick="SPHERA_restoreOrdersIntegrityCandidates()">Restabilește '+candidates+' comenzi sigure</button>'
       :'<span class="orders-integrity-ok">Nu există comenzi care pot fi restabilite automat în siguranță.</span>';
     result.innerHTML='<div class="orders-integrity-grid">'
-      +'<div><span>Comenzi absolute</span><b>'+report.cloudDocuments+'</b></div>'
-      +'<div><span>Comenzi active</span><b>'+report.activeCount+'</b></div>'
+      +'<div><span>Comenzi absolute</span><b id="ordersIntegrityAbsoluteCount">'+absoluteOrdersCount+'</b></div>'
+      +'<div><span>Comenzi active</span><b id="ordersIntegrityActiveCount">'+report.activeCount+'</b></div>'
       +'<div><span>Comenzi șterse individual</span><b id="ordersIntegrityDeletedHistoryCount">'+dashboardDeletedCount+'</b></div>'
-      +'<div><span>Comenzi șterse accidental</span><b>'+candidates+'</b></div>'
+      +'<div><span>Comenzi șterse accidental</span><b id="ordersIntegrityAccidentalCount">'+candidates+'</b></div>'
       +'</div>'+conflictMessage+ambiguity
       +'<div class="orders-integrity-actions">'+action+'<small>Ștergerile individuale confirmate sunt excluse.</small></div>'
   }
