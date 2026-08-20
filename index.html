@@ -6585,6 +6585,7 @@ body.viewer-account [data-viewer-write]{display:none!important}
     ];
     const destination=String(order?.deliveryDestination||'').trim();
     if(destination.toLowerCase().startsWith('center:'))values.push(destination.split(':').slice(1).join(':').trim());
+    if(typeof window.SPHERA_CLIENT_TERRITORY_CENTER==='function')values.push(window.SPHERA_CLIENT_TERRITORY_CENTER(order?.client));
     if(norm(destination)==='client'&&typeof window.SPHERA_ORDER_RESPONSIBLE_CENTER==='function')values.push(window.SPHERA_ORDER_RESPONSIBLE_CENTER(order));
     return values.filter(Boolean)
   }
