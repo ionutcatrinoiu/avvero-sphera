@@ -2858,6 +2858,23 @@ function deletedOrderProductCell(order){
  const details=text.slice(indexMatch.index).trim();
  return `<div class="product-line product-name">${esc(name)}</div><div class="product-line product-details">${esc(details)}</div>`;
 }
+function deletedHistoryEntryId(item){
+ return String(item?.orderId||item?.order?.id||'').trim()
+}
+function currentDeletedHistoryEntries(){
+ const activeIds=new Set((Array.isArray(orders)?orders:[])
+  .filter(order=>order&&order._deleted!==true)
+  .map(order=>String(order.id||'').trim())
+  .filter(Boolean));
+ const seen=new Set();
+ return (Array.isArray(deletedOrders)?deletedOrders:[]).filter(item=>{
+  const id=deletedHistoryEntryId(item);
+  if(!item?.order||!id||activeIds.has(id)||seen.has(id))return false;
+  seen.add(id);
+  return true
+ })
+}
+window.SPHERA_currentDeletedHistoryEntries=currentDeletedHistoryEntries;
 window.SPHERA_deletedOrdersPage=Math.max(1,Number(window.SPHERA_deletedOrdersPage||1));
 window.SPHERA_setDeletedOrdersPage=function(page){
  window.SPHERA_deletedOrdersPage=Math.max(1,Number(page)||1);
@@ -2870,7 +2887,7 @@ function renderDeletedOrders(){
  if(clearButton)clearButton.classList.toggle('hide',!isAdmin());
  const card=document.getElementById('deletedOrdersCard');
  if(card)card.classList.toggle('admin-history',isAdmin());
- const availableList=(deletedOrders||[]).filter(item=>item?.order&&canViewDeletedOrder(item.order)).sort((a,b)=>{
+ const availableList=currentDeletedHistoryEntries().filter(item=>canViewDeletedOrder(item.order)).sort((a,b)=>{
   const timeDifference=deletedOrderSortTime(b)-deletedOrderSortTime(a);
   if(timeDifference)return timeDifference;
   return String(b.orderId||b.order?.id||'').localeCompare(String(a.orderId||a.order?.id||''),'ro',{numeric:true});
@@ -3031,13 +3048,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   /* Completează datele doar când utilizatorul a bifat explicit „Ține-mă minte”. */
   const remembered=localStorage.getItem('sphera_remembered_user')||'';
   const rememberedPass=localStorage.getItem('sphera_remembered_pass')||'';
-  if(user) user.value=remembered;
-  if(pass) pass.value=rememberedPass;
-  if(rememberBox) rememberBox.checked=Boolean(remembered);
+  /* Nu suprascrie textul introdus cât timp documentul încă se încarcă. */
+  if(user&&!user.value) user.value=remembered;
+  if(pass&&!pass.value) pass.value=rememberedPass;
+  if(rememberBox&&!rememberBox.checked) rememberBox.checked=Boolean(remembered);
 
-  if(btn) btn.addEventListener('click', doLogin);
-  [user,pass].filter(Boolean).forEach(el=>el.addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); doLogin(); }}));
-  if(remembered&&rememberedPass&&btn)btn.focus();else if(remembered&&pass)pass.focus();else if(user)user.focus();
+  /* Evenimentele formularului sunt legate o singură dată de fluxul final de autentificare. */
+  const active=document.activeElement;
+  if(!active||active===document.body||active===document.documentElement){
+    if(remembered&&rememberedPass&&btn)btn.focus();else if(remembered&&pass)pass.focus();else if(user)user.focus();
+  }
 });
 </script>
 <style>
@@ -5103,7 +5123,13 @@ cursor:pointer;
     applyingRemote=true;
     try{
       if(Array.isArray(data.deletedOrdersHistory)){
-        const merged=new Map((Array.isArray(deletedOrders)?deletedOrders:[]).map(item=>[
+        const incomingDeletedIds=new Set(data.deletedOrdersHistory.map(item=>String(item?.orderId||item?.order?.id||'')).filter(Boolean));
+        const activeIds=new Set((Array.isArray(orders)?orders:[]).filter(order=>order&&order._deleted!==true).map(order=>String(order.id||'')).filter(Boolean));
+        const localHistory=(Array.isArray(deletedOrders)?deletedOrders:[]).filter(item=>{
+          const id=String(item?.orderId||item?.order?.id||'');
+          return id&&(!activeIds.has(id)||incomingDeletedIds.has(id))
+        });
+        const merged=new Map(localHistory.map(item=>[
           String(item.orderId||item.order?.id||''),item
         ]));
         data.deletedOrdersHistory.forEach(item=>{
@@ -5111,7 +5137,7 @@ cursor:pointer;
           if(orderId&&item?.order)merged.set(orderId,{...(merged.get(orderId)||{}),...item,orderId});
         });
         deletedOrders=[...merged.values()].filter(item=>item?.order);
-        sharedDeletedOrderIds=new Set(data.deletedOrdersHistory.map(item=>String(item?.orderId||item?.order?.id||'')).filter(Boolean));
+        sharedDeletedOrderIds=incomingDeletedIds;
         refreshDeletedOrderIds();
         const filteredOrders=(Array.isArray(orders)?orders:[]).filter(order=>!isOrderSuppressedByDeletion(order?.id));
         if(filteredOrders.length!==orders.length){
@@ -5389,7 +5415,14 @@ cursor:pointer;
   function startDeletedOrdersSync(){
     if(unsubscribeDeletedOrders)unsubscribeDeletedOrders();
     unsubscribeDeletedOrders=DELETED_ORDERS_COL.onSnapshot(snap=>{
-      const localArchive=new Map((Array.isArray(deletedOrders)?deletedOrders:[]).map(item=>[
+      const snapshotDeletedIds=new Set(snap.docs.map(doc=>String(doc.data()?.orderId||doc.data()?.order?.id||'')).filter(Boolean));
+      const confirmedDeletedIds=new Set([...snapshotDeletedIds,...sharedDeletedOrderIds,...pendingDeletedOrderIds]);
+      const activeIds=new Set((Array.isArray(orders)?orders:[]).filter(order=>order&&order._deleted!==true).map(order=>String(order.id||'')).filter(Boolean));
+      const localHistory=(Array.isArray(deletedOrders)?deletedOrders:[]).filter(item=>{
+        const id=String(item?.orderId||item?.order?.id||'');
+        return id&&(!activeIds.has(id)||confirmedDeletedIds.has(id))
+      });
+      const localArchive=new Map(localHistory.map(item=>[
         String(item.orderId||item.order?.id||''),item
       ]));
       snap.docs.forEach(doc=>{
@@ -5410,7 +5443,7 @@ cursor:pointer;
       });
       deletedOrders=[...localArchive.values()].filter(item=>item?.order);
       originalSetItem('sphera_deleted_orders_history',JSON.stringify(deletedOrders));
-      cloudDeletedOrderIds=new Set(snap.docs.map(doc=>String(doc.data()?.orderId||'')).filter(Boolean));
+      cloudDeletedOrderIds=snapshotDeletedIds;
       cloudDeletedOrderIds.forEach(id=>pendingDeletedOrderIds.delete(id));
       refreshDeletedOrderIds();
       const filtered=(Array.isArray(orders)?orders:[]).filter(
@@ -6190,22 +6223,26 @@ cursor:pointer;
   document.addEventListener('DOMContentLoaded',()=>{
     localStorage.removeItem('sphera_remembered_pass');
     const remembered=localStorage.getItem('sphera_auth_remember')==='1';
-    let user=document.getElementById('user');
-    let pass=document.getElementById('pass');
+    const user=document.getElementById('user');
+    const pass=document.getElementById('pass');
     const remember=document.getElementById('rememberMe');
-    if(user)user.value=remembered?(localStorage.getItem('sphera_remembered_user')||''):'';
-    if(pass)pass.value='';
-    if(remember)remember.checked=remembered;
-    /* Elimină evenimentele de login locale atașate de versiunile vechi. */
-    if(user){const clean=user.cloneNode(true);user.replaceWith(clean);user=clean}
-    if(pass){const clean=pass.cloneNode(true);pass.replaceWith(clean);pass=clean}
-    const oldBtn=document.getElementById('loginBtn');
-    let btn=oldBtn;
-    if(oldBtn){btn=oldBtn.cloneNode(true);oldBtn.replaceWith(btn);btn.removeAttribute('onclick')}
-    if(btn)btn.addEventListener('click',event=>{event.preventDefault();window.doLogin()});
-    [user,pass].filter(Boolean).forEach(input=>input.addEventListener('keydown',event=>{
-      if(event.key==='Enter'){event.preventDefault();window.doLogin()}
-    }));
+    if(user&&!user.value)user.value=remembered?(localStorage.getItem('sphera_remembered_user')||''):'';
+    if(remember&&!remember.checked)remember.checked=remembered;
+
+    /* Păstrează aceleași elemente în DOM, astfel încât focusul și textul tastat să nu se piardă. */
+    const btn=document.getElementById('loginBtn');
+    if(btn&&btn.dataset.spheraLoginBound!=='1'){
+      btn.dataset.spheraLoginBound='1';
+      btn.removeAttribute('onclick');
+      btn.addEventListener('click',event=>{event.preventDefault();window.doLogin()});
+    }
+    [user,pass].filter(Boolean).forEach(input=>{
+      if(input.dataset.spheraLoginBound==='1')return;
+      input.dataset.spheraLoginBound='1';
+      input.addEventListener('keydown',event=>{
+        if(event.key==='Enter'){event.preventDefault();window.doLogin()}
+      });
+    });
   });
 })();
 </script>
@@ -10645,12 +10682,16 @@ html>.sphera-edit-popup.modal.open>.wizard{
     if(orderButton){
       const visible=active==='dashboard'&&allowed('canCreateOrders',true);
       orderButton.classList.toggle('hide',!visible);
+      orderButton.hidden=!visible;
       orderButton.setAttribute('aria-hidden',String(!visible));
+      orderButton.style.setProperty('display',visible?'inline-flex':'none','important');
     }
     if(clientButton){
       const visible=(active==='dashboard'||active==='clientsPage')&&allowed('canManageClients',true);
       clientButton.classList.toggle('hide',!visible);
+      clientButton.hidden=!visible;
       clientButton.setAttribute('aria-hidden',String(!visible));
+      clientButton.style.setProperty('display',visible?'inline-flex':'none','important');
     }
   }
   const previousShowPage=window.showPage;
@@ -11605,8 +11646,6 @@ body.partner-account #recentClientsBox{display:none!important}
 #permissionsCard{margin-top:16px;overflow:hidden}
 .permission-card-head{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:18px}
 .permission-card-title{display:flex;align-items:center;gap:12px}
-.permission-shield{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:#eaf1ff;color:#165dff;flex:0 0 44px}
-.permission-shield svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .permission-card-title h2{margin:0;font-size:20px;color:#101828}
 .permission-summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .permission-summary span{padding:7px 10px;border-radius:999px;background:#f2f4f7;color:#475467;font-size:11px;font-weight:800}
@@ -11805,7 +11844,7 @@ body.partner-account #recentClientsBox{display:none!important}
     const card=document.createElement('div');
     card.className='card';
     card.id='permissionsCard';
-    card.innerHTML='<div class="permission-card-head"><div class="permission-card-title"><div class="permission-shield"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.8 8.1-7 10-4.2-1.9-7-5.4-7-10V6l7-3z"></path><path d="M9 12l2 2 4-4"></path></svg></div><div><h2>Drepturi utilizatori</h2><div class="muted">Aplică un șablon sau configurează fiecare privilegiu.</div></div></div><div class="permission-summary" id="permissionSummary"></div></div><div class="permission-layout"><div class="permission-users-panel"><div class="permission-users-toolbar"><input id="permissionUserSearch" type="search" autocomplete="off" placeholder="Caută utilizatorul"></div><div class="permission-user-list" id="permissionUserList"></div></div><div class="permission-editor" id="permissionEditor"></div></div>';
+    card.innerHTML='<div class="permission-card-head"><div class="permission-card-title"><div><h2>Drepturi utilizatori</h2><div class="muted">Aplică un șablon sau configurează fiecare privilegiu.</div></div></div><div class="permission-summary" id="permissionSummary"></div></div><div class="permission-layout"><div class="permission-users-panel"><div class="permission-users-toolbar"><input id="permissionUserSearch" type="search" autocomplete="off" placeholder="Caută utilizatorul"></div><div class="permission-user-list" id="permissionUserList"></div></div><div class="permission-editor" id="permissionEditor"></div></div>';
     const first=settings.querySelector('.admin-users-card');
     if(first&&first.nextSibling)settings.insertBefore(card,first.nextSibling);else settings.appendChild(card);
     card.querySelector('#permissionUserSearch').addEventListener('input',renderUserList);
@@ -11966,6 +12005,7 @@ body.partner-account #recentClientsBox{display:none!important}
     if(!configured){
       if(!notice){notice=document.createElement('div');notice.id='permissionProfileNotice';notice.className='permission-profile-alert';notice.textContent='Contul tău este autentificat, dar nu are încă drepturi configurate. Contactează administratorul.';document.querySelector('.main')?.insertBefore(notice,document.querySelector('.main')?.children?.[1]||null)}
     }else{currentUser.profileMissing=false;notice?.remove()}
+    if(typeof window.syncPageActions==='function')window.syncPageActions()
   }
   window.SPHERA_APPLY_PERMISSION_UI=applyPermissionUI;
   const baseApplyPermissions=window.applyPermissions;
@@ -14562,8 +14602,8 @@ body.partner-account #recentClientsBox{display:none!important}
       return
     }
     const candidates=report.candidates.length;
-    const dashboardDeletedCount=typeof deletedOrders!=='undefined'&&Array.isArray(deletedOrders)
-      ?deletedOrders.filter(item=>item?.order&&(typeof canViewDeletedOrder!=='function'||canViewDeletedOrder(item.order))).length
+    const dashboardDeletedCount=typeof window.SPHERA_currentDeletedHistoryEntries==='function'
+      ?window.SPHERA_currentDeletedHistoryEntries().filter(item=>typeof canViewDeletedOrder!=='function'||canViewDeletedOrder(item.order)).length
       :Number(report.availableDeletedCount||0);
     const conflictMessage=report.activeArchiveConflicts.length
       ?'<div class="orders-integrity-alert">Au fost găsite '+report.activeArchiveConflicts.length+' comenzi active cu marcaje vechi în arhivă. În această versiune, marcajele vechi nu mai ascund documentele active.</div>'
