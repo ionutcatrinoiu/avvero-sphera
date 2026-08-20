@@ -14769,12 +14769,7 @@ body.partner-account #recentClientsBox{display:none!important}
     return typeof event.target?.closest==='function'&&!!event.target.closest(interactiveCardTarget)
   }
   function cardToggleZone(card){
-    const header=[...card.children].find(child=>child.matches?.('.top,.nomen-card-head,.permission-card-head'));
-    if(!header)return null;
-    return [...header.children].find(child=>{
-      if(child.matches?.('button,.sphera-settings-card-actions,.orders-card-actions,.deleted-history-actions'))return false;
-      return !child.querySelector?.('.list-toggle,.nomen-toggle,.sphera-settings-card-collapse')
-    })||null
+    return [...card.children].find(child=>child.matches?.('.top,.nomen-card-head,.permission-card-head'))||null
   }
   function bindCardSurfaceToggle(card,toggleCard){
     if(!card||card.dataset.spheraCardToggleBound==='1')return;
@@ -14968,11 +14963,16 @@ body.partner-account #recentClientsBox{display:none!important}
   function locationFirstTerritory(client){
     if(!client||typeof baseClientTerritory!=='function')return '';
     const current=clientIndex().get(text(client.code))||client;
+    const hasLocation=!!text(current.city||current.county);
     const locationOnly={...current};
     delete locationOnly.responsibleCenter;
     delete locationOnly.deliveryCenter;
     delete locationOnly.assignedCenter;
-    return baseClientTerritory(locationOnly)||baseClientTerritory(current)||''
+    delete locationOnly.center;
+    delete locationOnly.createdByCenter;
+    const territory=baseClientTerritory(locationOnly)||'';
+    if(territory||hasLocation)return territory;
+    return baseClientTerritory(current)||''
   }
   window.SPHERA_CURRENT_CLIENT_FOR_ORDER=currentClientForOrder;
   window.SPHERA_CLIENT_TERRITORY_CENTER=locationFirstTerritory;
@@ -14982,7 +14982,7 @@ body.partner-account #recentClientsBox{display:none!important}
     const currentClient=currentClientForOrder(order);
     if(routeKey(order.deliveryDestination)==='client'){
       const territory=locationFirstTerritory(currentClient);
-      if(territory)return territory
+      if(territory||text(currentClient?.city||currentClient?.county))return territory
     }
     return typeof baseResponsibleCenter==='function'?baseResponsibleCenter({...order,client:currentClient}):text(order.responsibleCenter||order.deliveryCenter||order.mountCenter||order.mount||order.center)
   }
@@ -15003,7 +15003,7 @@ body.partner-account #recentClientsBox{display:none!important}
     if(territory)values.push(territory);
     if(routeKey(order.deliveryDestination)==='client'){
       const stale=routeKey(order.responsibleCenter),responsible=currentResponsibleCenter(order),fresh=routeKey(responsible),fixed=new Set(fixedVisibilityCenters(order));
-      if(stale&&fresh&&stale!==fresh&&!fixed.has(stale))values=values.filter(value=>routeKey(value)!==stale);
+      if(stale&&stale!==fresh&&!fixed.has(stale))values=values.filter(value=>routeKey(value)!==stale);
       if(responsible)values.push(responsible)
     }
     const unique=new Map();
@@ -15022,7 +15022,9 @@ body.partner-account #recentClientsBox{display:none!important}
     if(changed)order.client=next;
     if(routeKey(order.deliveryDestination)==='client'){
       const responsible=locationFirstTerritory(client);
-      if(responsible&&routeKey(order.responsibleCenter)!==routeKey(responsible)){order.responsibleCenter=responsible;changed=true}
+      if(responsible){
+        if(routeKey(order.responsibleCenter)!==routeKey(responsible)){order.responsibleCenter=responsible;changed=true}
+      }else if(text(client.city||client.county)&&text(order.responsibleCenter)){order.responsibleCenter='';changed=true}
     }
     return changed
   }
