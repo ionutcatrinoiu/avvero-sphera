@@ -14758,13 +14758,35 @@ body.partner-account #recentClientsBox{display:none!important}
     }
   }
   const interactiveCardTarget='button,input,select,textarea,a,label,[role="button"],[contenteditable="true"],[onclick]';
+  function stabilizeCollapseButton(button){
+    if(!button||button.dataset.spheraCollapseButtonBound==='1')return;
+    button.dataset.spheraCollapseButtonBound='1';
+    button.addEventListener('click',event=>event.stopPropagation())
+  }
+  function isInteractiveCardClick(event,card){
+    const path=typeof event.composedPath==='function'?event.composedPath():[];
+    if(path.length)return path.some(node=>node!==card&&typeof node?.matches==='function'&&node.matches(interactiveCardTarget));
+    return typeof event.target?.closest==='function'&&!!event.target.closest(interactiveCardTarget)
+  }
+  function cardToggleZone(card){
+    const header=[...card.children].find(child=>child.matches?.('.top,.nomen-card-head,.permission-card-head'));
+    if(!header)return null;
+    return [...header.children].find(child=>{
+      if(child.matches?.('button,.sphera-settings-card-actions,.orders-card-actions,.deleted-history-actions'))return false;
+      return !child.querySelector?.('.list-toggle,.nomen-toggle,.sphera-settings-card-collapse')
+    })||null
+  }
   function bindCardSurfaceToggle(card,toggleCard){
     if(!card||card.dataset.spheraCardToggleBound==='1')return;
+    const zone=cardToggleZone(card);
+    if(!zone)return;
     card.dataset.spheraCardToggleBound='1';
     card.classList.add('sphera-card-surface-toggle');
-    card.addEventListener('click',event=>{
-      if(event.target.closest(interactiveCardTarget))return;
-      toggleCard()
+    zone.classList.add('sphera-card-toggle-zone');
+    zone.addEventListener('click',event=>{
+      if(isInteractiveCardClick(event,card)||card.dataset.spheraCardToggleBusy==='1')return;
+      card.dataset.spheraCardToggleBusy='1';
+      try{toggleCard()}finally{delete card.dataset.spheraCardToggleBusy}
     })
   }
   function ensureCardCollapse(cardId,headSelector,movableSelector){
@@ -14803,6 +14825,7 @@ body.partner-account #recentClientsBox{display:none!important}
     })
   }
   function ensureAllCollapsibleCards(){
+    document.querySelectorAll('.list-toggle,.nomen-toggle,.sphera-settings-card-collapse').forEach(stabilizeCollapseButton);
     document.querySelectorAll('.card').forEach(card=>{
       const button=[...card.querySelectorAll('.list-toggle,.nomen-toggle,.sphera-settings-card-collapse')]
         .find(candidate=>candidate.closest('.card')===card);
@@ -14891,7 +14914,8 @@ body.partner-account #recentClientsBox{display:none!important}
 #ordersIntegrityCard .sphera-settings-card-actions button:hover{background:#f8fbff!important;border-color:#bfd0e7!important}
 #permissionsCard.sphera-settings-card-collapsed .permission-layout,
 #ordersIntegrityCard.sphera-settings-card-collapsed .orders-integrity-result{display:none!important}
-.sphera-card-surface-toggle{cursor:pointer}
+.sphera-card-surface-toggle{cursor:default}
+.sphera-card-toggle-zone{cursor:pointer}
 #permissionsCard.sphera-settings-card-collapsed .permission-card-head{margin-bottom:0!important}
 #ordersIntegrityCard.sphera-settings-card-collapsed>.top{margin-bottom:0!important}
 .sphera-search-control{position:relative;min-width:0;flex:1;width:100%}
@@ -14908,5 +14932,160 @@ body.partner-account #recentClientsBox{display:none!important}
   .permission-card-head .sphera-settings-card-actions{align-items:center}
 }
 </style>
+<script id="sphera-v13-current-client-routing">
+(function(){
+  'use strict';
+  const text=value=>String(value||'').trim();
+  const routeKey=value=>text(value).toLocaleLowerCase('ro-RO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[-_]+/g,' ').replace(/\s+/g,' ').trim();
+  const baseClientTerritory=window.SPHERA_CLIENT_TERRITORY_CENTER;
+  const baseResponsibleCenter=window.SPHERA_ORDER_RESPONSIBLE_CENTER;
+  const baseVisibilityCenters=window.SPHERA_ORDER_CENTERS_FOR_VISIBILITY;
+  const clientFields=['name','city','county','cui','code'];
+  let clientIndexCache=null;
+  let saveQueued=false;
+
+  function invalidateClientIndex(){clientIndexCache=null}
+  function clientIndex(){
+    if(clientIndexCache)return clientIndexCache;
+    const index=new Map();
+    (CLIENTS||[]).forEach(client=>{
+      [client?.code,client?.__originalCode,client?.originalCode].map(text).filter(Boolean).forEach(code=>index.set(code,client))
+    });
+    (USER_CLIENTS||[]).forEach(client=>{
+      const code=text(client?.code),original=text(client?.originalCode||client?.__originalCode);
+      if(client?.isAdminOverride){
+        const merged={...(index.get(original)||index.get(code)||{}),...client};
+        [code,original].filter(Boolean).forEach(value=>index.set(value,merged))
+      }else if(code&&!index.has(code))index.set(code,client)
+    });
+    clientIndexCache=index;
+    return clientIndexCache
+  }
+  function currentClientForOrder(order,index=clientIndex()){
+    const code=text(order?.client?.code||order?.clientCode||order?.partnerClientCode);
+    return index.get(code)||order?.client||null
+  }
+  function locationFirstTerritory(client){
+    if(!client||typeof baseClientTerritory!=='function')return '';
+    const current=clientIndex().get(text(client.code))||client;
+    const locationOnly={...current};
+    delete locationOnly.responsibleCenter;
+    delete locationOnly.deliveryCenter;
+    delete locationOnly.assignedCenter;
+    return baseClientTerritory(locationOnly)||baseClientTerritory(current)||''
+  }
+  window.SPHERA_CURRENT_CLIENT_FOR_ORDER=currentClientForOrder;
+  window.SPHERA_CLIENT_TERRITORY_CENTER=locationFirstTerritory;
+
+  function currentResponsibleCenter(order){
+    if(!order)return '';
+    const currentClient=currentClientForOrder(order);
+    if(routeKey(order.deliveryDestination)==='client'){
+      const territory=locationFirstTerritory(currentClient);
+      if(territory)return territory
+    }
+    return typeof baseResponsibleCenter==='function'?baseResponsibleCenter({...order,client:currentClient}):text(order.responsibleCenter||order.deliveryCenter||order.mountCenter||order.mount||order.center)
+  }
+  window.SPHERA_ORDER_RESPONSIBLE_CENTER=currentResponsibleCenter;
+
+  function fixedVisibilityCenters(order){
+    return [order?.center,order?.createdByCenter,order?.responsibleMountCenter,order?.mountCenter,order?.mount,order?.deliveryCenter,order?.deliveryLocation,order?.deliveryPoint]
+      .map(routeKey).filter(Boolean)
+  }
+  window.SPHERA_ORDER_CENTERS_FOR_VISIBILITY=function(order){
+    if(!order)return [];
+    const currentClient=currentClientForOrder(order);
+    let values=typeof baseVisibilityCenters==='function'
+      ? baseVisibilityCenters({...order,client:currentClient})
+      : [order.center,order.createdByCenter,order.responsibleCenter,order.responsibleMountCenter,order.mountCenter,order.mount,order.deliveryCenter,order.deliveryLocation,order.deliveryPoint];
+    values=Array.isArray(values)?values.filter(Boolean):[];
+    const territory=locationFirstTerritory(currentClient);
+    if(territory)values.push(territory);
+    if(routeKey(order.deliveryDestination)==='client'){
+      const stale=routeKey(order.responsibleCenter),responsible=currentResponsibleCenter(order),fresh=routeKey(responsible),fixed=new Set(fixedVisibilityCenters(order));
+      if(stale&&fresh&&stale!==fresh&&!fixed.has(stale))values=values.filter(value=>routeKey(value)!==stale);
+      if(responsible)values.push(responsible)
+    }
+    const unique=new Map();
+    values.forEach(value=>{const key=routeKey(value);if(key&&!unique.has(key))unique.set(key,value)});
+    return [...unique.values()]
+  };
+
+  function syncOrderClient(order,client){
+    if(!order||!client)return false;
+    let changed=false;
+    const next={...(order.client||{})};
+    clientFields.forEach(field=>{
+      const value=client[field];
+      if(value!==undefined&&text(next[field])!==text(value)){next[field]=value;changed=true}
+    });
+    if(changed)order.client=next;
+    if(routeKey(order.deliveryDestination)==='client'){
+      const responsible=locationFirstTerritory(client);
+      if(responsible&&routeKey(order.responsibleCenter)!==routeKey(responsible)){order.responsibleCenter=responsible;changed=true}
+    }
+    return changed
+  }
+  function syncClientOrders(client,aliases=[]){
+    if(!client)return false;
+    const codes=new Set([client.code,client.__originalCode,client.originalCode,...aliases].map(text).filter(Boolean));
+    let changed=false;
+    (orders||[]).forEach(order=>{
+      if(codes.has(text(order?.client?.code||order?.clientCode||order?.partnerClientCode)))changed=syncOrderClient(order,client)||changed
+    });
+    return changed
+  }
+  function synchronizeAllOrderClients(){
+    const index=clientIndex();
+    let changed=false;
+    (orders||[]).forEach(order=>{
+      const client=currentClientForOrder(order,index);
+      if(client&&index.get(text(client.code)))changed=syncOrderClient(order,client)||changed
+    });
+    return changed
+  }
+  function persistChanges(){
+    if(saveQueued)return;
+    saveQueued=true;
+    queueMicrotask(()=>{saveQueued=false;if(typeof save==='function')save()})
+  }
+  function refreshOrderViews(){
+    if(typeof window.render==='function')window.render();
+    if(typeof window.SPHERA_renderStatusOrders==='function')window.SPHERA_renderStatusOrders();
+    else if(typeof renderProcessingOrders==='function')renderProcessingOrders()
+  }
+
+  const previousUpdateClient=window.updateClient;
+  if(typeof previousUpdateClient==='function')window.updateClient=function(code){
+    const result=previousUpdateClient.apply(this,arguments);invalidateClientIndex();const client=clientIndex().get(text(code));
+    if(syncClientOrders(client,[code])){persistChanges();refreshOrderViews()}
+    return result
+  };
+  const previousAdminClientSave=window.SPHERA_saveAdminClientRow;
+  if(typeof previousAdminClientSave==='function')window.SPHERA_saveAdminClientRow=function(button){
+    const row=button?.closest('tr'),original=decodeURIComponent(row?.dataset.clientKey||''),before=(CLIENTS||[]).find(client=>text(client.__originalCode||client.code)===text(original)),previousCode=text(before?.code);
+    const result=previousAdminClientSave.apply(this,arguments);
+    invalidateClientIndex();
+    const client=(CLIENTS||[]).find(item=>text(item.__originalCode||item.code)===text(original))||clientIndex().get(previousCode);
+    if(syncClientOrders(client,[original,previousCode])){persistChanges();refreshOrderViews()}
+    return result
+  };
+
+  const previousRenderClients=window.renderClients;
+  if(typeof previousRenderClients==='function')window.renderClients=function(){invalidateClientIndex();return previousRenderClients.apply(this,arguments)};
+  const previousRender=window.render;
+  if(typeof previousRender==='function')window.render=function(){
+    invalidateClientIndex();
+    if(synchronizeAllOrderClients())persistChanges();
+    return previousRender.apply(this,arguments)
+  };
+  const previousStatusRender=window.SPHERA_renderStatusOrders;
+  if(typeof previousStatusRender==='function')window.SPHERA_renderStatusOrders=function(){
+    invalidateClientIndex();
+    if(synchronizeAllOrderClients())persistChanges();
+    return previousStatusRender.apply(this,arguments)
+  };
+})();
+</script>
 </body>
 </html>
