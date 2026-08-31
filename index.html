@@ -4695,8 +4695,6 @@ cursor:pointer;
   let cloudReady=false, applyingRemote=false, saveTimer=null, unsubscribeShared=null, unsubscribeUsers=null;
   let unsubscribeOrders=null, unsubscribeDeletedOrders=null, applyingOrdersRemote=false, ordersReady=false, ordersInitializing=false;
   let ordersSaveTimer=null, ordersPendingSave=false, lastLocalOrderIds=new Set(), lastLocalOrdersById=new Map(), deletedOrderIds=new Set(), pendingDeletedOrderIds=new Set(), cloudDeletedOrderIds=new Set(), sharedDeletedOrderIds=new Set(), orderTombstoneIds=new Set();
-  const startupOrdersSnapshot=JSON.parse(JSON.stringify(Array.isArray(orders)?orders:[]));
-  let recoveredOrdersCache=[], recoveredOrdersLoaded=false, recoveredOrdersMigrationAttempted=false, recoveredOrdersMigrationPromise=null;
   function refreshDeletedOrderIds(){deletedOrderIds=new Set([...cloudDeletedOrderIds,...sharedDeletedOrderIds,...orderTombstoneIds,...pendingDeletedOrderIds])}
 
   function setCloudStatus(text,type){
@@ -5000,10 +4998,6 @@ cursor:pointer;
   function cleanOrderForCloud(order){
     const clean=JSON.parse(JSON.stringify(order||{}));
     if(!clean.id)clean.id='ord_'+Date.now()+'_'+Math.random().toString(36).slice(2,9);
-    const rawCenter=String(clean.center||'').trim();
-    const canonicalCenter=(Array.isArray(CENTERS)?CENTERS:[]).find(item=>norm(item?.center)===norm(rawCenter))?.center;
-    if(canonicalCenter)clean.center=canonicalCenter;
-    clean.centerKey=norm(clean.center).replace(/[^a-z0-9]/g,'');
     const statusKey=norm(clean.workflowStatus||clean.status||'');
     if(statusKey&&statusKey!=='lansata'&&!clean.workflowUpdatedAt){
       const fallback=Number(clean.lastModifiedTimestamp||clean.createdTimestamp||0);
@@ -5090,142 +5084,14 @@ cursor:pointer;
     ['workflowStatus','status','workflowChecks','workflowResetAt','workflowUpdatedAt','workflowUpdatedAtMs','workflowUpdatedBy','workflowRevision','deliveredAt','deliveredDate','deliveredTime','deliveredBy'].forEach(key=>delete copy[key]);
     return JSON.stringify(copy)
   }
-  function recoveryOrderId(order){
-    const direct=String(order?.id||'').trim();
-    if(direct)return direct;
-    const code=String(order?.code||'').trim();
-    return code?'legacy_'+code.replace(/[^a-z0-9]/gi,'_'):'';
-  }
-  function recoveryFreshness(order){
-    let value=workflowStamp(order);
-    ['lastModifiedTimestamp','createdTimestamp','updatedAtMs','createdAtMs','deletedAtMs'].forEach(key=>{
-      const numeric=Number(order?.[key]||0);
-      if(Number.isFinite(numeric)&&numeric>value)value=numeric;
-    });
-    ['lastModifiedAt','updatedAt','createdAt','addedAt','dateCreated'].forEach(key=>{
-      const parsed=Date.parse(order?.[key]||'');
-      if(Number.isFinite(parsed)&&parsed>value)value=parsed;
-    });
-    const idTimestamp=String(order?.id||'').match(/(\d{10,})/);
-    if(idTimestamp&&Number(idTimestamp[1])>value)value=Number(idTimestamp[1]);
-    return value;
-  }
-  function mergeRecoveryRecord(existing,incoming){
-    if(!existing)return incoming;
-    const incomingIsNewer=recoveryFreshness(incoming)>=recoveryFreshness(existing);
-    const fresher=incomingIsNewer?incoming:existing;
-    const combined=incomingIsNewer?{...existing,...incoming}:{...incoming,...existing};
-    return mergeWorkflowState(fresher,combined);
-  }
-  function mergeRecoveredWithCloud(cloudList){
-    const merged=new Map();
-    (Array.isArray(recoveredOrdersCache)?recoveredOrdersCache:[]).forEach(source=>{
-      const id=recoveryOrderId(source);
-      if(!id||deletedOrderIds.has(id))return;
-      const order=source.id?source:{...source,id};
-      merged.set(id,mergeRecoveryRecord(merged.get(id),order));
-    });
-    (Array.isArray(cloudList)?cloudList:[]).forEach(source=>{
-      const id=recoveryOrderId(source);
-      if(!id)return;
-      if(source?._deleted===true||deletedOrderIds.has(id)){merged.delete(id);return;}
-      const order=source.id?source:{...source,id};
-      const recovered=merged.get(id);
-      const combined=recovered?{...recovered,...order}:order;
-      merged.set(id,recovered?mergeWorkflowState(recovered,combined):combined);
-    });
-    return [...merged.values()];
-  }
-  async function loadRecoveredOrders(){
-    if(recoveredOrdersLoaded)return recoveredOrdersCache;
-    recoveredOrdersLoaded=true;
-    const recoveredById=new Map();
-    const addOrders=list=>{
-      (Array.isArray(list)?list:[]).forEach(source=>{
-        const id=recoveryOrderId(source);
-        if(!id)return;
-        const order=source.id?source:{...source,id};
-        recoveredById.set(id,mergeRecoveryRecord(recoveredById.get(id),order));
-      });
-    };
-    addOrders(startupOrdersSnapshot);
-    try{
-      const legacySnapshot=await SHARED_REF.get();
-      const legacyData=legacySnapshot.exists?(legacySnapshot.data()||{}):{};
-      addOrders(legacyData.orders);
-      if(Array.isArray(legacyData.deletedOrdersHistory)){
-        const legacyDeletedIds=legacyData.deletedOrdersHistory.map(item=>String(item?.orderId||item?.order?.id||'')).filter(Boolean);
-        sharedDeletedOrderIds=new Set([...sharedDeletedOrderIds,...legacyDeletedIds]);
-        refreshDeletedOrderIds();
-      }
-    }catch(error){
-      console.warn('SPHERA legacy orders read error',error);
-    }
-    try{
-      const deletedSnapshot=await DELETED_ORDERS_COL.get();
-      const archivedIds=deletedSnapshot.docs.map(doc=>String(doc.data()?.orderId||doc.data()?.order?.id||'')).filter(Boolean);
-      cloudDeletedOrderIds=new Set([...cloudDeletedOrderIds,...archivedIds]);
-      refreshDeletedOrderIds();
-    }catch(error){
-      console.warn('SPHERA deleted orders verification error',error);
-    }
-    recoveredOrdersCache=[...recoveredById.values()].filter(order=>!deletedOrderIds.has(recoveryOrderId(order)));
-    return recoveredOrdersCache;
-  }
-  function mayMigrateRecoveredOrder(order){
-    const role=normalizeRole(currentUser?.role||currentUser?.permissionTemplate);
-    if(role==='admin'||role==='iasi')return true;
-    if(role!=='operator')return false;
-    return norm(order?.center)===norm(currentUser?.center);
-  }
-  async function migrateRecoveredOrders(cloudList){
-    if(!auth.currentUser||!recoveredOrdersCache.length)return 0;
-    const cloudIds=new Set((Array.isArray(cloudList)?cloudList:[]).map(recoveryOrderId).filter(Boolean));
-    const candidates=recoveredOrdersCache
-      .filter(order=>{
-        const id=recoveryOrderId(order);
-        return id&&!cloudIds.has(id)&&!deletedOrderIds.has(id)&&mayMigrateRecoveredOrder(order);
-      })
-      .map(order=>cleanOrderForCloud(order));
-    if(!candidates.length)return 0;
-    setCloudStatus('Cloud: se recuperează istoricul','wait');
-    let batch=db.batch(),operations=0;
-    const commits=[];
-    const flush=()=>{
-      if(!operations)return;
-      commits.push(batch.commit());
-      batch=db.batch();
-      operations=0;
-    };
-    candidates.forEach(order=>{
-      batch.set(ORDERS_COL.doc(orderDocId(order)),{
-        ...order,
-        _cloudUpdatedAt:firebase.firestore.FieldValue.serverTimestamp(),
-        _cloudUpdatedBy:auth.currentUser.uid,
-        _legacyRecovered:true
-      },{merge:true});
-      operations++;
-      if(operations>=350)flush();
-    });
-    flush();
-    await Promise.all(commits);
-    await ORDERS_STATE_REF.set({
-      initialized:true,
-      legacyRecoveredAt:firebase.firestore.FieldValue.serverTimestamp(),
-      legacyRecoveredBy:auth.currentUser.uid
-    },{merge:true});
-    setCloudStatus('Cloud: istoricul a fost recuperat','ok');
-    return candidates.length;
-  }
   function applyOrdersFromCloud(list,cloudChanges=[]){
     applyingOrdersRemote=true;
     try{
-      const receivedCloudList=Array.isArray(list)?list:[];
+      const cloudList=Array.isArray(list)?list:[];
       const localOrdersById=new Map((Array.isArray(orders)?orders:[]).map(order=>[String(order?.id||''),order]));
-      orderTombstoneIds=new Set(receivedCloudList.filter(order=>order?._deleted===true).map(order=>String(order?.id||'')).filter(Boolean));
+      orderTombstoneIds=new Set(cloudList.filter(order=>order?._deleted===true).map(order=>String(order?.id||'')).filter(Boolean));
       orderTombstoneIds.forEach(id=>pendingDeletedOrderIds.delete(id));
       refreshDeletedOrderIds();
-      const cloudList=mergeRecoveredWithCloud(receivedCloudList);
       orders=cloudList
         .filter(order=>order?._deleted!==true&&!deletedOrderIds.has(String(order?.id||'')))
         .map((order,index)=>({order:mergeWorkflowState(localOrdersById.get(String(order?.id||'')),order),index}))
@@ -5625,29 +5491,22 @@ cursor:pointer;
     }
   };
 
-  function orderCenterQueryValues(value){
-    const raw=String(value||'').trim();
-    const canonical=(Array.isArray(CENTERS)?CENTERS:[]).find(item=>norm(item?.center)===norm(raw))?.center||raw;
-    const ascii=canonical.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[șş]/g,'s').replace(/[țţ]/g,'t');
-    const cedilla=canonical.replace(/ș/g,'ş').replace(/ț/g,'ţ');
-    return [...new Set([raw,canonical,ascii,cedilla].map(item=>String(item||'').trim()).filter(Boolean))].slice(0,10);
-  }
   function startOrdersSync(){
     if(unsubscribeOrders)unsubscribeOrders();
     ordersReady=false;
     ordersInitializing=false;
-    recoveredOrdersLoaded=false;
-    recoveredOrdersCache=[];
-    recoveredOrdersMigrationAttempted=false;
-    recoveredOrdersMigrationPromise=null;
     const syncRole=normalizeRole(currentUser?.role||currentUser?.permissionTemplate);
     const scopedCenter=String(currentUser?.center||'').trim();
     const centerScoped=syncRole==='operator'&&!!scopedCenter;
-    const centerValues=orderCenterQueryValues(scopedCenter);
-    const ordersSource=centerScoped
-      ? (centerValues.length>1?ORDERS_COL.where('center','in',centerValues):ORDERS_COL.where('center','==',scopedCenter))
-      : ORDERS_COL;
+    const ordersSource=centerScoped?ORDERS_COL.where('center','==',scopedCenter):ORDERS_COL;
     unsubscribeOrders=ordersSource.onSnapshot(async snap=>{
+      if(snap.empty&&!centerScoped&&!ordersInitializing&&!ordersReady){
+        ordersInitializing=true;
+        await migrateInitialOrders();
+        ordersInitializing=false;
+        if(ordersPendingSave)scheduleOrdersSave();
+        return;
+      }
       const list=snap.docs.map(d=>{
         const value=d.data()||{};
         delete value._cloudUpdatedAt;
@@ -5655,23 +5514,10 @@ cursor:pointer;
         return value;
       });
       const cloudChanges=typeof snap.docChanges==='function'?snap.docChanges().map(change=>({type:change.type,id:String(change.doc.data()?.id||'')})):[];
-      if(!recoveredOrdersLoaded){
-        ordersInitializing=true;
-        await loadRecoveredOrders();
-        ordersInitializing=false;
-      }
       applyOrdersFromCloud(list,cloudChanges);
       ordersReady=true;
       setCloudStatus('Cloud: conectat','ok');
       if(ordersPendingSave)scheduleOrdersSave();
-      if(!recoveredOrdersMigrationAttempted&&recoveredOrdersCache.length){
-        recoveredOrdersMigrationAttempted=true;
-        recoveredOrdersMigrationPromise=migrateRecoveredOrders(list).catch(error=>{
-          console.error('SPHERA historical orders recovery error',error);
-          setCloudStatus('Cloud: istoricul este vizibil, migrarea va fi reluată','error');
-          return 0;
-        });
-      }
     },e=>{
       console.error('SPHERA orders listener error',e);
       setCloudStatus('Cloud: acces refuzat','error');
@@ -14141,5 +13987,48 @@ body.partner-account #recentClientsBox{display:none!important}
 #processingOrdersList{contain:layout style}
 #orderRows{contain:layout style}
 </style>
+<script id="sphera-workflow-status-compatibility-fix">
+(function(){
+  'use strict';
+  const canonicalStatuses={
+    'lansata':'Lansată',
+    'launched':'Lansată',
+    'check out':'Check-out',
+    'check-out':'Check-out',
+    'checkout':'Check-out',
+    'receptie':'Recepție',
+    'la montaj':'La montaj',
+    'facturata':'Facturată',
+    'livrata':'Livrată'
+  };
+  function statusKey(value){
+    return String(value||'').trim().toLocaleLowerCase('ro-RO')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[_]+/g,' ').replace(/\s+/g,' ');
+  }
+  function normalizeOrderWorkflowStatus(order){
+    if(!order)return;
+    const raw=order.workflowStatus||(order.status==='Livrată'?'Livrată':'');
+    const canonical=canonicalStatuses[statusKey(raw)];
+    if(canonical&&order.workflowStatus!==canonical)order.workflowStatus=canonical;
+    if(canonical==='Livrată'&&order.status!=='Livrată')order.status='Livrată';
+  }
+  function normalizeAllWorkflowStatuses(){
+    if(typeof orders!=='undefined'&&Array.isArray(orders))orders.forEach(normalizeOrderWorkflowStatus);
+  }
+  normalizeAllWorkflowStatuses();
+  const previousStatusRender=window.SPHERA_renderStatusOrders;
+  if(typeof previousStatusRender==='function')window.SPHERA_renderStatusOrders=function(){
+    normalizeAllWorkflowStatuses();
+    return previousStatusRender.apply(this,arguments);
+  };
+  window.renderProcessingOrders=function(){return window.SPHERA_renderStatusOrders()};
+  const previousApply=window.SPHERA_applyCheckpoint;
+  if(typeof previousApply==='function')window.SPHERA_applyCheckpoint=function(event,id,status){
+    normalizeOrderWorkflowStatus((typeof orders!=='undefined'&&Array.isArray(orders)?orders:[]).find(order=>String(order.id)===String(id)));
+    return previousApply.apply(this,arguments);
+  };
+})();
+</script>
 </body>
 </html>
