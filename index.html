@@ -14110,5 +14110,72 @@ body.partner-account #recentClientsBox{display:none!important}
   };
 })();
 </script>
+<script id="sphera-status-client-name-and-delivery-consistency-fix">
+(function(){
+  'use strict';
+  const pendingDeliveries=new Map();
+  const text=value=>String(value||'').trim();
+  const clean=value=>text(value).toLocaleLowerCase('ro-RO').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+  function orderById(id){return (typeof orders!=='undefined'&&Array.isArray(orders)?orders:[]).find(item=>String(item.id)===String(id))}
+  function pointFor(order){return text(order?.clientWorkPoint||order?.workPoint||order?.client?.workPoint)}
+  function fullClientName(order){
+    const name=text(order?.client?.name),point=pointFor(order);
+    return point&&clean(name)!==clean(point)&&!clean(name).endsWith(' - '+clean(point))?name+' - '+point:name
+  }
+  function decorateStatusClients(){
+    document.querySelectorAll('#processingOrdersList .workflow-order').forEach(card=>{
+      const id=card.querySelector('[data-checkpoint-order]')?.dataset.checkpointOrder;
+      const order=orderById(id);if(!order)return;
+      const label=[...card.querySelectorAll('.workflow-label')].find(item=>text(item.textContent)==='Client');
+      const value=label?.nextElementSibling;if(value)value.textContent=fullClientName(order);
+      card.querySelectorAll('.workflow-client-workpoint').forEach(item=>item.remove())
+    })
+  }
+  function deliverySnapshot(order){
+    return {
+      workflowStatus:'Livrată',status:'Livrată',workflowChecks:JSON.parse(JSON.stringify(order.workflowChecks||{})),
+      workflowRevision:Number(order.workflowRevision||order.workflowUpdatedAtMs||0),workflowUpdatedAt:order.workflowUpdatedAt||'',
+      workflowUpdatedAtMs:Number(order.workflowUpdatedAtMs||0),workflowUpdatedBy:order.workflowUpdatedBy||'',
+      deliveredAt:order.deliveredAt,deliveredDate:order.deliveredDate,deliveredTime:order.deliveredTime,deliveredBy:order.deliveredBy
+    }
+  }
+  function restorePendingDelivery(order,snapshot){
+    if(!order||clean(order.workflowStatus||order.status)==='livrata')return;
+    Object.keys(snapshot).forEach(key=>{if(snapshot[key]!==undefined)order[key]=key==='workflowChecks'?JSON.parse(JSON.stringify(snapshot[key])):snapshot[key]})
+  }
+  function stabilizeDeliveries(){
+    const now=Date.now();
+    pendingDeliveries.forEach((entry,id)=>{
+      if(now>entry.expiresAt){pendingDeliveries.delete(id);return}
+      const order=orderById(id);if(!order)return;
+      const remoteRevision=Number(order.workflowRevision||order.workflowUpdatedAtMs||0);
+      if(clean(order.workflowStatus||order.status)==='livrata'&&remoteRevision>=entry.revision){pendingDeliveries.delete(id);return}
+      if(remoteRevision<=entry.revision)restorePendingDelivery(order,entry.snapshot)
+    })
+  }
+  const previousApply=window.SPHERA_applyCheckpoint;
+  if(typeof previousApply==='function')window.SPHERA_applyCheckpoint=function(event,id,status){
+    const order=orderById(id),before=clean(order?.workflowStatus||order?.status);
+    const result=previousApply.apply(this,arguments);
+    if(order&&clean(status)==='livrata'&&clean(order.workflowStatus||order.status)==='livrata'&&before!=='livrata'){
+      const persist=window.SPHERA_persistWorkflowState;
+      const persistence=typeof persist==='function'?persist(order):Promise.resolve(false);
+      const snapshot=deliverySnapshot(order),revision=Number(snapshot.workflowRevision||snapshot.workflowUpdatedAtMs||Date.now());
+      pendingDeliveries.set(String(order.id),{snapshot,revision,expiresAt:Date.now()+30000});
+      if(typeof save==='function')save();
+      Promise.resolve(persistence).then(saved=>{if(saved)pendingDeliveries.delete(String(order.id))}).catch(error=>console.error('SPHERA delivery persistence error',error))
+    }
+    return result
+  };
+  const previousStatusRender=window.SPHERA_renderStatusOrders;
+  if(typeof previousStatusRender==='function')window.SPHERA_renderStatusOrders=function(){
+    stabilizeDeliveries();const result=previousStatusRender.apply(this,arguments);decorateStatusClients();return result
+  };
+  window.renderProcessingOrders=function(){return window.SPHERA_renderStatusOrders()};
+  const previousRender=window.render;
+  if(typeof previousRender==='function')window.render=function(){stabilizeDeliveries();return previousRender.apply(this,arguments)};
+  decorateStatusClients()
+})();
+</script>
 </body>
 </html>
