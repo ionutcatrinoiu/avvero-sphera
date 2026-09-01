@@ -14030,5 +14030,85 @@ body.partner-account #recentClientsBox{display:none!important}
   };
 })();
 </script>
+<script id="sphera-bucharest-zone-and-master-delivery-fix">
+(function(){
+  'use strict';
+  const text=value=>String(value||'').trim();
+  const clean=value=>text(value).toLocaleLowerCase('ro-RO').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim();
+  const BUCHAREST_ZONE=[
+    'bucuresti','ilfov','valcea','ramnicu valcea','dragasani','caras severin','resita','caransebes',
+    'arges','pitesti','mioveni','curtea de arges','dolj','craiova','olt','slatina','caracal',
+    'mehedinti','drobeta turnu severin','turnu severin','gorj','targu jiu','tg jiu',
+    'teleorman','alexandria','rosiori de vede','turnu magurele','giurgiu'
+  ];
+  function isBucharestUser(){return clean(currentUser?.center).replace(/^\d+\s+/,'')==='bucuresti'}
+  function clientForOrder(order){
+    const code=text(order?.client?.code||order?.clientCode);
+    return (typeof CLIENTS!=='undefined'&&Array.isArray(CLIENTS)?CLIENTS:[]).find(client=>text(client?.code)===code)
+  }
+  function placeValues(item){
+    const client=item?.client&&typeof item.client==='object'?item.client:item;
+    const known=item?.client?clientForOrder(item):null;
+    return [client?.county,client?.judet,client?.city,client?.locality,client?.workPoint,item?.clientWorkPoint,item?.workPoint,known?.county,known?.judet,known?.city,known?.locality]
+      .filter(Boolean).map(clean).join(' ')
+  }
+  function inBucharestZone(item){
+    const place=placeValues(item);
+    return BUCHAREST_ZONE.some(alias=>new RegExp('(^| )'+clean(alias).replace(/ /g,'\\s+')+'( |$)').test(place))
+  }
+
+  const previousClientAllowed=window.clientAllowedForLoggedCenter;
+  window.clientAllowedForLoggedCenter=function(client){
+    if(isBucharestUser()&&inBucharestZone(client))return true;
+    return typeof previousClientAllowed==='function'?previousClientAllowed.apply(this,arguments):false
+  };
+  const previousVisibleOrders=window.visibleOrders;
+  window.visibleOrders=function(){
+    const result=typeof previousVisibleOrders==='function'?previousVisibleOrders.apply(this,arguments):(orders||[]);
+    if(!isBucharestUser())return result;
+    const merged=new Map(result.map(order=>[String(order.id),order]));
+    (orders||[]).filter(inBucharestZone).forEach(order=>merged.set(String(order.id),order));
+    return [...merged.values()]
+  };
+  const previousProcessingOrders=window.processingVisibleOrders;
+  window.processingVisibleOrders=function(){
+    const result=typeof previousProcessingOrders==='function'?previousProcessingOrders.apply(this,arguments):(orders||[]);
+    if(!isBucharestUser())return result;
+    const merged=new Map(result.map(order=>[String(order.id),order]));
+    (orders||[]).filter(inBucharestZone).forEach(order=>merged.set(String(order.id),order));
+    return [...merged.values()]
+  };
+
+  function isMaster(){
+    const role=clean(currentUser?.role),template=clean(currentUser?.permissionTemplate);
+    return ['iasi','master','operator master'].includes(role)||['master','operator master'].includes(template)
+  }
+  function currentStatus(order){return clean(order?.workflowStatus||(order?.status==='Livrată'?'Livrată':'Lansată'))}
+  function masterMayDeliver(status,order){
+    return isMaster()&&clean(status)==='livrata'&&order&&['facturata','receptie'].includes(currentStatus(order))
+  }
+  const previousCanSet=window.canSetWorkflowStep;
+  window.canSetWorkflowStep=function(status,order){
+    if(masterMayDeliver(status,order))return true;
+    return typeof previousCanSet==='function'?previousCanSet.apply(this,arguments):false
+  };
+  const previousCheckpoint=window.SPHERA_applyCheckpoint;
+  window.SPHERA_applyCheckpoint=function(event,id,status){
+    const order=(typeof orders!=='undefined'&&Array.isArray(orders)?orders:[]).find(item=>String(item.id)===String(id));
+    if(!masterMayDeliver(status,order))return typeof previousCheckpoint==='function'?previousCheckpoint.apply(this,arguments):false;
+    event?.preventDefault?.();event?.stopPropagation?.();event?.stopImmediatePropagation?.();
+    const now=new Date(),name=text(currentUser?.name||currentUser?.displayName||currentUser?.username)||'Operator Master';
+    order.workflowStatus='Livrată';order.status='Livrată';order.deliveredAt=now.getTime();
+    order.deliveredDate=now.toLocaleDateString('ro-RO',{day:'2-digit',month:'2-digit',year:'numeric'});
+    order.deliveredTime=now.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});order.deliveredBy=name;
+    if(!order.workflowChecks||typeof order.workflowChecks!=='object')order.workflowChecks={};
+    order.workflowChecks['Livrată']={name,username:text(currentUser?.username),uid:text(currentUser?.uid||currentUser?.id),at:now.toISOString(),date:order.deliveredDate,time:order.deliveredTime};
+    if(typeof persistDeliveryEvent==='function')persistDeliveryEvent(order);
+    if(typeof save==='function')save();
+    if(typeof window.SPHERA_updateStatusCard==='function')window.SPHERA_updateStatusCard(order);else if(typeof render==='function')render();
+    return false
+  };
+})();
+</script>
 </body>
 </html>
