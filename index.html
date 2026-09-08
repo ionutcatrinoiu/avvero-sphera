@@ -2486,6 +2486,7 @@ function isDelayedOrder(o){
  const due=addBusinessDays(o.date,standardDeliveryDays(o));
  return !!due&&Date.now()>due.getTime();
 }
+function isDisplayableOrder(o){return !!(o&&o.client&&typeof o.client==='object'&&o.client.name&&o.code)}
 function canonicalRxPhrase(value){
  const raw=String(value||'').trim().toLowerCase().replace(/,/g,'.').replace(/\s+/g,' ');
  if(!raw)return '';
@@ -2551,7 +2552,7 @@ function setWorkflowStatus(id,status){
 function renderProcessingOrders(){
   const box=document.getElementById('processingOrdersList');if(!box)return;
   const query=norm(document.getElementById('processingSearch')?.value||'');
-  let list=processingVisibleOrders().filter(o=>o.status!=='Livrată' || (o.workflowStatus && o.workflowStatus!=='Livrată'));
+  let list=processingVisibleOrders().filter(isDisplayableOrder).filter(o=>o.status!=='Livrată' || (o.workflowStatus && o.workflowStatus!=='Livrată'));
   if(query){
     list=list.filter(o=>{
       const status=WORKFLOW_STEPS[workflowIndex(o)]||'Lansată';
@@ -2577,7 +2578,7 @@ function renderProcessingOrders(){
 }
 
 function render(){
- const scoped=visibleOrders();
+ const scoped=visibleOrders().filter(isDisplayableOrder);
  kTotal.textContent=scoped.length;
  kToday.textContent=scoped.filter(o=>o.date===new Date().toISOString().slice(0,10)).length;
  const ko=document.getElementById('kOpen'); if(ko) ko.textContent=scoped.filter(o=>o.status!=='Livrată').length;
@@ -4104,7 +4105,7 @@ cursor:pointer;
   window.renderProcessingOrders=function(){
     const box=document.getElementById('processingOrdersList');if(!box)return;
     const query=norm(document.getElementById('processingSearch')?.value||'');
-    let list=processingVisibleOrders().filter(o=>o.status!=='Livrată' || (o.workflowStatus && o.workflowStatus!=='Livrată'));
+    let list=processingVisibleOrders().filter(isDisplayableOrder).filter(o=>o.status!=='Livrată' || (o.workflowStatus && o.workflowStatus!=='Livrată'));
     if(query){
       list=list.filter(o=>{
         const steps=orderWorkflowSteps(o);
@@ -4526,7 +4527,7 @@ cursor:pointer;
     if (!box) return;
 
     const query = norm(document.getElementById('processingSearch')?.value || '');
-    let list = processingVisibleOrders().filter(order =>
+    let list = processingVisibleOrders().filter(isDisplayableOrder).filter(order =>
       order.status !== 'Livrată' && order.workflowStatus !== 'Livrată'
     );
 
